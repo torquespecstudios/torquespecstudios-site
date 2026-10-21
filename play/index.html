@@ -163,6 +163,12 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #ready .mrow{padding:5px 10px;font-size:12px}
 #ready .modes{display:flex;gap:8px;pointer-events:auto;margin-bottom:2px}
 #ready p.modeinfo{animation:none;font-size:12px;letter-spacing:.08em;opacity:.9;margin:0 0 14px}
+#ready .raceRow{display:flex;gap:8px;pointer-events:auto;margin:-6px 0 14px}
+#ready .raceRow .chip{font-size:13px;padding:7px 12px;background:rgba(13,17,23,.62);border-color:rgba(255,255,255,.22)}
+/* three mode chips must stay on one line down to a 320pt-wide iPhone SE */
+#ready .modes .chip{white-space:nowrap}
+@media (max-width:360px){#ready .modes{gap:6px}#ready .modes .chip{padding:8px 10px;font-size:13px}}
+#ready .raceRow[hidden]{display:none}
 #ready p{margin:0;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:14px;text-wrap:balance;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:pulse 1.3s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.45}}
 
@@ -300,8 +306,9 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 </div>
 
 <div class="center" id="ready" hidden>
-  <div class="modes" id="modeChips"><button class="chip" type="button" data-mode="0">Endless</button><button class="chip" type="button" data-mode="1">Daily Road</button></div>
+  <div class="modes" id="modeChips"><button class="chip" type="button" data-mode="0">Endless</button><button class="chip" type="button" data-mode="1">Daily Road</button><button class="chip" type="button" data-mode="2" id="raceChip">Race a friend</button></div>
   <p class="modeinfo" id="modeInfo"></p>
+  <div class="raceRow" id="raceRow" hidden><button class="chip" type="button" id="raceInvite">Invite friends</button><button class="chip" type="button" id="raceNew">New race road</button></div>
   <div class="disp" id="readyT">Tap to start</div>
   <p id="readyS">Tap to steer left<br>Let go to swing right</p>
   <div class="mlist" id="rMissions"></div>
@@ -1102,7 +1109,7 @@ $('mute').addEventListener('click',e=>{e.stopPropagation();audioInit();setMute(!
 /* ---------- game state ---------- */
 let gear=0,engRpm=900,counting=0,tut=false,tutS=0,tutT=0,coachT=0,engA=.75,state='garage',holding=false,C,runCans=0,bonus=0,crashT=0,shake=0,orbA=.6,drag=null,camYaw=0;
 const lookT=new THREE.Vector3();
-function resetWorld(){roadRnd=dailyMode&&state==='ready'?mulberry(dailySeed()):Math.random;for(const[,ch]of chunks)dropChunk(ch);chunks.clear();RC=[];RW=[];CANS={};CUT={};BOOSTS={};OBST={};HPF=[];lastObst=0;lastBoost=0;rAng=0;rTarget=0;hpN=0;genTo(80);
+function resetWorld(){roadRnd=state!=='ready'?Math.random:dailyMode?mulberry(dailySeed()):racing()?mulberry(raceSeed()):Math.random;for(const[,ch]of chunks)dropChunk(ch);chunks.clear();RC=[];RW=[];CANS={};CUT={};BOOSTS={};OBST={};HPF=[];lastObst=0;lastBoost=0;rAng=0;rTarget=0;hpN=0;genTo(80);
  C={x:0,d:START_D,a:0,av:0,v:spec?spec.start:22,y:0,roll:0,pitch:0,spin:0,t:0};runCans=0;bonus=0;clearSkids();camYaw=0;
  smoke.forEach(p=>{p.life=0;p.s.visible=false});sparks.forEach(p=>{p.life=0;p.s.visible=false});updateChunks(C.d)}
 function score(d){return Math.floor(((d??C.d)-START_D)*spec.mult+bonus)}
@@ -1115,7 +1122,7 @@ function goReady(snap){setEngineView(false);if(pv){cfg[pv.k]=pv.prev;pv=null;reb
  lastDriven=cfg.model;store.set('lastDriven',lastDriven);tut=!store.get('tutDone',false);if(tut)dailyMode=false;renderModes();show('modeChips',!tut);show('modeInfo',!tut);tutS=0;tutT=0;refreshMissions();renderMissions('rMissions');show('rMissions',!tut);
  state='ready';resetWorld();placeBestFlag();holding=false;hideRunUI();show('garage',0);show('over',0);show('hud',1);show('ready',1);applyView();updateHud();
  if(snap){cam.position.set(0,3.4,-C.d+9);lookT.set(0,.9,-C.d-14)}}
-function startRun(){state='play';runDay=todayKey();show('ready',0);show('pauseBtn',1);holding=true;gear=0;runBest=dailyMode?dailyBestToday():bestDist;ghostRec=[];ghostRecT=0;ghostPath=dailyMode&&dBest.date===todayKey()&&Array.isArray(dBest.ghost)?dBest.ghost:null;if(ghostPath)buildGhost();beatBest=false;runRegion=0;reviveUsed=false;runAch=[];guardT=0;boostT=-GUARD_GRACE;boosts=0;combo=0;comboT=0;nearArmed=false;nearCD=0;nearMiss=0;iceT=0}
+function startRun(){state='play';runDay=todayKey();show('ready',0);show('pauseBtn',1);holding=true;gear=0;runBest=dailyMode?dailyBestToday():racing()?raceBest():bestDist;ghostRec=[];ghostRecT=0;ghostPath=dailyMode&&dBest.date===todayKey()&&Array.isArray(dBest.ghost)?dBest.ghost:racing()&&raceBests[raceCode]&&Array.isArray(raceBests[raceCode].ghost)?raceBests[raceCode].ghost:null;if(ghostPath)buildGhost();beatBest=false;runRegion=0;reviveUsed=false;runAch=[];guardT=0;boostT=-GUARD_GRACE;boosts=0;combo=0;comboT=0;nearArmed=false;nearCD=0;nearMiss=0;iceT=0}
 /* ---------- boost pads ---------- */
 // driving over a pad gives BOOST_T seconds of double distance points, a 10% speed lift with the full speed effects,
 // and guardrails, so a boost is always a reward (a real +25% speed jump caused ~75% of simulated crashes)
@@ -1149,11 +1156,34 @@ let runDay='';
 const todayKey=()=>dayKey(new Date());
 function dailySeed(){let h=2166136261;for(const c of'hairpin'+todayKey())h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0}
 function dailyBestToday(){return dBest.date===todayKey()?num(dBest.dist,0):0}
+/* ---------- race codes ---------- */
+// a 5-character code seeds one road, and torquespecstudios.com/play/?race=CODE opens it, so a group of friends all drive
+// the same road whenever they like and compare distances. Each code keeps your own best and ghost on this device.
+// The alphabet leaves out 0/O, 1/I/L so codes read cleanly over text.
+const RACE_URL='https://torquespecstudios.com/play/?race=',RACE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789',RACE_RX=/^[A-HJKMNP-Z2-9]{5}$/;
+let raceCode=String(store.get('raceCode','')),raceMode=store.get('raceMode',false)===true,raceBests=obj(store.get('raceBests',{}));
+if(!RACE_RX.test(raceCode)){raceCode='';raceMode=false}
+try{const q=(new URLSearchParams(location.search).get('race')||'').toUpperCase();if(RACE_RX.test(q)){raceCode=q;raceMode=true;dailyMode=false;store.set('raceCode',q);store.set('raceMode',true);store.set('dailyMode',false)}}catch(e){}
+// the tutorial always runs on a random road; the race road waits for the first real run
+const racing=()=>raceMode&&!!raceCode&&!tut&&!dailyMode;
+function raceSeed(){let h=2166136261;for(const c of'race'+raceCode)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0}
+function raceBest(){const r=raceBests[raceCode];return r?num(r.dist,0):0}
+function newRaceCode(){let c='';for(let i=0;i<5;i++)c+=RACE_ABC[Math.random()*RACE_ABC.length|0];return c}
+function shareRace(){const text=`Race me on Swervy! Same road for everyone with code ${raceCode}. Tap to steer, let go to swing: ${RACE_URL}${raceCode}`,info=$('modeInfo');
+ const done=t=>{info.textContent=t};
+ if(NATIVE.share){NATIVE.share.share({title:'Swervy race',text,dialogTitle:'Invite friends'}).catch(()=>{});return}
+ if(navigator.share){navigator.share({text}).catch(()=>{});return}
+ (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>done('Race link copied. Paste it in your group chat'),()=>done(RACE_URL+raceCode))}
 // the first Daily Road run of each day pays double cans, a reason to come back for the new road every day
 const dailyBonusLeft=()=>store.get('dailyBonus','')!==todayKey();
-function renderModes(){$('modeChips').hidden=tut;$('modeInfo').hidden=tut;document.querySelectorAll('#modeChips .chip').forEach(b=>{b.classList.toggle('on',+b.dataset.mode===+dailyMode);b.classList.toggle('bonus',b.dataset.mode==='1'&&dailyBonusLeft())});
- const b=dailyBestToday(),x2=dailyBonusLeft()?'First run today pays ×2 cans':'';$('modeInfo').textContent=dailyMode?`Same road for everyone today · ${x2||(b?'Your best '+fmt(b)+' m':'No run yet today')}`:x2?'A new road every run · Daily Road pays ×2 today':'A new road every run'}
-document.querySelectorAll('#modeChips .chip').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const m=b.dataset.mode==='1';if(m===dailyMode)return;dailyMode=m;store.set('dailyMode',m);goReady(true)}));
+function renderModes(){$('modeChips').hidden=tut;$('modeInfo').hidden=tut;const md=dailyMode?1:raceMode&&raceCode?2:0;$('raceChip').textContent=raceCode?'Race '+raceCode:'Race a friend';$('raceRow').hidden=tut||md!==2;document.querySelectorAll('#modeChips .chip').forEach(b=>{b.classList.toggle('on',+b.dataset.mode===md);b.classList.toggle('bonus',b.dataset.mode==='1'&&dailyBonusLeft())});
+ const b=dailyBestToday(),x2=dailyBonusLeft()?'First run today pays ×2 cans':'';$('modeInfo').textContent=md===2?`Same road for everyone with the code · ${raceBest()?'Your best '+fmt(raceBest())+' m':'No run yet'}`:dailyMode?`Same road for everyone today · ${x2||(b?'Your best '+fmt(b)+' m':'No run yet today')}`:x2?'A new road every run · Daily Road pays ×2 today':'A new road every run'}
+document.querySelectorAll('#modeChips .chip').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const m=+b.dataset.mode,cur=dailyMode?1:raceMode&&raceCode?2:0;if(m===cur)return;
+ // picking Race with no code yet makes a new race road and opens the invite straight away
+ const fresh=m===2&&!raceCode;if(fresh){raceCode=newRaceCode();store.set('raceCode',raceCode)}
+ dailyMode=m===1;raceMode=m===2;store.set('dailyMode',dailyMode);store.set('raceMode',raceMode);goReady(true);if(fresh)shareRace()}));
+$('raceInvite').addEventListener('click',e=>{e.stopPropagation();shareRace()});
+$('raceNew').addEventListener('click',e=>{e.stopPropagation();raceCode=newRaceCode();store.set('raceCode',raceCode);goReady(true);shareRace()});
 // the ghost is a see-through blue copy of the car you're driving (shares its geometry, so it costs no extra memory)
 let ghost=new THREE.Group();const ghostMat=new THREE.MeshBasicMaterial({color:0x8fd0ff,transparent:true,opacity:.38,depthWrite:true});
 ghost.visible=false;scene.add(ghost);
@@ -1167,7 +1197,7 @@ function updateGhost(){const on=state==='play'&&ghostPath&&ghostPath.length>1;if
 let bestDist=num(store.get('bestDist',0),0),runBest=0,beatBest=false,bestFlag=null;
 const flagTex=canvasTex(512,64,(g,w,h)=>{for(let x=0;x<w;x+=16)for(let y=0;y<h;y+=16){g.fillStyle=((x+y)/16)%2?'#16181c':'#f4f2ec';g.fillRect(x,y,16,16)}
  g.fillStyle='#f2b33d';g.fillRect(w/2-120,8,240,h-16);g.fillStyle='#1d1508';g.font='bold 40px "Arial Narrow",Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('YOUR BEST',w/2,h/2+2)});
-function placeBestFlag(clearOnly){if(bestFlag){scene.remove(bestFlag);bestFlag.traverse(o=>{if(o.geometry)o.geometry.dispose()})}bestFlag=null;const bd=dailyMode&&state!=='garage'?dailyBestToday():bestDist;if(clearOnly||bd<40)return;
+function placeBestFlag(clearOnly){if(bestFlag){scene.remove(bestFlag);bestFlag.traverse(o=>{if(o.geometry)o.geometry.dispose()})}bestFlag=null;const bd=state==='garage'?bestDist:dailyMode?dailyBestToday():racing()?raceBest():bestDist;if(clearOnly||bd<40)return;
  const fd=START_D+bd,r=road(fd),dc=road(fd+3).c-road(fd-3).c,half=r.w/2+.8,g=new THREE.Group();
  const pole=new THREE.MeshStandardMaterial({color:0xe8e6e0,roughness:.5}),ban=new THREE.MeshBasicMaterial({map:flagTex,side:THREE.DoubleSide});
  for(const s of[-1,1]){const p=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,4.6,10),pole);p.position.set(s*half,2.3,0);p.castShadow=true;g.add(p)}
@@ -1281,6 +1311,7 @@ function showXP(r){const tok=++xpAnim,bar=$('oXPbar'),pct=(v,L)=>Math.min(100,v/
    $('oLv').textContent='Level '+level;const u=$('oLvUp');u.innerHTML='Level up! <b>+'+r.reward+'</b> <span class="can"></span>';u.hidden=false;chime([392,523,659,784,1047]);buzz(40)},850)},300)}
 function bankRun(D=C.d){const dist=Math.floor(D-START_D);if(dist>bestDist){bestDist=dist;store.set('bestDist',bestDist)}
  if(dailyMode&&runDay===todayKey()&&dist>dailyBestToday()){dBest={date:runDay,dist,ghost:ghostRec};store.set('dailyBest',dBest)}
+ if(racing()&&dist>raceBest()){delete raceBests[raceCode];raceBests[raceCode]={dist,ghost:ghostRec};const ks=Object.keys(raceBests);while(ks.length>8)delete raceBests[ks.shift()];store.set('raceBests',raceBests)}
  missionEvent('run');store.set('missions',missions);bumpStat('runs');saveStats();lastXP=awardXP(Math.max(0,dist),runCans,beatBest,missionXP);missionXP=0;
  const sc=score(D),dbl=dailyMode&&runCans>0&&store.get('dailyBonus','')!==runDay,gained=runCans*spec.canMult*(dbl?2:1);if(dbl)store.set('dailyBonus',runDay);cans+=gained;store.set('cans',cans);const nb=sc>best;if(nb){best=sc;store.set('best',best)}return{sc,gained,nb,dbl}}
 function crash(){state='crash';crashT=0;C.vx=Math.sin(C.a)*C.v;C.vz=Math.cos(C.a)*C.v;C.vy=3+C.v*.07;const s=C.av>=0?1:-1;C.spinV=s*(2+Math.random()*2.5);C.rollV=s*(3+Math.random()*4);
@@ -1300,11 +1331,11 @@ function acceptRevive(){if(state!=='revive'||cans<REVIVE_COST)return;audioInit()
 function maybeAskReview(){const R=NATIVE.review;if(!R||stats.runs<8)return;if(Date.now()-num(store.get('reviewAsked',0),0)<120*864e5)return;
  store.set('reviewAsked',Date.now());setTimeout(()=>R.requestReview().catch(()=>{}),1500)}
 function finishRun(){show('revive',0);show('hud',0);
- const{sc,gained,nb,dbl}=bankRun(crashD);lastRun={dist:Math.max(0,Math.floor(crashD-START_D)),sc,car:MODELS[cfg.model].name,best:beatBest||nb,daily:dailyMode};lastRun.region=biomeAt(lastRun.dist);$('shareBtn').textContent=lastRun.best?'Share best!':'Share';
+ const{sc,gained,nb,dbl}=bankRun(crashD);lastRun={dist:Math.max(0,Math.floor(crashD-START_D)),sc,car:MODELS[cfg.model].name,best:beatBest||nb,daily:dailyMode,race:racing()?raceCode:''};lastRun.region=biomeAt(lastRun.dist);$('shareBtn').textContent=lastRun.best?'Share best!':'Share';
  $('oDist').innerHTML=fmt(sc)+'<small>pts</small>';$('oMeters').textContent=fmt(Math.max(0,Math.floor(crashD-START_D)))+'m';$('oBestWrap').innerHTML=nb&&sc>0?'<b>New best!</b>':'Best <b>'+fmt(best)+'</b>';$('oCans').textContent='+'+gained+(dbl?' ×2':'');$('oTip').innerHTML=pickTip();
  // a run that ends close to the best shows exactly how close, which is the strongest reason to tap Retry
  const rd=lastRun.dist,gap=runBest-rd,close=!lastRun.best&&runBest>=100&&gap>0&&rd>=runBest*.75;$('oClose').hidden=!close;
- if(close)$('oClose').innerHTML=`So close! <b>${fmt(gap)} m</b> short of ${dailyMode?"today's":'your'} <b>${fmt(runBest)} m</b> best<div class="bar"><i style="width:${(rd/runBest*100).toFixed(1)}%"></i></div>`;$('toGarage').classList.toggle('nudge',canSpend());
+ if(close)$('oClose').innerHTML=`So close! <b>${fmt(gap)} m</b> short of ${dailyMode?"today's":racing()?"this race's":'your'} <b>${fmt(runBest)} m</b> best<div class="bar"><i style="width:${(rd/runBest*100).toFixed(1)}%"></i></div>`;$('toGarage').classList.toggle('nudge',canSpend());
  state='over';checkAch();const got=runAch;$('oAch').hidden=!got.length;$('oAch').innerHTML=got.map(([n,r])=>`${TROPHY} ${n} unlocked · +${r} <span class="can"></span>`).join('<br>');
  renderMissions('oMissions');show('over',1);if(lastXP)showXP(lastXP);if(lastRun.best)maybeAskReview()}
 function controlText(){$('readyT').textContent='Tap to start';$('readyS').innerHTML='Tap to steer '+sideH()+'<br>Let go to swing '+sideR();$('countS').textContent='Get ready · tap to steer '+sideH()}
@@ -1349,7 +1380,7 @@ let lastRun=null,shareFile=null;
 // set this to the App Store link (https://apps.apple.com/app/id…) once App Store Connect assigns one; every share then carries it
 const APP_STORE_URL='';
 function shareText(){const reached=lastRun.region?` and reached ${REGIONS[lastRun.region].n}`:'',link=APP_STORE_URL?' '+APP_STORE_URL:'';
- return(lastRun.daily?`I drove ${fmt(lastRun.dist)} m on today's Swervy Daily Road${reached}. Same road for everyone, can you beat it?`:`I drove ${fmt(lastRun.dist)} m in Swervy${reached} (${fmt(lastRun.sc)} pts). Can you beat it?`)+link}
+ return(lastRun.race?`I drove ${fmt(lastRun.dist)} m on Swervy race ${lastRun.race}${reached}. Same road for you, can you beat it? ${RACE_URL}${lastRun.race}`:lastRun.daily?`I drove ${fmt(lastRun.dist)} m on today's Swervy Daily Road${reached}. Same road for everyone, can you beat it?`:`I drove ${fmt(lastRun.dist)} m in Swervy${reached} (${fmt(lastRun.sc)} pts). Can you beat it?`)+link}
 function drawCard(){const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
  // the card's sky matches the furthest region the run reached: golden-hour forest, autumn dusk, or the snowy pass at night
  const rg=lastRun.region||0,PAL=[['#21406f','#b9988f','#ebbb88','rgba(93,105,133,.9)'],['#2a2348','#a2566a','#e48a4e','rgba(84,64,92,.92)'],['#060a16','#16243f','#2c4064','rgba(214,225,238,.88)']][rg];
@@ -1361,7 +1392,7 @@ function drawCard(){const W=1080,H=1350,c=document.createElement('canvas');c.wid
  const path=()=>{g.beginPath();g.moveTo(...road[0]);for(let i=1;i<road.length-1;i++){const m=[(road[i][0]+road[i+1][0])/2,(road[i][1]+road[i+1][1])/2];g.quadraticCurveTo(...road[i],...m)}g.lineTo(...road[road.length-1])};
  g.strokeStyle='#e9e5d9';g.lineWidth=150;path();g.stroke();g.strokeStyle='#45474c';g.lineWidth=136;path();g.stroke();g.strokeStyle='#e7ad2e';g.lineWidth=6;g.setLineDash([34,30]);path();g.stroke();g.setLineDash([]);
  g.textAlign='center';g.fillStyle='#f5f0e6';const disp='800 italic 132px "Saira Condensed","Arial Narrow",Impact,sans-serif';
- g.font=disp;const w1=g.measureText('SWER').width,w2=g.measureText('VY').width,x0=W/2-(w1+w2)/2;g.textAlign='left';g.fillText('SWER',x0,190);g.fillStyle='#f2b33d';g.fillText('VY',x0+w1,190);g.textAlign='center';if(lastRun.daily){g.font='800 34px "Barlow",system-ui,sans-serif';g.fillStyle='#f5f0e6';g.fillText('DAILY ROAD · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase(),W/2,250)}
+ g.font=disp;const w1=g.measureText('SWER').width,w2=g.measureText('VY').width,x0=W/2-(w1+w2)/2;g.textAlign='left';g.fillText('SWER',x0,190);g.fillStyle='#f2b33d';g.fillText('VY',x0+w1,190);g.textAlign='center';if(lastRun.race){g.font='800 34px "Barlow",system-ui,sans-serif';g.fillStyle='#f5f0e6';g.fillText('RACE · '+lastRun.race,W/2,250)}else if(lastRun.daily){g.font='800 34px "Barlow",system-ui,sans-serif';g.fillStyle='#f5f0e6';g.fillText('DAILY ROAD · '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase(),W/2,250)}
  g.fillStyle='#f5f0e6';g.font='800 italic 230px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.shadowColor='rgba(0,0,0,.35)';g.shadowBlur=30;g.fillText(fmt(lastRun.dist)+' m',W/2,440);g.shadowBlur=0;
  g.font='700 44px "Barlow",system-ui,sans-serif';g.fillStyle='#f5f0e6';g.fillText(`${fmt(lastRun.sc)} pts · ${lastRun.car}`,W/2,510);
  if(lastRun.best){g.fillStyle='#f2b33d';g.beginPath();if(g.roundRect)g.roundRect(W/2-170,560,340,70,35);else g.rect(W/2-170,560,340,70);g.fill();g.fillStyle='#1d1508';g.font='800 40px "Barlow",system-ui,sans-serif';g.fillText('NEW BEST',W/2,608)}
@@ -1521,7 +1552,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  if(state==='play'){
   C.v=spec.start+(spec.max-spec.start)*sf+clamp((C.d-START_D-2000)*.002,0,10);const pd=C.d;if(boostT>0)C.v*=1.1;if(boostT>-GUARD_GRACE)boostT-=dt;if(guardT>0)guardT-=dt;
   // steering eases in over the first 1.5s so an early release is recoverable
-  C.t+=dt;if(dailyMode){ghostRecT+=dt;if(ghostRecT>=.1){ghostRecT-=.1;ghostRec.push([Math.round(C.d*10)/10,Math.round(C.x*100)/100])}}
+  C.t+=dt;if(dailyMode||racing()){ghostRecT+=dt;if(ghostRecT>=.1){ghostRecT-=.1;ghostRec.push([Math.round(C.d*10)/10,Math.round(C.x*100)/100])}}
   const tp=clamp((C.d-START_D)/3000,0,1),ts=(.55+.6*tp*tp*(3-2*tp))*Math.min(1,.3+C.t/1.5);if(iceT>0)iceT-=dt;C.av+=((holding!==settings.flip?-1:1)*spec.turn*ts-C.av)*Math.min(1,dt*(7+10*tp)*spec.resp*(iceT>0?.28:1));
   C.a=Math.max(-.95,Math.min(.95,C.a+C.av*dt));
   C.x+=Math.sin(C.a)*C.v*dt;C.d+=Math.cos(C.a)*C.v*dt;
