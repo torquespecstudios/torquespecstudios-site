@@ -1091,6 +1091,11 @@ function playStep(s,t){const b=s%16,ch=CHORDS[(s>>4)%4],drive=state==='play'||st
   if(b===4||b===12){noiseHit(t,1500,.2,.15);voice('triangle',190,t,.1,.12,.002,2000)}
   if(b%2===0)noiseHit(t,7000,b%4===2?.06:.035,.04)}}
 document.addEventListener('visibilitychange',()=>{if(!AC)return;document.hidden?AC.suspend():AC.resume()});
+// iPhone Safari only lets audio start on a finger-up, tap or key press, not on the finger-down that starts a run, so a
+// context made in pointerdown stays suspended. Every such gesture resumes it (also after a phone call interrupts it) and
+// plays one silent sample, the older iOS unlock; once it runs, this costs one state check per tap
+function audioUnlock(){audioInit();if(!AC||AC.state==='running')return;AC.resume();try{const b=AC.createBufferSource();b.buffer=AC.createBuffer(1,1,22050);b.connect(AC.destination);b.start(0)}catch(e){}}
+for(const ev of['pointerup','touchend','click','keydown'])window.addEventListener(ev,audioUnlock,{capture:true,passive:true});
 function setMute(m){muted=m;store.set('muted',m);$('mute').style.opacity=m?.45:1;$('mute').setAttribute('aria-pressed',!m);if(AC)master.gain.value=m?0:1}
 $('mute').addEventListener('click',e=>{e.stopPropagation();audioInit();setMute(!muted)});setMute(muted);
 
