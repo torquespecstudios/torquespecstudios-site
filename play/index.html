@@ -291,8 +291,8 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 <div class="center" id="ready" hidden>
   <div class="modes" id="modeChips"><button class="chip" type="button" data-mode="0">Endless</button><button class="chip" type="button" data-mode="1">Daily Road</button></div>
   <p class="modeinfo" id="modeInfo"></p>
-  <div class="disp" id="readyT">Hold to steer left</div>
-  <p id="readyS">Let go to swing right<br>Tap to start</p>
+  <div class="disp" id="readyT">Tap to start</div>
+  <p id="readyS">Tap to steer left<br>Let go to swing right</p>
   <div class="mlist" id="rMissions"></div>
 </div>
 
@@ -316,7 +316,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 <div class="center" id="count" hidden>
   <div class="disp" id="countN">3</div>
-  <p id="countS">Get ready · hold to steer left</p>
+  <p id="countS">Get ready · tap to steer left</p>
 </div>
 
 <div class="center" id="achPanel" hidden>
@@ -352,7 +352,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <div class="srow"><span>Vibration<small>Buzz on crashes and bumps</small></span><div class="seg" data-s="haptics"></div></div>
     <div class="srow"><span>Graphics<small>Low saves battery on older phones</small></span><div class="seg" data-s="quality"></div></div>
     <div class="srow"><span>Camera shake</span><div class="seg" data-s="shake"></div></div>
-    <div class="srow"><span>Hold to steer<small>Pick right if you play left-handed</small></span><div class="seg" data-s="flip"></div></div>
+    <div class="srow"><span>Tap to steer<small>Pick right if you play left-handed</small></span><div class="seg" data-s="flip"></div></div>
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next drive</button>
     <button class="btn primary" id="setClose">Done</button>
@@ -1241,7 +1241,7 @@ function finishRun(){show('revive',0);show('hud',0);
  if(close)$('oClose').innerHTML=`So close! <b>${fmt(gap)} m</b> short of ${dailyMode?"today's":'your'} <b>${fmt(runBest)} m</b> best<div class="bar"><i style="width:${(rd/runBest*100).toFixed(1)}%"></i></div>`;$('toGarage').classList.toggle('nudge',canSpend());
  state='over';checkAch();const got=runAch;$('oAch').hidden=!got.length;$('oAch').innerHTML=got.map(([n,r])=>`${TROPHY} ${n} unlocked · +${r} <span class="can"></span>`).join('<br>');
  renderMissions('oMissions');show('over',1);if(lastXP)showXP(lastXP);if(lastRun.best)maybeAskReview()}
-function controlText(){$('readyT').textContent='Hold to steer '+sideH();$('readyS').innerHTML='Let go to swing '+sideR()+'<br>Tap to start';$('countS').textContent='Get ready · hold to steer '+sideH()}
+function controlText(){$('readyT').textContent='Tap to start';$('readyS').innerHTML='Tap to steer '+sideH()+'<br>Let go to swing '+sideR();$('countS').textContent='Get ready · tap to steer '+sideH()}
 const TIPS=['Short taps make small corrections. Long holds turn hard.','Hairpins come in chains, so be ready to swing back.','Fuel cans add points <b>and</b> cash.','The road gets narrower and faster the further you go.','Watch the next bend, not your car.'];
 // the Wrecked screen points at the next goal when there is one, otherwise gives a driving tip
 function pickTip(){const can=ORDER.find(id=>!unlocked.includes(id)&&cans>=MODELS[id].price);if(can)return`You can unlock the <b>${MODELS[can].name}</b> in the Garage!`;
@@ -1349,9 +1349,9 @@ function tutTick(dt){tutT+=dt;
  if(C.d>=START_D+TUT_D){tut=false;store.set('tutDone',true);coach('Guardrails off. <b>Good luck!</b>');coachT=2.5;return}
  if(coachT>0){coachT-=dt;return}
  const next=()=>{tutS++;tutT=0;buzz(15)};
- if(tutS===0){coach('Holding steers <b>'+sideH()+'</b>');if(!holding&&tutT>.5)next()}
+ if(tutS===0){coach('Tap to steer <b>'+sideH()+'</b>');if(!holding&&tutT>.5)next()}
  else if(tutS===1){coach('Letting go swings <b>'+sideR()+'</b>');if(holding)next()}
- else if(tutS===2){coach('Hold and let go to <b>follow the road</b>');if(tutT>4)next()}
+ else if(tutS===2){coach('Tap and let go to <b>follow the road</b>');if(tutT>4)next()}
  else if(tutS===3){coach('Grab <span class="can"></span> <b>fuel cans</b> to buy cars and upgrades');if(tutT>4)next()}
  else show('coach',0)}
 function cancelPreview(render=true){if(!pv)return;cfg[pv.k]=pv.prev;pv=null;rebuildCar();if(render)renderGarage()}
