@@ -581,7 +581,7 @@ const SEG=3,CH=30,START_W=14,MIN_W=8,START_D=60;
 // road layout, cans and pads come from roadRnd: Math.random for endless runs, a date-seeded generator for the Daily Road
 const mulberry=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
 let roadRnd=Math.random;
-let RC=[],RW=[],CANS={},BOOSTS={},lastBoost=0,rAng=0,rTarget=0,hpN=0,hpS=1;
+let RC=[],RW=[],CANS={},BOOSTS={},OBST={},HPF=[],lastObst=0,lastBoost=0,rAng=0,rTarget=0,hpN=0,hpS=1;
 function genTo(n){while(RC.length<=n){const i=RC.length;
   if(i<36){RC.push(0);RW.push(START_W);continue}
   const prog=Math.min(1,(i-36)/1500),amp=.55+.25*prog;let ease=.05;
@@ -593,7 +593,26 @@ function genTo(n){while(RC.length<=n){const i=RC.length;
   RW.push(i<636?START_W-(i-36)*.01:Math.max(6.5,MIN_W-(i-636)*.0015));
   // boost pads: from ~540m, at least ~390m apart (~640m on average), set off-centre so grabbing one is a choice
   if(i>200&&i-lastBoost>130&&roadRnd()<.012){BOOSTS[i]=(roadRnd()<.5?-1:1)*(.12+roadRnd()*.16);lastBoost=i}
-  if(i>40&&CANS[i]==null){if(roadRnd()<.02){const o=(roadRnd()*2-1)*.25;for(let k=0;k<4;k++)CANS[i+k*3]=o}else if(roadRnd()<.085)CANS[i]=(roadRnd()*2-1)*.3}}}
+  if(i>40&&CANS[i]==null){if(roadRnd()<.02){const o=(roadRnd()*2-1)*.25;for(let k=0;k<4;k++)CANS[i+k*3]=o}else if(roadRnd()<.085)CANS[i]=(roadRnd()*2-1)*.3}
+  HPF[i]=hpN>0?1:0;placeObstacle(i-OB_LAG)}}
+// road obstacles: from Autumn Ridge (2 km) on, placed OB_LAG segments behind generation so the stretch on both sides is
+// known. Only on calm road (no hairpin, little curve for ~40 m either side), never near a boost pad, spaced further
+// apart early and closer later. Rocks and logs sit on the outer part of one side and never reach the centre line, so a
+// car down the middle always gets through: they narrow the road at that spot rather than block it. Frostline Pass adds ice patches,
+// which make the car slide instead of crashing it. Uses roadRnd, so the Daily Road gets the same obstacles for everyone.
+const OB_D=2000,OB_LAG=14,OB_CALM=13;
+function calmAt(j){for(let k=j-OB_CALM;k<=j+OB_CALM;k++){if(HPF[k]||k<1||k+1>=RC.length)return false;if(Math.abs(RC[k+1]-2*RC[k]+RC[k-1])>.07)return false}return true}
+function placeObstacle(j){const dist=j*SEG-START_D;if(dist<OB_D)return;
+ const gap=Math.max(38,95-(dist-OB_D)/55);if(j-lastObst<gap)return;
+ for(let k=j-8;k<=j+8;k++)if(BOOSTS[k]!=null)return;
+ if(!calmAt(j)||roadRnd()>.35)return;
+ const snow=dist>=4500,side=roadRnd()<.5?-1:1,r=roadRnd(),w=RW[j];let o;
+ if(snow&&r<.4)o={t:'ice',c:side*.2,len:9,half:w*.25};
+ else if(r<(snow?.75:.55))o={t:'rock',c:side*(.3+roadRnd()*.05),s:.8+roadRnd()*.25,snow};
+ else{const L=w*.3;o={t:'log',c:side*(.5-(L/2+.15)/w),L,snow}}
+ // hit sizes are a little smaller than the models, so a near miss reads as a near miss
+ if(o.t==='rock')o.half=o.s*.75;if(o.t==='log')o.half=o.L/2-.1;
+ OBST[j]=o;lastObst=j;for(let k=j-6;k<=j+6;k++)delete CANS[k]}
 function road(d){const f=d/SEG,i=Math.max(0,Math.floor(f)),t=f-i;genTo(i+2);return{c:RC[i]*(1-t)+RC[i+1]*t,w:RW[i]*(1-t)+RW[i+1]*t}}
 
 function ribbon(s0,s1,extra,y,vs){const n=s1-s0+1,pos=new Float32Array(n*6),uv=new Float32Array(n*4),idx=[];
@@ -609,7 +628,9 @@ const G={
  coneA:new THREE.ConeGeometry(1.8,4.6,8).translate(0,3.3,0),coneB:new THREE.ConeGeometry(1.25,3.3,8).translate(0,5.3,0),
  trunk:new THREE.CylinderGeometry(.16,.26,1.4,6).translate(0,.7,0),rock:new THREE.DodecahedronGeometry(.7,0),
  canBody:new THREE.BoxGeometry(.52,.66,.26),canCap:new THREE.CylinderGeometry(.06,.06,.12,10),canHandle:new THREE.BoxGeometry(.3,.07,.08),
- ring:new THREE.RingGeometry(.75,1.05,32).rotateX(-Math.PI/2),boost:new THREE.PlaneGeometry(2.6,4.2).rotateX(-Math.PI/2)};
+ ring:new THREE.RingGeometry(.75,1.05,32).rotateX(-Math.PI/2),boost:new THREE.PlaneGeometry(2.6,4.2).rotateX(-Math.PI/2),
+ log:new THREE.CylinderGeometry(.34,.38,1,9).rotateZ(Math.PI/2),logEnd:new THREE.CircleGeometry(.36,9).rotateY(Math.PI/2),ice:new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2),
+ sign:new THREE.PlaneGeometry(.95,.95).rotateZ(Math.PI/4).translate(0,1.75,0),signPost:new THREE.BoxGeometry(.08,1.75,.08).translate(0,.875,0)};
 const MT={
  post:new THREE.MeshStandardMaterial({color:0xeeeeea,roughness:.6}),refl:new THREE.MeshStandardMaterial({color:0xff8a1c,emissive:0xff6a00,emissiveIntensity:.8}),
  leafA:new THREE.MeshStandardMaterial({color:0x223b24,roughness:.95,flatShading:true}),leafB:new THREE.MeshStandardMaterial({color:0x2e5030,roughness:.95,flatShading:true}),
@@ -618,7 +639,11 @@ const MT={
  ring:new THREE.MeshBasicMaterial({color:0xffc04a,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}),
  boost:new THREE.MeshBasicMaterial({map:canvasTex(128,208,(g,w,h)=>{g.fillStyle='#ffb020';g.fillRect(0,0,w,h);g.fillStyle='#fff1c4';g.fillRect(0,0,8,h);g.fillRect(w-8,0,8,h);
   g.fillStyle='#2a1a04';for(let k=0;k<4;k++){const y=170-k*52;g.beginPath();g.moveTo(14,y+30);g.lineTo(w/2,y);g.lineTo(w-14,y+30);g.lineTo(w-14,y+48);g.lineTo(w/2,y+18);g.lineTo(14,y+48);g.closePath();g.fill()}},true),
-  transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3})};
+  transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),
+ obRock:new THREE.MeshStandardMaterial({color:0x6b4f3a,roughness:.95,flatShading:true}),obSnow:new THREE.MeshStandardMaterial({color:0xe6edf4,roughness:.85,flatShading:true}),
+ log:new THREE.MeshStandardMaterial({color:0x5a3b25,roughness:1,flatShading:true}),logEnd:new THREE.MeshStandardMaterial({color:0xc79a62,roughness:.9}),
+ ice:new THREE.MeshStandardMaterial({color:0xbfe6ff,emissive:0x6fb8e8,emissiveIntensity:.55,roughness:.08,metalness:.25,transparent:true,opacity:.8,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),
+ sign:new THREE.MeshStandardMaterial({color:0xffc21a,emissive:0x5a3c00,emissiveIntensity:.5,roughness:.5,side:THREE.DoubleSide}),signBack:new THREE.MeshStandardMaterial({color:0x9aa0a6,roughness:.6})};
 
 /* ---------- biomes ---------- */
 // the road passes through pine forest, then autumn (from 2 km), then a snowy pass (from 4.5 km); trees are set per road stretch, the ground blends
@@ -643,7 +668,7 @@ function updateBiomeGround(dist){const fa=clamp((dist-1800)/600,0,1)*(1-clamp((d
 function makeCan(){const g=new THREE.Group();const b=new THREE.Mesh(G.canBody,MT.can);b.castShadow=true;g.add(b);const c=new THREE.Mesh(G.canCap,MT.canY);c.position.set(.15,.38,0);g.add(c);const h=new THREE.Mesh(G.canHandle,MT.canY);h.position.set(-.05,.37,0);g.add(h);return g}
 
 const chunks=new Map();
-function buildChunk(k){const s0=k*CH,s1=s0+CH;genTo(s1+8);const grp=new THREE.Group(),ch={grp,cans:[],boosts:[],geos:[],inst:[]};
+function buildChunk(k){const s0=k*CH,s1=s0+CH;genTo(s1+8);const grp=new THREE.Group(),ch={grp,cans:[],boosts:[],obst:[],geos:[],inst:[]};
  const rg=ribbon(s0,s1,0,.03,1/12),sg=ribbon(s0,s1,1.4,.015,1/5);ch.geos.push(rg,sg);
  const mr=new THREE.Mesh(rg,roadMat),ms=new THREE.Mesh(sg,shoulderMat);mr.receiveShadow=ms.receiveShadow=true;grp.add(ms,mr);
  const posts=[];for(let i=s0;i<s1;i++){if(i%5)continue;const hw=RW[i]/2+1;posts.push(M4(RC[i]-hw,0,-i*SEG,0,1),M4(RC[i]+hw,0,-i*SEG,0,1))}
@@ -655,6 +680,13 @@ function buildChunk(k){const s0=k*CH,s1=s0+CH;genTo(s1+8);const grp=new THREE.Gr
    if(Math.random()<.07){const x=RC[i]+side*(RW[i]/2+2+Math.random()*4),z=-(i+Math.random())*SEG;if(clear(x,z))RK.push(M4(x,.15,z,Math.random()*6,.5+Math.random()*.9,.35+Math.random()*.5,.5+Math.random()*.9))}}}
  for(const m of[inst(G.post,MT.post,posts,true),inst(G.refl,MT.refl,posts,false),inst(G.coneA,BIOME_LEAVES[biomeAt(s0*SEG-START_D)][0],A,true),inst(G.coneB,BIOME_LEAVES[biomeAt(s0*SEG-START_D)][1],B,true),inst(G.trunk,MT.trunk,T,true),inst(G.rock,MT.rock,RK,true)])if(m){grp.add(m);ch.inst.push(m)}
  for(let i=s0;i<s1;i++)if(BOOSTS[i]!=null){const x=RC[i]+BOOSTS[i]*RW[i],d=i*SEG,m=new THREE.Mesh(G.boost,MT.boost);m.position.set(x,.05,-d);m.rotation.y=-Math.atan2(RC[i+1]-RC[i-1],SEG*2);grp.add(m);ch.boosts.push({m,x,d,got:false})}
+ for(let i=s0;i<s1;i++)if(OBST[i]){const o=OBST[i],x=RC[i]+o.c*RW[i],d=i*SEG,ry=-Math.atan2(RC[i+1]-RC[i-1],SEG*2);let m;
+  if(o.t==='rock'){m=new THREE.Mesh(G.rock,o.snow?MT.obSnow:MT.obRock);m.scale.set(o.s/.7,o.s*.75/.7,o.s/.7);m.position.set(x,o.s*.45,-d);m.rotation.set(.3,Math.random()*6,.2)}
+  else if(o.t==='log'){m=new THREE.Group();const b=new THREE.Mesh(G.log,MT.log);b.scale.x=o.L;b.castShadow=true;m.add(b);for(const e of[-1,1]){const c=new THREE.Mesh(G.logEnd,MT.logEnd);c.position.x=e*o.L/2;c.rotation.y=e<0?Math.PI:0;m.add(c)}m.position.set(x,.36,-d);m.rotation.y=ry}
+  else{m=new THREE.Mesh(G.ice,MT.ice);m.scale.set(o.half*2,1,o.len);m.position.set(x,.045,-d);m.rotation.y=ry}
+  // a yellow warning sign at the roadside ~45m before each rock or log, on the obstacle's side, so it reads from a distance
+  if(o.t!=='ice'){const si=i-15;if(si>s0-CH){const sd=si*SEG,sx=RC[si]+Math.sign(o.c)*(RW[si]/2+1.1),sg=new THREE.Group(),pst=new THREE.Mesh(G.signPost,MT.signBack),pl=new THREE.Mesh(G.sign,MT.sign);sg.add(pst,pl);pst.castShadow=pl.castShadow=true;sg.position.set(sx,0,-sd);sg.rotation.y=-Math.atan2(RC[si+1]-RC[si-1],SEG*2);grp.add(sg)}}
+  if(m.isMesh)m.castShadow=o.t!=='ice';m.receiveShadow=true;grp.add(m);ch.obst.push({m,t:o.t,x,off:o.c*RW[i],d,half:o.half,depth:o.t==='ice'?o.len/2:o.t==='log'?.4:o.half,min:9,done:false})}
  for(let i=s0;i<s1;i++)if(CANS[i]!=null){const x=RC[i]+CANS[i]*RW[i],d=i*SEG;const m=makeCan();m.position.set(x,1,-d);const r=new THREE.Mesh(G.ring,MT.ring);r.position.set(x,.06,-d);grp.add(m,r);ch.cans.push({m,r,x,d,got:false,ph:Math.random()*6})}
  scene.add(grp);return ch}
 function dropChunk(ch){scene.remove(ch.grp);ch.geos.forEach(g=>g.dispose());ch.inst.forEach(m=>m.dispose&&m.dispose())}
@@ -1050,7 +1082,7 @@ $('mute').addEventListener('click',e=>{e.stopPropagation();audioInit();setMute(!
 /* ---------- game state ---------- */
 let gear=0,engRpm=900,counting=0,tut=false,tutS=0,tutT=0,coachT=0,engA=.75,state='garage',holding=false,C,runCans=0,bonus=0,crashT=0,shake=0,orbA=.6,drag=null,camYaw=0;
 const lookT=new THREE.Vector3();
-function resetWorld(){roadRnd=dailyMode&&state==='ready'?mulberry(dailySeed()):Math.random;for(const[,ch]of chunks)dropChunk(ch);chunks.clear();RC=[];RW=[];CANS={};BOOSTS={};lastBoost=0;rAng=0;rTarget=0;hpN=0;genTo(80);
+function resetWorld(){roadRnd=dailyMode&&state==='ready'?mulberry(dailySeed()):Math.random;for(const[,ch]of chunks)dropChunk(ch);chunks.clear();RC=[];RW=[];CANS={};BOOSTS={};OBST={};HPF=[];lastObst=0;lastBoost=0;rAng=0;rTarget=0;hpN=0;genTo(80);
  C={x:0,d:START_D,a:0,av:0,v:spec?spec.start:22,y:0,roll:0,pitch:0,spin:0,t:0};runCans=0;bonus=0;clearSkids();camYaw=0;
  smoke.forEach(p=>{p.life=0;p.s.visible=false});sparks.forEach(p=>{p.life=0;p.s.visible=false});updateChunks(C.d)}
 function score(d){return Math.floor(((d??C.d)-START_D)*spec.mult+bonus)}
@@ -1063,7 +1095,7 @@ function goReady(snap){setEngineView(false);if(pv){cfg[pv.k]=pv.prev;pv=null;reb
  lastDriven=cfg.model;store.set('lastDriven',lastDriven);tut=!store.get('tutDone',false);if(tut)dailyMode=false;renderModes();show('modeChips',!tut);show('modeInfo',!tut);tutS=0;tutT=0;refreshMissions();renderMissions('rMissions');show('rMissions',!tut);
  state='ready';resetWorld();placeBestFlag();holding=false;hideRunUI();show('garage',0);show('over',0);show('hud',1);show('ready',1);applyView();updateHud();
  if(snap){cam.position.set(0,3.4,-C.d+9);lookT.set(0,.9,-C.d-14)}}
-function startRun(){state='play';runDay=todayKey();show('ready',0);show('pauseBtn',1);holding=true;gear=0;runBest=dailyMode?dailyBestToday():bestDist;ghostRec=[];ghostRecT=0;ghostPath=dailyMode&&dBest.date===todayKey()&&Array.isArray(dBest.ghost)?dBest.ghost:null;if(ghostPath)buildGhost();beatBest=false;runRegion=0;reviveUsed=false;runAch=[];guardT=0;boostT=-GUARD_GRACE;boosts=0;combo=0;comboT=0;nearArmed=false;nearCD=0;nearMiss=0}
+function startRun(){state='play';runDay=todayKey();show('ready',0);show('pauseBtn',1);holding=true;gear=0;runBest=dailyMode?dailyBestToday():bestDist;ghostRec=[];ghostRecT=0;ghostPath=dailyMode&&dBest.date===todayKey()&&Array.isArray(dBest.ghost)?dBest.ghost:null;if(ghostPath)buildGhost();beatBest=false;runRegion=0;reviveUsed=false;runAch=[];guardT=0;boostT=-GUARD_GRACE;boosts=0;combo=0;comboT=0;nearArmed=false;nearCD=0;nearMiss=0;iceT=0}
 /* ---------- boost pads ---------- */
 // driving over a pad gives BOOST_T seconds of double distance points, a 10% speed lift with the full speed effects,
 // and guardrails, so a boost is always a reward (a real +25% speed jump caused ~75% of simulated crashes)
@@ -1074,6 +1106,20 @@ function sfxBoost(){if(!AC)return;const t=AC.currentTime,s=AC.createBufferSource
 /* ---------- combos and close calls ---------- */
 // cans picked up within COMBO_T seconds of each other multiply their points (up to x3); skimming the edge and recovering pays a bonus
 const COMBO_T=2.5;let combo=0,comboT=0,nearArmed=false,nearCD=0,nearMiss=0;
+// obstacles: rocks and logs end the run (boost or revive guardrails smash through instead), ice makes steering slide;
+// squeezing past within 0.5m of one counts as a close call. The first obstacle and the first ice patch each get a one-time tip.
+let iceT=0;
+// overlap is measured across the road (offset from its centre line), not in world x: on a slanted stretch the two differ
+// by the road's slope times the distance between car and obstacle, which made clean passes count as hits
+function obstacleTick(pd){const guard=boostT>-GUARD_GRACE||guardT>0,lo=Math.min(pd,C.d),hi=Math.max(pd,C.d),cx=C.x-road(C.d).c;
+ for(const[,ch]of chunks)for(const o of ch.obst){if(o.done)continue;const ahead=o.d-C.d;
+  if(ahead>0&&ahead<70&&!tut){if(o.t==='ice'){if(!store.get('iceTip',false)){store.set('iceTip',true);coach('Ice ahead! <b>Steering slides</b>',true);coachT=2.6}}
+   else if(!store.get('obstTip',false)){store.set('obstTip',true);coach('Obstacles ahead! <b>Steer around them</b>',true);coachT=2.6}}
+  if(o.d<lo-o.depth-1.6||o.d>hi+o.depth+1.6){if(o.d<lo-o.depth-1.6){o.done=true;if(o.t!=='ice'&&o.min<.5&&o.min>=0&&!tut&&nearCD<=0){nearCD=1.5;nearMiss++;missionEvent('close');bumpStat('close');const pts=Math.round(50*spec.mult);bonus+=pts;popText(`Close call! <b>+${pts}</b>`);buzz(15)}}continue}
+  const gap=Math.abs(o.off-cx)-o.half-.7;
+  if(o.t==='ice'){if(gap<-.3&&iceT<=0){iceT=.75;buzz(10)}else if(gap<-.3)iceT=.75;continue}
+  if(gap<0){if(guard||tut){o.done=true;o.m.visible=false;burst(o.x,.6,-o.d,22,8,'#d9c7a8');buzz(30);popText('Smashed!')}else{crash();return}}
+  else o.min=Math.min(o.min,gap)}}
 function popText(html){document.querySelectorAll('.pop').forEach(e=>e.remove());const el=document.createElement('div');el.className='pop';el.innerHTML=html;document.body.appendChild(el);setTimeout(()=>el.remove(),1200)}
 /* ---------- daily road ---------- */
 // one seeded road per calendar day; your best run on it is saved as a ghost (position every 0.1s) and replayed on later attempts
@@ -1371,7 +1417,7 @@ function celebrateUnlock(M){const el=$('unlockFx');el.innerHTML=`<small>New car 
 let tab='paint',plateT=0;
 function swBg(o){return o.c==='carbon'?'background:repeating-conic-gradient(#3a3d44 0 25%,#141619 0 50%) 0 0/8px 8px':o.c==='body'?'background:'+PAINTS[cfg.paint].c:o.c?'background:'+o.c:''}
 // the garage pills share one row with the logo, so very large totals are shortened (123k, 9.99M); exact numbers stay elsewhere
-function fmtShort(n){n=Math.floor(n);return n<1e5?fmt(n):n<1e6?Math.floor(n/1e3)+'k':(n/1e6).toFixed(n<1e7?2:1)+'M'}
+function fmtShort(n){n=Math.floor(n);return n<1e4?fmt(n):n<1e5?(Math.floor(n/100)/10).toFixed(1)+'k':n<1e6?Math.floor(n/1e3)+'k':(n/1e6).toFixed(n<1e7?2:1)+'M'}
 function renderGarage(){checkAch();renderAch();
  $('gCans').textContent=fmtShort(cans);$('gBest').textContent=fmtShort(best);$('gLv').innerHTML=`Level ${level}<span class="xpbar"><i style="width:${Math.min(100,xp/xpNeed(level)*100)}%"></i></span>`;
  const ms=$('models').scrollLeft;
@@ -1456,7 +1502,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
   C.v=spec.start+(spec.max-spec.start)*sf+clamp((C.d-START_D-2000)*.002,0,10);const pd=C.d;if(boostT>0)C.v*=1.1;if(boostT>-GUARD_GRACE)boostT-=dt;if(guardT>0)guardT-=dt;
   // steering eases in over the first 1.5s so an early release is recoverable
   C.t+=dt;if(dailyMode){ghostRecT+=dt;if(ghostRecT>=.1){ghostRecT-=.1;ghostRec.push([Math.round(C.d*10)/10,Math.round(C.x*100)/100])}}
-  const tp=clamp((C.d-START_D)/3000,0,1),ts=(.55+.6*tp*tp*(3-2*tp))*Math.min(1,.3+C.t/1.5);C.av+=((holding!==settings.flip?-1:1)*spec.turn*ts-C.av)*Math.min(1,dt*(7+10*tp)*spec.resp);
+  const tp=clamp((C.d-START_D)/3000,0,1),ts=(.55+.6*tp*tp*(3-2*tp))*Math.min(1,.3+C.t/1.5);if(iceT>0)iceT-=dt;C.av+=((holding!==settings.flip?-1:1)*spec.turn*ts-C.av)*Math.min(1,dt*(7+10*tp)*spec.resp*(iceT>0?.28:1));
   C.a=Math.max(-.95,Math.min(.95,C.a+C.av*dt));
   C.x+=Math.sin(C.a)*C.v*dt;C.d+=Math.cos(C.a)*C.v*dt;
   C.roll+=(C.av*.035-C.roll)*Math.min(1,dt*6);
@@ -1472,6 +1518,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
   if(boostT>0)bonus+=(C.d-pd)*spec.mult;
   for(const[,ch]of chunks)for(const b of ch.boosts){if(b.got)continue;if(b.d>Math.min(pd,C.d)-2.2&&b.d<Math.max(pd,C.d)+2.2&&Math.abs(b.x-C.x)<1.7){b.got=true;b.m.visible=false;boostT=BOOST_T;boosts++;missionEvent('boost');bumpStat('boosts');popText('Boost! <b>x2</b> · guardrails on');sfxBoost();buzz(30);burst(C.x,.6,-C.d,18,7,'#ffd27a')}}
   for(const[,ch]of chunks)for(const k of ch.cans){if(k.got)continue;if(k.d>Math.min(pd,C.d)-1.8&&k.d<Math.max(pd,C.d)+1.8&&Math.abs(k.x-C.x)<1.7){k.got=true;k.m.visible=k.r.visible=false;runCans++;const pc=combo;combo=comboT>0?Math.min(3,combo+1):1;comboT=COMBO_T;missionEvent('can');bumpStat('cans');if(combo===3&&pc<3)bumpStat('combo3');bonus+=Math.round(15*spec.mult*combo);burst(k.x,1,-k.d,14+combo*4,6,'#ffc04a');sfxCan(combo);if(combo>1)popText(`<b>x${combo}</b> combo`)}}
+  obstacleTick(pd);
  }else if(state==='crash'){
   crashT+=dt;C.x+=C.vx*dt;C.d+=C.vz*dt;C.vy-=18*dt;C.y+=C.vy*dt;
   if(C.y<0){C.y=0;C.vy*=-.3;C.vx*=.55;C.vz*=.55;C.spinV*=.6;C.rollV*=.5}
