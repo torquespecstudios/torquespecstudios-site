@@ -2,8 +2,8 @@
 
 Static site, no build step. The files are:
 
-- `index.html`: studio home page, featuring Hairpin.
-- `privacy.html`: the Hairpin privacy policy (`#privacy`) and support page (`#support`).
+- `index.html`: studio home page, featuring Swervy.
+- `privacy.html`: the Swervy privacy policy (`#privacy`) and support page (`#support`).
 - `img/`: the icon and screenshots.
 
 ## Contact email
