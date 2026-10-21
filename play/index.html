@@ -655,6 +655,7 @@ const G={
  trunk:new THREE.CylinderGeometry(.16,.26,1.4,6).translate(0,.7,0),rock:new THREE.DodecahedronGeometry(.7,0),
  canBody:new THREE.BoxGeometry(.52,.66,.26),canCap:new THREE.CylinderGeometry(.06,.06,.12,10),canHandle:new THREE.BoxGeometry(.3,.07,.08),
  ring:new THREE.RingGeometry(.75,1.05,32).rotateX(-Math.PI/2),boost:new THREE.PlaneGeometry(2.6,4.2).rotateX(-Math.PI/2),
+ tcone:new THREE.ConeGeometry(.38,1,12).translate(0,.5,0),tconeBand:new THREE.CylinderGeometry(.24,.3,.2,12).translate(0,.48,0),tconeBase:new THREE.BoxGeometry(.8,.07,.8).translate(0,.035,0),
  log:new THREE.CylinderGeometry(.34,.38,1,9).rotateZ(Math.PI/2),logEnd:new THREE.CircleGeometry(.36,9).rotateY(Math.PI/2),ice:new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2),
  sign:new THREE.PlaneGeometry(.95,.95).rotateZ(Math.PI/4).translate(0,1.75,0),signPost:new THREE.BoxGeometry(.08,1.75,.08).translate(0,.875,0)};
 const MT={
@@ -666,7 +667,8 @@ const MT={
  boost:new THREE.MeshBasicMaterial({map:canvasTex(128,208,(g,w,h)=>{g.fillStyle='#ffb020';g.fillRect(0,0,w,h);g.fillStyle='#fff1c4';g.fillRect(0,0,8,h);g.fillRect(w-8,0,8,h);
   g.fillStyle='#2a1a04';for(let k=0;k<4;k++){const y=170-k*52;g.beginPath();g.moveTo(14,y+30);g.lineTo(w/2,y);g.lineTo(w-14,y+30);g.lineTo(w-14,y+48);g.lineTo(w/2,y+18);g.lineTo(14,y+48);g.closePath();g.fill()}},true),
   transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),
- obRock:new THREE.MeshStandardMaterial({color:0x6b4f3a,roughness:.95,flatShading:true}),obSnow:new THREE.MeshStandardMaterial({color:0xe6edf4,roughness:.85,flatShading:true}),
+ obRock:new THREE.MeshStandardMaterial({color:0x22120a,roughness:1,flatShading:true}),
+ tcone:new THREE.MeshStandardMaterial({color:0xff4300,emissive:0xe83000,emissiveIntensity:.55,roughness:.6}),tconeBand:new THREE.MeshStandardMaterial({color:0xf4f4f0,emissive:0xffffff,emissiveIntensity:.5,roughness:.4}),obSnow:new THREE.MeshStandardMaterial({color:0xe6edf4,roughness:.85,flatShading:true}),
  log:new THREE.MeshStandardMaterial({color:0x5a3b25,roughness:1,flatShading:true}),logEnd:new THREE.MeshStandardMaterial({color:0xc79a62,roughness:.9}),
  ice:new THREE.MeshStandardMaterial({color:0xbfe6ff,emissive:0x6fb8e8,emissiveIntensity:.55,roughness:.08,metalness:.25,transparent:true,opacity:.8,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),
  sign:new THREE.MeshStandardMaterial({color:0xffc21a,emissive:0x5a3c00,emissiveIntensity:.5,roughness:.5,side:THREE.DoubleSide}),signBack:new THREE.MeshStandardMaterial({color:0x9aa0a6,roughness:.6})};
@@ -707,7 +709,13 @@ function buildChunk(k){const s0=k*CH,s1=s0+CH;genTo(s1+8);const grp=new THREE.Gr
  for(const m of[inst(G.post,MT.post,posts,true),inst(G.refl,MT.refl,posts,false),inst(G.coneA,BIOME_LEAVES[biomeAt(s0*SEG-START_D)][0],A,true),inst(G.coneB,BIOME_LEAVES[biomeAt(s0*SEG-START_D)][1],B,true),inst(G.trunk,MT.trunk,T,true),inst(G.rock,MT.rock,RK,true)])if(m){grp.add(m);ch.inst.push(m)}
  for(let i=s0;i<s1;i++)if(BOOSTS[i]!=null){const x=RC[i]+BOOSTS[i]*RW[i],d=i*SEG,m=new THREE.Mesh(G.boost,MT.boost);m.position.set(x,.05,-d);m.rotation.y=-Math.atan2(RC[i+1]-RC[i-1],SEG*2);grp.add(m);ch.boosts.push({m,x,d,got:false})}
  for(let i=s0;i<s1;i++)if(OBST[i]){const o=OBST[i],x=RC[i]+o.c*RW[i],d=i*SEG,ry=-Math.atan2(RC[i+1]-RC[i-1],SEG*2);let m;
-  if(o.t==='rock'){m=new THREE.Mesh(G.rock,o.snow?MT.obSnow:MT.obRock);m.scale.set(o.s/.7,o.s*.75/.7,o.s/.7);m.position.set(x,o.s*.45,-d);m.rotation.set(.3,Math.random()*6,.2)}
+  // a road rock reads as a rockfall, not scenery: a darker, redder boulder than the grey roadside rocks, broken debris
+  // on the asphalt around it, and an orange traffic cone 4m in front. The cone sits within the rock's own width, so
+  // clearing the rock always clears the cone too (the cone has no hitbox of its own)
+  if(o.t==='rock'){m=new THREE.Group();const mat=o.snow?MT.obSnow:MT.obRock,b=new THREE.Mesh(G.rock,mat);b.scale.set(o.s/.7,o.s*.75/.7,o.s/.7);b.position.y=o.s*.45;b.rotation.set(.3,Math.random()*6,.2);b.castShadow=true;m.add(b);
+   for(let k=0;k<4;k++){const pb=new THREE.Mesh(G.rock,mat),ps=.1+Math.random()*.12,a=Math.random()*6.3,rr=o.half*(.9+Math.random()*.5);pb.scale.setScalar(ps/.7);pb.position.set(Math.cos(a)*rr*.6,ps*.3,Math.sin(a)*rr);pb.rotation.set(Math.random()*3,Math.random()*3,0);m.add(pb)}
+   const cn=new THREE.Group(),cb=new THREE.Mesh(G.tconeBase,MT.tcone),cc=new THREE.Mesh(G.tcone,MT.tcone),cw=new THREE.Mesh(G.tconeBand,MT.tconeBand);cc.castShadow=true;cn.add(cb,cc,cw);cn.position.set(0,0,4);m.add(cn);
+   m.position.set(x,0,-d);m.rotation.y=ry}
   else if(o.t==='log'){m=new THREE.Group();const b=new THREE.Mesh(G.log,MT.log);b.scale.x=o.L;b.castShadow=true;m.add(b);for(const e of[-1,1]){const c=new THREE.Mesh(G.logEnd,MT.logEnd);c.position.x=e*o.L/2;c.rotation.y=e<0?Math.PI:0;m.add(c)}m.position.set(x,.36,-d);m.rotation.y=ry}
   else{m=new THREE.Mesh(G.ice,MT.ice);m.scale.set(o.half*2,1,o.len);m.position.set(x,.045,-d);m.rotation.y=ry}
   // a yellow warning sign at the roadside ~45m before each rock or log, on the obstacle's side, so it reads from a distance
