@@ -50,6 +50,8 @@ ul.feat li::before{content:"";position:absolute;left:0;top:.62em;width:10px;heig
 .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:999px;font-weight:700;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--surface)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#1d1508}
 .btn[aria-disabled="true"]{cursor:default}
+.beta-note{font-size:15px;color:var(--muted);margin:0 0 18px}
+.hero .btns{margin-top:6px}
 .shots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .shots img{width:100%;height:auto;border-radius:16px;display:block;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .about{background:var(--surface);border-block:1px solid var(--line)}
@@ -75,11 +77,12 @@ footer a{color:var(--muted)}
         <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="#f2b33d" stroke-width="3"/><path d="M17 17 L26 9" stroke="#f3efe6" stroke-width="3" stroke-linecap="round"/><circle cx="17" cy="17" r="3" fill="#f2b33d"/><path d="M8 24 h4 M22 24 h4" stroke="#6b707a" stroke-width="2" stroke-linecap="round"/></svg>
         Torque Spec Studios
       </a>
-      <div class="links"><a href="#swervy">Swervy</a><a class="hide-s" href="#about">About</a><a href="#contact">Contact</a></div>
+      <div class="links"><a href="play/">Play beta</a><a href="#swervy">Swervy</a><a class="hide-s" href="#about">About</a><a href="#contact">Contact</a></div>
     </nav>
     <div class="hero">
       <h1>Built to <span>spec.</span></h1>
       <p>Torque Spec Studios is an independent studio making games and apps for iPhone and iPad. Every control tight, every screen dialed in, every release finished.</p>
+      <div class="btns"><a class="btn primary" href="play/">Play the Swervy beta</a></div>
     </div>
   </div>
 </header>
@@ -97,8 +100,10 @@ footer a{color:var(--muted)}
           <li>A Daily Road that's the same for everyone</li>
           <li>Free to play, and it plays offline</li>
         </ul>
+        <p class="beta-note"><b>The beta is open.</b> Play it in your phone's browser right now, no download needed. In Safari, tap Share, then Add to Home Screen, to play it full screen like an app.</p>
         <div class="btns">
-          <span class="btn primary" aria-disabled="true">Coming soon to the App Store</span>
+          <a class="btn primary" href="play/">Play the free beta</a>
+          <span class="btn" aria-disabled="true">iPhone app coming soon</span>
           <a class="btn" href="privacy.html#support">Support</a>
           <a class="btn" href="privacy.html#privacy">Privacy</a>
           <a class="btn" href="https://www.instagram.com/playswervy/" rel="noopener">Instagram · @playswervy</a>
