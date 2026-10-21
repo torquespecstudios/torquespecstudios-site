@@ -613,7 +613,7 @@ function genTo(n){while(RC.length<=n){const i=RC.length;
   if(i>200&&i-lastBoost>130&&roadRnd()<.012){BOOSTS[i]=(roadRnd()<.5?-1:1)*(.12+roadRnd()*.16);lastBoost=i}
   // about 30% fewer cans than v62: can lines are 3 long instead of 4, and ~35% of single cans are skipped. Both are done
   // without changing which roadRnd calls happen (the 4th can of a line is still reserved until its segment has been checked,
-  // the skip uses a hash of the segment), so every road's shape and the Daily Road ghosts are unchanged
+  // the skip uses a hash of the segment), so every road's shape is unchanged
   if(i>40&&CANS[i]==null){if(roadRnd()<.02){const o=(roadRnd()*2-1)*.25;for(let k=0;k<4;k++)CANS[i+k*3]=o;CUT[i+9]=1}else if(roadRnd()<.085){const o=(roadRnd()*2-1)*.3;if((Math.imul(i,2654435761)>>>0)%100>=35)CANS[i]=o}}
   if(CUT[i]){delete CANS[i];delete CUT[i]}
   HPF[i]=hpN>0?1:0;placeObstacle(i-OB_LAG)}}
@@ -1122,7 +1122,7 @@ function goReady(snap){setEngineView(false);if(pv){cfg[pv.k]=pv.prev;pv=null;reb
  lastDriven=cfg.model;store.set('lastDriven',lastDriven);tut=!store.get('tutDone',false);if(tut)dailyMode=false;renderModes();show('modeChips',!tut);show('modeInfo',!tut);tutS=0;tutT=0;refreshMissions();renderMissions('rMissions');show('rMissions',!tut);
  state='ready';resetWorld();placeBestFlag();holding=false;hideRunUI();show('garage',0);show('over',0);show('hud',1);show('ready',1);applyView();updateHud();
  if(snap){cam.position.set(0,3.4,-C.d+9);lookT.set(0,.9,-C.d-14)}}
-function startRun(){state='play';runDay=todayKey();show('ready',0);show('pauseBtn',1);holding=true;gear=0;runBest=dailyMode?dailyBestToday():racing()?raceBest():bestDist;ghostRec=[];ghostRecT=0;ghostPath=dailyMode&&dBest.date===todayKey()&&Array.isArray(dBest.ghost)?dBest.ghost:racing()&&raceBests[raceCode]&&Array.isArray(raceBests[raceCode].ghost)?raceBests[raceCode].ghost:null;if(ghostPath)buildGhost();beatBest=false;runRegion=0;reviveUsed=false;runAch=[];guardT=0;boostT=-GUARD_GRACE;boosts=0;combo=0;comboT=0;nearArmed=false;nearCD=0;nearMiss=0;iceT=0}
+function startRun(){state='play';runDay=todayKey();show('ready',0);show('pauseBtn',1);holding=true;gear=0;runBest=dailyMode?dailyBestToday():racing()?raceBest():bestDist;beatBest=false;runRegion=0;reviveUsed=false;runAch=[];guardT=0;boostT=-GUARD_GRACE;boosts=0;combo=0;comboT=0;nearArmed=false;nearCD=0;nearMiss=0;iceT=0}
 /* ---------- boost pads ---------- */
 // driving over a pad gives BOOST_T seconds of double distance points, a 10% speed lift with the full speed effects,
 // and guardrails, so a boost is always a reward (a real +25% speed jump caused ~75% of simulated crashes)
@@ -1149,19 +1149,22 @@ function obstacleTick(pd){const guard=boostT>-GUARD_GRACE||guardT>0,lo=Math.min(
   else o.min=Math.min(o.min,gap)}}
 function popText(html){document.querySelectorAll('.pop').forEach(e=>e.remove());const el=document.createElement('div');el.className='pop';el.innerHTML=html;document.body.appendChild(el);setTimeout(()=>el.remove(),1200)}
 /* ---------- daily road ---------- */
-// one seeded road per calendar day; your best run on it is saved as a ghost (position every 0.1s) and replayed on later attempts
-let dailyMode=store.get('dailyMode',false)===true,dBest=obj(store.get('dailyBest',{})),ghostRec=[],ghostRecT=0,ghostPath=null;
-// the day a run started on: a Daily Road run that crosses midnight was driven on yesterday's road, so it must not become today's best or ghost
+// one seeded road per calendar day; your best distance on it is kept for the day
+let dailyMode=store.get('dailyMode',false)===true,dBest=obj(store.get('dailyBest',{}));
+// the ghost car was removed in v66 (the player didn't want it); drop any ghost paths older versions saved
+if(dBest.ghost){delete dBest.ghost;store.set('dailyBest',dBest)}
+// the day a run started on: a Daily Road run that crosses midnight was driven on yesterday's road, so it must not become today's best
 let runDay='';
 const todayKey=()=>dayKey(new Date());
 function dailySeed(){let h=2166136261;for(const c of'hairpin'+todayKey())h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0}
 function dailyBestToday(){return dBest.date===todayKey()?num(dBest.dist,0):0}
 /* ---------- race codes ---------- */
 // a 5-character code seeds one road, and torquespecstudios.com/play/?race=CODE opens it, so a group of friends all drive
-// the same road whenever they like and compare distances. Each code keeps your own best and ghost on this device.
+// the same road whenever they like and compare distances. Each code keeps your own best on this device.
 // The alphabet leaves out 0/O, 1/I/L so codes read cleanly over text.
 const RACE_URL='https://torquespecstudios.com/play/?race=',RACE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789',RACE_RX=/^[A-HJKMNP-Z2-9]{5}$/;
 let raceCode=String(store.get('raceCode','')),raceMode=store.get('raceMode',false)===true,raceBests=obj(store.get('raceBests',{}));
+for(const k in raceBests)if(raceBests[k]&&raceBests[k].ghost){delete raceBests[k].ghost;store.set('raceBests',raceBests)}
 if(!RACE_RX.test(raceCode)){raceCode='';raceMode=false}
 try{const q=(new URLSearchParams(location.search).get('race')||'').toUpperCase();if(RACE_RX.test(q)){raceCode=q;raceMode=true;dailyMode=false;store.set('raceCode',q);store.set('raceMode',true);store.set('dailyMode',false)}}catch(e){}
 // the tutorial always runs on a random road; the race road waits for the first real run
@@ -1184,13 +1187,6 @@ document.querySelectorAll('#modeChips .chip').forEach(b=>b.addEventListener('cli
  dailyMode=m===1;raceMode=m===2;store.set('dailyMode',dailyMode);store.set('raceMode',raceMode);goReady(true);if(fresh)shareRace()}));
 $('raceInvite').addEventListener('click',e=>{e.stopPropagation();shareRace()});
 $('raceNew').addEventListener('click',e=>{e.stopPropagation();raceCode=newRaceCode();store.set('raceCode',raceCode);goReady(true);shareRace()});
-// the ghost is a see-through blue copy of the car you're driving (shares its geometry, so it costs no extra memory)
-let ghost=new THREE.Group();const ghostMat=new THREE.MeshBasicMaterial({color:0x8fd0ff,transparent:true,opacity:.38,depthWrite:true});
-ghost.visible=false;scene.add(ghost);
-function buildGhost(){scene.remove(ghost);ghost=car.root.clone(true);ghost.traverse(o=>{if(o.isMesh){if(o.material.transparent){o.visible=false;return}o.material=ghostMat;o.castShadow=false;o.receiveShadow=false}});ghost.visible=false;scene.add(ghost)}
-function updateGhost(){const on=state==='play'&&ghostPath&&ghostPath.length>1;if(!on){ghost.visible=false;return}const f=C.t/.1,i=Math.floor(f);
- if(i>=ghostPath.length-1){ghost.visible=false;return}const a=ghostPath[i],b=ghostPath[i+1],t=f-i;ghost.visible=true;
- ghost.position.set(a[1]+(b[1]-a[1])*t,0,-(a[0]+(b[0]-a[0])*t));ghost.rotation.y=-Math.atan2(b[1]-a[1],Math.max(.01,b[0]-a[0]))}
 
 /* ---------- best-distance banner ---------- */
 // a checkered "YOUR BEST" arch spans the road where the longest run ended, so every run has a visible target
@@ -1310,8 +1306,8 @@ function showXP(r){const tok=++xpAnim,bar=$('oXPbar'),pct=(v,L)=>Math.min(100,v/
   setTimeout(()=>{if(tok!==xpAnim)return;bar.style.transition='none';bar.style.width='0%';void bar.offsetWidth;bar.style.transition='width .6s ease-out';bar.style.width=pct(xp,level);
    $('oLv').textContent='Level '+level;const u=$('oLvUp');u.innerHTML='Level up! <b>+'+r.reward+'</b> <span class="can"></span>';u.hidden=false;chime([392,523,659,784,1047]);buzz(40)},850)},300)}
 function bankRun(D=C.d){const dist=Math.floor(D-START_D);if(dist>bestDist){bestDist=dist;store.set('bestDist',bestDist)}
- if(dailyMode&&runDay===todayKey()&&dist>dailyBestToday()){dBest={date:runDay,dist,ghost:ghostRec};store.set('dailyBest',dBest)}
- if(racing()&&dist>raceBest()){delete raceBests[raceCode];raceBests[raceCode]={dist,ghost:ghostRec};const ks=Object.keys(raceBests);while(ks.length>8)delete raceBests[ks.shift()];store.set('raceBests',raceBests)}
+ if(dailyMode&&runDay===todayKey()&&dist>dailyBestToday()){dBest={date:runDay,dist};store.set('dailyBest',dBest)}
+ if(racing()&&dist>raceBest()){delete raceBests[raceCode];raceBests[raceCode]={dist};const ks=Object.keys(raceBests);while(ks.length>8)delete raceBests[ks.shift()];store.set('raceBests',raceBests)}
  missionEvent('run');store.set('missions',missions);bumpStat('runs');saveStats();lastXP=awardXP(Math.max(0,dist),runCans,beatBest,missionXP);missionXP=0;
  const sc=score(D),dbl=dailyMode&&runCans>0&&store.get('dailyBonus','')!==runDay,gained=runCans*spec.canMult*(dbl?2:1);if(dbl)store.set('dailyBonus',runDay);cans+=gained;store.set('cans',cans);const nb=sc>best;if(nb){best=sc;store.set('best',best)}return{sc,gained,nb,dbl}}
 function crash(){state='crash';crashT=0;C.vx=Math.sin(C.a)*C.v;C.vz=Math.cos(C.a)*C.v;C.vy=3+C.v*.07;const s=C.av>=0?1:-1;C.spinV=s*(2+Math.random()*2.5);C.rollV=s*(3+Math.random()*4);
@@ -1552,7 +1548,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  if(state==='play'){
   C.v=spec.start+(spec.max-spec.start)*sf+clamp((C.d-START_D-2000)*.002,0,10);const pd=C.d;if(boostT>0)C.v*=1.1;if(boostT>-GUARD_GRACE)boostT-=dt;if(guardT>0)guardT-=dt;
   // steering eases in over the first 1.5s so an early release is recoverable
-  C.t+=dt;if(dailyMode||racing()){ghostRecT+=dt;if(ghostRecT>=.1){ghostRecT-=.1;ghostRec.push([Math.round(C.d*10)/10,Math.round(C.x*100)/100])}}
+  C.t+=dt;
   const tp=clamp((C.d-START_D)/3000,0,1),ts=(.55+.6*tp*tp*(3-2*tp))*Math.min(1,.3+C.t/1.5);if(iceT>0)iceT-=dt;C.av+=((holding!==settings.flip?-1:1)*spec.turn*ts-C.av)*Math.min(1,dt*(7+10*tp)*spec.resp*(iceT>0?.28:1));
   C.a=Math.max(-.95,Math.min(.95,C.a+C.av*dt));
   C.x+=Math.sin(C.a)*C.v*dt;C.d+=Math.cos(C.a)*C.v*dt;
@@ -1610,7 +1606,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
   if(shake>.01){cam.position.x+=(Math.random()-.5)*shake*.5;cam.position.y+=(Math.random()-.5)*shake*.5;shake*=Math.pow(.05,dt)}
   cam.fov+=((state==='play'?62+sf*12+(boostT>0?10:0):60)-cam.fov)*Math.min(1,dt*(boostT>0?5:2))}
  cam.updateProjectionMatrix();
- updateGhost();
+
  // world follows camera
  // headlight beam sits at the car's nose and points along its heading
  if(headLight.intensity>0){const fx2=Math.sin(C.a-C.spin),fz2=-Math.cos(C.a-C.spin);headLight.position.set(C.x+fx2*2,1.1+C.y,-C.d+fz2*2);headLight.target.position.set(C.x+fx2*26,0,-C.d+fz2*26)}
