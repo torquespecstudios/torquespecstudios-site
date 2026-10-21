@@ -12,7 +12,7 @@
 {"@context":"https://schema.org","@graph":[
  {"@type":"Organization","@id":"https://torquespecstudios.com/#org","name":"Torque Spec Studios","alternateName":"Torque Spec Studios LLC","url":"https://torquespecstudios.com/","logo":"https://torquespecstudios.com/img/swervy-icon.png","email":"torquespecstudios@gmail.com","description":"Independent game and app studio in Washington State, making games and apps for iPhone and iPad.","address":{"@type":"PostalAddress","addressRegion":"WA","addressCountry":"US"},"sameAs":["https://www.instagram.com/torquespecstudios/","https://www.instagram.com/playswervy/"]},
  {"@type":"WebSite","@id":"https://torquespecstudios.com/#site","name":"Torque Spec Studios","url":"https://torquespecstudios.com/","publisher":{"@id":"https://torquespecstudios.com/#org"}},
- {"@type":"VideoGame","name":"Swervy: One-Tap Racer","url":"https://torquespecstudios.com/#swervy","description":"A one-tap racer on an endless mountain road. Tap to steer, let go to swing.","genre":["Racing","Arcade"],"gamePlatform":["iPhone","iPad"],"publisher":{"@id":"https://torquespecstudios.com/#org"},"image":"https://torquespecstudios.com/img/swervy-1-hook.jpg"}
+ {"@type":"VideoGame","name":"Swervy: One-Tap Racer","url":"https://torquespecstudios.com/swervy/","description":"A one-tap racer on an endless mountain road. Tap to steer, let go to swing.","genre":["Racing","Arcade"],"gamePlatform":["iPhone","iPad"],"publisher":{"@id":"https://torquespecstudios.com/#org"},"image":"https://torquespecstudios.com/img/swervy-1-hook.jpg"}
 ]}
 </script>
 <meta name="description" content="Torque Spec Studios is an independent game and app studio in Washington State, making games and apps for iPhone and iPad. Makers of Swervy: One-Tap Racer.">
@@ -47,6 +47,8 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:16px;paddi
 .hero{padding-block:56px 64px;display:grid;gap:18px}
 .hero h1{font:800 clamp(52px,11vw,104px)/.9 var(--display);text-transform:uppercase;margin:0;letter-spacing:.01em}
 .hero h1 span{color:var(--accent)}
+/* the studio name sits inside the headline so search engines read it as the page's main subject */
+.hero h1 small{display:block;font:700 15px/1.4 var(--body);letter-spacing:.2em;color:var(--accent);margin-bottom:10px}
 .hero p{max-width:56ch;color:#cfcbc1;margin:0;font-size:19px}
 section{padding-block:64px}
 .kicker{font-weight:700;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin:0 0 8px}
@@ -91,10 +93,10 @@ footer a{color:var(--muted)}
         <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="#f2b33d" stroke-width="3"/><path d="M17 17 L26 9" stroke="#f3efe6" stroke-width="3" stroke-linecap="round"/><circle cx="17" cy="17" r="3" fill="#f2b33d"/><path d="M8 24 h4 M22 24 h4" stroke="#6b707a" stroke-width="2" stroke-linecap="round"/></svg>
         Torque Spec Studios
       </a>
-      <div class="links"><a href="play/">Play beta</a><a href="#swervy">Swervy</a><a class="hide-s" href="#about">About</a><a href="#contact">Contact</a></div>
+      <div class="links"><a href="play/">Play beta</a><a href="swervy/">Swervy</a><a class="hide-s" href="#about">About</a><a href="#contact">Contact</a></div>
     </nav>
     <div class="hero">
-      <h1>Built to <span>spec.</span></h1>
+      <h1><small>Torque Spec Studios</small>Built to <span>spec.</span></h1>
       <p>Torque Spec Studios is an independent studio making games and apps for iPhone and iPad. Every control tight, every screen dialed in, every release finished.</p>
       <div class="btns"><a class="btn primary" href="play/">Play the Swervy beta</a></div>
     </div>
@@ -119,6 +121,7 @@ footer a{color:var(--muted)}
           <a class="btn primary" href="play/">Play the free beta</a>
           <a class="btn" href="https://forms.gle/CDeVcoZTWha1BLdd8" target="_blank" rel="noopener">Send feedback</a>
           <span class="btn" aria-disabled="true">Coming soon to the Apple App Store</span>
+          <a class="btn" href="swervy/">About Swervy</a>
           <a class="btn" href="privacy.html#support">Support</a>
           <a class="btn" href="privacy.html#privacy">Privacy</a>
           <a class="btn" href="https://www.instagram.com/playswervy/" rel="noopener">Instagram · @playswervy</a>
