@@ -635,6 +635,8 @@ function placeObstacle(j){const dist=j*SEG-START_D;if(dist<OB_D)return;
  // hit sizes are a little smaller than the models, so a near miss reads as a near miss
  if(o.t==='rock')o.half=o.s*.75;if(o.t==='log')o.half=o.L/2-.1;
  OBST[j]=o;lastObst=j;for(let k=j-6;k<=j+6;k++)delete CANS[k]}
+// the road's own heading at d, in the same world-angle terms as C.a (0 = straight ahead)
+function roadHeading(d){return Math.atan2(road(d+3).c-road(d-3).c,6)}
 function road(d){const f=d/SEG,i=Math.max(0,Math.floor(f)),t=f-i;genTo(i+2);return{c:RC[i]*(1-t)+RC[i+1]*t,w:RW[i]*(1-t)+RW[i+1]*t}}
 
 function ribbon(s0,s1,extra,y,vs){const n=s1-s0+1,pos=new Float32Array(n*6),uv=new Float32Array(n*4),idx=[];
@@ -1162,13 +1164,16 @@ function dailyBestToday(){return dBest.date===todayKey()?num(dBest.dist,0):0}
 // a 5-character code seeds one road, and torquespecstudios.com/play/?race=CODE opens it, so a group of friends all drive
 // the same road whenever they like and compare distances. Each code keeps your own best on this device.
 // The alphabet leaves out 0/O, 1/I/L so codes read cleanly over text.
+// switched off in v67: friends couldn't see each other on a race road, which felt broken. The code stays for a
+// future version with real multiplayer; while off, the chip is hidden, ?race= links are ignored and saved race mode is cleared
+const RACES_ON=false;
 const RACE_URL='https://torquespecstudios.com/play/?race=',RACE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789',RACE_RX=/^[A-HJKMNP-Z2-9]{5}$/;
 let raceCode=String(store.get('raceCode','')),raceMode=store.get('raceMode',false)===true,raceBests=obj(store.get('raceBests',{}));
 for(const k in raceBests)if(raceBests[k]&&raceBests[k].ghost){delete raceBests[k].ghost;store.set('raceBests',raceBests)}
-if(!RACE_RX.test(raceCode)){raceCode='';raceMode=false}
-try{const q=(new URLSearchParams(location.search).get('race')||'').toUpperCase();if(RACE_RX.test(q)){raceCode=q;raceMode=true;dailyMode=false;store.set('raceCode',q);store.set('raceMode',true);store.set('dailyMode',false)}}catch(e){}
+if(!RACE_RX.test(raceCode)||!RACES_ON){raceCode='';raceMode=false}
+try{const q=(new URLSearchParams(location.search).get('race')||'').toUpperCase();if(RACES_ON&&RACE_RX.test(q)){raceCode=q;raceMode=true;dailyMode=false;store.set('raceCode',q);store.set('raceMode',true);store.set('dailyMode',false)}}catch(e){}
 // the tutorial always runs on a random road; the race road waits for the first real run
-const racing=()=>raceMode&&!!raceCode&&!tut&&!dailyMode;
+const racing=()=>RACES_ON&&raceMode&&!!raceCode&&!tut&&!dailyMode;
 function raceSeed(){let h=2166136261;for(const c of'race'+raceCode)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0}
 function raceBest(){const r=raceBests[raceCode];return r?num(r.dist,0):0}
 function newRaceCode(){let c='';for(let i=0;i<5;i++)c+=RACE_ABC[Math.random()*RACE_ABC.length|0];return c}
@@ -1179,7 +1184,7 @@ function shareRace(){const text=`Race me on Swervy! Same road for everyone with 
  (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>done('Race link copied. Paste it in your group chat'),()=>done(RACE_URL+raceCode))}
 // the first Daily Road run of each day pays double cans, a reason to come back for the new road every day
 const dailyBonusLeft=()=>store.get('dailyBonus','')!==todayKey();
-function renderModes(){$('modeChips').hidden=tut;$('modeInfo').hidden=tut;const md=dailyMode?1:raceMode&&raceCode?2:0;$('raceChip').textContent=raceCode?'Race '+raceCode:'Race a friend';$('raceRow').hidden=tut||md!==2;document.querySelectorAll('#modeChips .chip').forEach(b=>{b.classList.toggle('on',+b.dataset.mode===md);b.classList.toggle('bonus',b.dataset.mode==='1'&&dailyBonusLeft())});
+function renderModes(){$('modeChips').hidden=tut;$('modeInfo').hidden=tut;const md=dailyMode?1:raceMode&&raceCode?2:0;$('raceChip').hidden=!RACES_ON;$('raceChip').textContent=raceCode?'Race '+raceCode:'Race a friend';$('raceRow').hidden=tut||md!==2;document.querySelectorAll('#modeChips .chip').forEach(b=>{b.classList.toggle('on',+b.dataset.mode===md);b.classList.toggle('bonus',b.dataset.mode==='1'&&dailyBonusLeft())});
  const b=dailyBestToday(),x2=dailyBonusLeft()?'First run today pays ×2 cans':'';$('modeInfo').textContent=md===2?`Same road for everyone with the code · ${raceBest()?'Your best '+fmt(raceBest())+' m':'No run yet'}`:dailyMode?`Same road for everyone today · ${x2||(b?'Your best '+fmt(b)+' m':'No run yet today')}`:x2?'A new road every run · Daily Road pays ×2 today':'A new road every run'}
 document.querySelectorAll('#modeChips .chip').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const m=+b.dataset.mode,cur=dailyMode?1:raceMode&&raceCode?2:0;if(m===cur)return;
  // picking Race with no code yet makes a new race road and opens the invite straight away
@@ -1320,7 +1325,7 @@ const REVIVE_COST=30,REVIVE_WAIT=4;let crashD=0,reviveUsed=false,reviveT=0,guard
 function canRevive(){return!reviveUsed&&!tut&&crashD-START_D>200&&cans>=REVIVE_COST}
 function offerRevive(){state='revive';show('hud',0);reviveT=REVIVE_WAIT;$('rvT').textContent=REVIVE_WAIT;show('revive',1)}
 function acceptRevive(){if(state!=='revive'||cans<REVIVE_COST)return;audioInit();cans-=REVIVE_COST;store.set('cans',cans);reviveUsed=true;bumpStat('revives');saveStats();show('revive',0);
- const r=road(crashD);Object.assign(C,{d:crashD,x:r.c,a:0,av:0,y:0,roll:0,spin:0,vx:0,vz:0,vy:0,spinV:0,rollV:0});guardT=2;combo=0;comboT=0;
+ const r=road(crashD);Object.assign(C,{d:crashD,x:r.c,a:roadHeading(crashD),av:0,y:0,roll:0,spin:0,vx:0,vz:0,vy:0,spinV:0,rollV:0});guardT=2;combo=0;comboT=0;
  chime([392,523,784]);buzz(30);show('hud',1);state='paused';counting=2.4;$('countN').textContent='3';show('count',1)}
 // ask for an App Store rating only at a happy moment: just after a new best, once the player has 8+ runs, at most every 120 days
 // (iOS also limits how often its rating prompt can appear)
@@ -1555,7 +1560,9 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
   C.roll+=(C.av*.035-C.roll)*Math.min(1,dt*6);
   // the SUV's edge perk fades out over the first 4km so it can't run forever
   const r=road(C.d),edge=spec.edge+spec.edgeP*Math.max(0,1-(C.d-START_D)/4000),lim=r.w/2+.25+edge,off=C.x-r.c;
-  if(Math.abs(off)>lim){if(tut||boostT>-GUARD_GRACE||guardT>0){C.x=r.c+Math.sign(off)*(lim-.05);C.a=-Math.sign(off)*.3;C.av=0;burst(C.x,.5,-C.d,8,5,'#ffd27a');buzz(25);if(tut){coach('Whoa! <b>Stay on the road</b>',true);coachT=1.6}}else crash()}
+  // a guardrail bounce turns the car 0.3 rad back toward the road relative to the road's heading (not world-straight,
+  // which on a slanted stretch still pointed off the road and pinned the car against the rail)
+  if(Math.abs(off)>lim){if(tut||boostT>-GUARD_GRACE||guardT>0){C.x=r.c+Math.sign(off)*(lim-.05);C.a=Math.max(-.95,Math.min(.95,roadHeading(C.d)-Math.sign(off)*.3));C.av=0;burst(C.x,.5,-C.d,8,5,'#ffd27a');buzz(25);if(tut){coach('Whoa! <b>Stay on the road</b>',true);coachT=1.6}}else crash()}
   if(tut)tutTick(dt);
   // close call: skim within 0.7m of the edge, then recover to 1.4m clear
   else if(state==='play'){const mg=lim-Math.abs(off);if(mg<.7)nearArmed=true;nearCD-=dt;if(nearArmed&&mg>1.4){nearArmed=false;if(nearCD<=0){nearCD=1.5;nearMiss++;missionEvent('close');bumpStat('close');const pts=Math.round(50*spec.mult);bonus+=pts;popText(`Close call! <b>+${pts}</b>`);buzz(15)}}}
