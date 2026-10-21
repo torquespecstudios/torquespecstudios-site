@@ -292,7 +292,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
   <div class="modes" id="modeChips"><button class="chip" type="button" data-mode="0">Endless</button><button class="chip" type="button" data-mode="1">Daily Road</button></div>
   <p class="modeinfo" id="modeInfo"></p>
   <div class="disp" id="readyT">Hold to steer left</div>
-  <p id="readyS">Let go to swing right · Press and hold to go</p>
+  <p id="readyS">Let go to swing right<br>Tap to start</p>
   <div class="mlist" id="rMissions"></div>
 </div>
 
@@ -1241,7 +1241,7 @@ function finishRun(){show('revive',0);show('hud',0);
  if(close)$('oClose').innerHTML=`So close! <b>${fmt(gap)} m</b> short of ${dailyMode?"today's":'your'} <b>${fmt(runBest)} m</b> best<div class="bar"><i style="width:${(rd/runBest*100).toFixed(1)}%"></i></div>`;$('toGarage').classList.toggle('nudge',canSpend());
  state='over';checkAch();const got=runAch;$('oAch').hidden=!got.length;$('oAch').innerHTML=got.map(([n,r])=>`${TROPHY} ${n} unlocked · +${r} <span class="can"></span>`).join('<br>');
  renderMissions('oMissions');show('over',1);if(lastXP)showXP(lastXP);if(lastRun.best)maybeAskReview()}
-function controlText(){$('readyT').textContent='Hold to steer '+sideH();$('readyS').innerHTML='Let go to swing '+sideR()+'<br>Press and hold to go';$('countS').textContent='Get ready · hold to steer '+sideH()}
+function controlText(){$('readyT').textContent='Hold to steer '+sideH();$('readyS').innerHTML='Let go to swing '+sideR()+'<br>Tap to start';$('countS').textContent='Get ready · hold to steer '+sideH()}
 const TIPS=['Short taps make small corrections. Long holds turn hard.','Hairpins come in chains, so be ready to swing back.','Fuel cans add points <b>and</b> cash.','The road gets narrower and faster the further you go.','Watch the next bend, not your car.'];
 // the Wrecked screen points at the next goal when there is one, otherwise gives a driving tip
 function pickTip(){const can=ORDER.find(id=>!unlocked.includes(id)&&cans>=MODELS[id].price);if(can)return`You can unlock the <b>${MODELS[can].name}</b> in the Garage!`;
