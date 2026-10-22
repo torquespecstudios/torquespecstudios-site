@@ -455,7 +455,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v36 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v37 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -586,14 +586,14 @@ let stats=Object.assign({runs:0,cans:0,deliv:0,clean:0,gold:0,upg:0,heavy:0,lift
 let achGot=obj(store.get('ach',{}));
 // jobs: instead of racing to the finish, dock at each stop and do the work there. Prices are paid on completion.
 const JOBS=[
- {id:'fuel',n:'Fuel Run',sub:'Job · Refinery to depot',boats:['tug','atb'],start:0,par:540,pay:140,
+ {id:'fuel',n:'Fuel Run',sub:'Job · Refinery to depot',boats:['tug','atb'],start:0,par:520,pay:140,
   desc:'Load a tank barge at Mill Creek Refinery, run the river, then pump the fuel ashore at Riverside Fuel Depot.',
   stops:[{kind:'fuel',dir:'load',name:'Mill Creek Refinery',d:160,side:1},{kind:'fuel',dir:'discharge',name:'Riverside Fuel Depot',d:1365,side:-1}]},
- {id:'lift',n:'Bridge Repair Lift',sub:'Job · Crane work',boats:['crane'],start:560,par:330,pay:130,
+ {id:'lift',n:'Bridge Repair Lift',sub:'Job · Crane work',boats:['crane'],start:560,par:320,pay:130,
   desc:'Bring three steel beams down to the bridge work pier and lift them ashore with the crane.',
   stops:[{kind:'crane',name:'Bridge Works Pier',d:735,side:1}]},
  // container wharf: three 20 ft boxes, turned to line up with the painted bays; the third goes on top of the first
- {id:'yard',n:'Container Wharf',sub:'Job · Crane work',boats:['crane'],start:1185,par:420,pay:170,
+ {id:'yard',n:'Container Wharf',sub:'Job · Crane work',boats:['crane'],start:1185,par:300,pay:170,
   desc:'Bring three containers down to Riverside Container Wharf, turn each one to line up with its bay, and stack the last on top.',
   stops:[{kind:'crane',cargo:'box',name:'Riverside Container Wharf',d:1275,side:1}]},
  // salvage: no dock; drop the spuds beside the marker buoy and crane three drifting log bundles out of the river onto the deck
@@ -605,11 +605,11 @@ const JOBS=[
   desc:'The Bluefin has broken down at anchor below the first rapids. Pass her a line, tow her down the river, and hand her over at Mill Creek Boatyard.',
   stops:[{kind:'pickup',name:'FV Bluefin',d:590,side:1,lat:9},{kind:'handover',name:'Mill Creek Boatyard',d:1365,side:-1}]},
  // ferry: four landings, two each side of the river, carrying cars across while the fishing boats keep coming up the river
- {id:'ferry',n:'Ferry Crossing',sub:'Job · Car ferry',boats:['ferry'],start:850,par:270,pay:160,ferry:true,
+ {id:'ferry',n:'Ferry Crossing',sub:'Job · Car ferry',boats:['ferry'],start:850,par:250,pay:160,ferry:true,
   desc:'Run the Cedar Point car ferry: four landings across the river below the bridge, cars off and on at each, and the river traffic still coming up.',
   stops:[{kind:'ferry',name:'Mill Creek Landing',d:905,side:-1,on:4},{kind:'ferry',name:'Cedar Point Landing',d:905,side:1,on:3},{kind:'ferry',name:'Mill Creek Landing',d:905,side:-1,on:4},{kind:'ferry',name:'Cedar Point Landing',d:905,side:1,on:0}]},
  // bunkering: the barge starts loaded; a cargo ship lies at anchor mid-river and takes the fuel through her own hose crane
- {id:'bunker',n:'Bunker a Ship',sub:'Job · Ship at anchor',boats:['tug','atb'],start:690,load:97,par:330,pay:150,
+ {id:'bunker',n:'Bunker a Ship',sub:'Job · Ship at anchor',boats:['tug','atb'],start:690,load:97,par:210,pay:150,
   desc:'Take a loaded fuel barge alongside MV Northern Star, at anchor mid-river, and pump her bunkers aboard with the ship\'s hose crane.',
   stops:[{kind:'fuel',dir:'discharge',name:'MV Northern Star',d:935,side:-1,ship:true,lat:-1}]},
  // river tour: slow down at each sight so the passengers can take photos, keep the ride smooth, and land them at the excursion pier
@@ -622,15 +622,15 @@ const JOBS=[
   desc:'Sand has built up in the channel below the bridge. Spud down at the survey buoy, dig five grabs out of the shoal with the clamshell bucket, and load them into the mud scow alongside.',
   stops:[{kind:'crane',salvage:true,dredge:true,name:'Survey buoy',d:930,side:-1,lat:-5}]},
  // ship assist: run light down to a cargo ship stopped off the wharf, put your bow on her side and push her alongside
- {id:'assist',n:'Ship Assist',sub:'Job · Harbor tug work',boats:['tug','bigmo','hercules'],level:3,light:true,start:880,par:140,pay:180,
+ {id:'assist',n:'Ship Assist',sub:'Job · Harbor tug work',boats:['tug','bigmo','hercules'],level:3,light:true,start:880,par:120,pay:180,
   desc:'MV Kestrel has come in on the tide and stopped off Harbor Wharf at Harbor Mouth. Run light, put your bow on her side, and push her alongside: gently, and parallel to the wharf.',
   stops:[{kind:'assist',name:'Harbor Wharf',d:1050,side:-1}]},
  // fog rescue: three paddlers in the water on Foghollow Bend; find them by their strobes and by their whistles, then land them
- {id:'search',n:'Fog Rescue',sub:'Job · Search and rescue',boats:['pilot','crew','fire'],level:2,start:120,par:300,pay:170,swimmers:[[380,-12],[690,10],[1150,-6]],
+ {id:'search',n:'Fog Rescue',sub:'Job · Search and rescue',boats:['pilot','crew','fire'],level:2,start:120,par:380,pay:170,swimmers:[[380,-12],[690,10],[1150,-6]],
   desc:'A canoe has capsized in the fog on Foghollow Bend. Find the three paddlers in the water (their life-jacket strobes flash white; sound the horn and they whistle back), pick them up gently, and land them at Foghollow Landing.',
   stops:[{kind:'pier',name:'Foghollow Landing',d:1320,side:-1}]},
  // log drive: five marked logs come down below the last rapid; shove them across into the boom at Copper Mill before they get past it
- {id:'logdrive',n:'Log Drive',sub:'Job · Boom boat',boats:['tug','pilot','fire'],level:1,light:true,start:1490,par:170,pay:170,logs:[[1545,-6],[1560,5],[1575,-2],[1590,8],[1605,-9]],
+ {id:'logdrive',n:'Log Drive',sub:'Job · Boom boat',boats:['tug','pilot','fire'],level:1,light:true,start:1490,par:160,pay:170,logs:[[1545,-6],[1560,5],[1575,-2],[1590,8],[1605,-9]],
   desc:'Five marked logs are coming down Copper Rapids. Work them across the river and into the floating boom at Copper Mill on the left bank before they drift past it. Push from the river side to move a log toward the bank.',
   stops:[{kind:'boom',name:'Copper Mill boom',d:1732,side:-1}]}];
 let lvl=0,tab='river',mode=store.get('mode','race')==='job'?'job':'race',jobIdx=clamp(num(store.get('jobIdx',0),0)|0,0,JOBS.length-1);
@@ -1275,7 +1275,9 @@ function hit(v,dmg,x,d,part,who,kind){HITLOG.push({t:+runT.toFixed(1),d:Math.rou
  splash(x,-d,10+n,'#ffffff');sfxHit(Math.min(1,k));buzz(n>10?50:25);shake=Math.max(shake,settings.shake?.25+k*.5:0);
  const el=$(part==='hull'?'mHull':'mCargo');el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');
  if(n>=3)popText((part==='hull'?'Hull ':'Cargo ')+'<b>−'+n+'%</b>',true)}
-function hazardsTick(dt){for(const o of OB){if(o.hitCD>0)o.hitCD-=dt;if(o.k==='ship'||o.penned||o.lost)continue;if(o.k==='log'){const r=riv(o.d,CUR),gl=o.drive?.3:.8,cf=o.drive?.65:.8;o.vx+=(Math.sin(r.h)*r.cu*cf-o.vx)*dt*gl;o.vd+=(Math.cos(r.h)*r.cu*cf-o.vd)*dt*.8;o.x+=o.vx*dt;o.d+=o.vd*dt;o.th+=o.spin*dt;
+function hazardsTick(dt){for(const o of OB){if(o.hitCD>0)o.hitCD-=dt;if(o.k==='ship'||o.penned||o.lost)continue;if(o.k==='log'){const r=riv(o.d,CUR),gl=o.drive?.3:.8,cf=o.drive?.65:.8;o.vx+=(Math.sin(r.h)*r.cu*cf-o.vx)*dt*gl;
+   // the boom sits in an eddy: over the last 60 m above it, marked logs are set gently toward its bank
+   if(o.drive&&driveJob()&&DOCKS[0]){const D=DOCKS[0],up=D.d-D.len/2-o.d;if(up>-2&&up<60)o.vx+=D.side*Math.cos(r.h)*.45*dt}o.vd+=(Math.cos(r.h)*r.cu*cf-o.vd)*dt*.8;o.x+=o.vx*dt;o.d+=o.vd*dt;o.th+=o.spin*dt;
    const lim=r.w/2-o.len/2;if(Math.abs(o.x-r.c)>lim){o.x=r.c+Math.sign(o.x-r.c)*lim;o.vx*=-.3}o.m.position.set(o.x,.05+Math.sin(runT*1.3+o.d)*.05,-o.d);o.m.rotation.y=o.th}
   else if(o.k==='buoy'){if(o.lt&&NIGHT)o.lt.userData.sp.material.opacity=Math.sin(performance.now()/350+o.ph*3)>.2?.9:.08;// buoys are moored: they spring back to their anchor
    o.vx+=((o.bx-o.x)*1.6-o.vx*1.2)*dt;o.vd+=((o.bd-o.d)*1.6-o.vd*1.2)*dt;o.x+=o.vx*dt;o.d+=o.vd*dt;o.m.position.set(o.x,Math.sin(performance.now()/600+o.ph)*.12,-o.d);o.m.rotation.z=Math.sin(performance.now()/800+o.ph)*.12+o.vx*.05}}
