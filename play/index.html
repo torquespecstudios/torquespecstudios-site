@@ -201,6 +201,16 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .g-top{display:flex;justify-content:space-between;align-items:center;padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:auto}
 .logo{font-size:40px;line-height:1;letter-spacing:.02em;text-shadow:0 3px 16px rgba(0,0,0,.45)}
 .logo i{font-style:normal;color:var(--amber)}
+/* loading screen: covers the half-built garage until the first 3D frame is drawn (slow phones compile the 3D shaders on
+   first launch, which can take several seconds), then fades out */
+#boot{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#151a20;color:var(--ink);transition:opacity .35s ease}
+#boot .logo{font-size:56px}
+#boot p{margin:0;font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#a3a6ad}
+#boot .bar{display:block;width:120px;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
+#boot .bar::after{content:"";position:absolute;inset:0;width:40%;border-radius:2px;background:var(--amber);animation:bootBar 1.1s ease-in-out infinite}
+@keyframes bootBar{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+#boot.gone{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){#boot .bar::after{animation:none;width:100%}}
 .g-top .pills{display:flex;gap:8px}
 /* narrow phones (iPhone SE/mini): the logo and pills shrink a little so five- and six-digit totals never push the settings button off screen */
 @media (max-width:400px){.g-top .logo{font-size:32px}.pills{gap:6px}.pills .pill{padding:6px 9px;gap:5px}}
@@ -289,6 +299,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 </style>
 
 <canvas id="gl" aria-hidden="true"></canvas>
+<div id="boot" role="status"><div class="logo disp">Swer<i>vy</i></div><p>Loading the road…</p><i class="bar"></i></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 
 <div id="hud" hidden>
@@ -432,7 +443,7 @@ const fmt=n=>Math.round(n).toLocaleString('en-US');
 const num=(v,d,min=0)=>typeof v==='number'&&Number.isFinite(v)?Math.max(min,v):d;
 const obj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
 // native plugins when running as the iOS app (Capacitor); all undefined in a browser
-const NATIVE=(p=>({prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,review:p&&p.InAppReview}))(window.Capacitor&&window.Capacitor.Plugins);
+const NATIVE=(p=>({prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,review:p&&p.InAppReview,app:p&&p.App}))(window.Capacitor&&window.Capacitor.Plugins);
 const store={get(k,d){try{const v=localStorage.getItem('hp3_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){const j=JSON.stringify(v);try{localStorage.setItem('hp3_'+k,j)}catch(e){}if(NATIVE.prefs)NATIVE.prefs.set({key:'hp3_'+k,value:j}).catch(()=>{})}};
 
 /* ---------- data ---------- */
@@ -445,7 +456,7 @@ const MODELS={
   L:4.0,W:1.85,wr:.35,tw:.25,y0:.34,fwx:1.3,rwx:-1.2,belt:.98,roofY:1.52,lamp:.72,tail:.9,doors:2,spoiler:'roof',
   top:[[1.95,.34],[2.0,.5],[1.99,.66],[1.82,.8],[1.25,.9],[.75,.97],[-.5,1.02],[-1.9,1.06],[-2.0,.92],[-2.03,.62],[-1.98,.4],[-1.92,.34]],
   cab:[[.75,.97],[.05,1.48],[-.8,1.52],[-1.72,1.48],[-1.92,1.06]]},
- sedan:{eng:'i6',make:'Nordvik',name:'Halcyon',type:'Sport sedan',price:140,speed:.8,grip:.75,perk:'Quick and stable',
+ sedan:{eng:'i6',make:'Nordvik',name:'Halcyon',type:'Sport sedan',price:140,speed:.8,grip:.9,perk:'Quick and stable · Score ×1.15',mult:1.15,
   L:4.85,W:1.88,wr:.36,tw:.26,y0:.33,fwx:1.5,rwx:-1.4,belt:.95,roofY:1.44,lamp:.7,tail:.85,doors:4,spoiler:'lip',bar:true,
   top:[[2.38,.33],[2.43,.48],[2.44,.62],[2.3,.76],[1.7,.86],[1.0,.92],[-.4,.96],[-1.6,.98],[-2.2,.98],[-2.38,.9],[-2.42,.65],[-2.38,.4],[-2.33,.33]],
   cab:[[1.0,.92],[.1,1.4],[-.55,1.44],[-1.2,1.4],[-1.85,.98]]},
@@ -461,11 +472,11 @@ const MODELS={
   L:5.2,W:2.0,wr:.44,tw:.3,y0:.55,fwx:1.75,rwx:-1.65,belt:1.23,roofY:1.93,lamp:1.0,tail:1.05,doors:4,spoiler:false,flares:true,bed:true,
   top:[[2.55,.55],[2.62,.8],[2.63,1.05],[2.5,1.16],[1.9,1.2],[1.15,1.22],[0,1.23],[-1.5,1.24],[-2.5,1.24],[-2.6,1.15],[-2.61,.8],[-2.56,.55]],
   cab:[[1.15,1.22],[.55,1.9],[-.15,1.93],[-.75,1.9],[-.85,1.24]]},
- super:{eng:'v8',mid:true,make:'Ardena',name:'Stiletto',type:'Supercar',price:1150,speed:.95,grip:.9,perk:'Score ×1.25',mult:1.25,
+ super:{eng:'v8',mid:true,make:'Ardena',name:'Stiletto',type:'Supercar',price:1150,speed:.95,grip:1,perk:'Score ×1.8',mult:1.8,
   L:4.55,W:2.0,wr:.35,tw:.3,y0:.27,fwx:1.45,rwx:-1.33,belt:.8,roofY:1.13,lamp:.5,tail:.72,doors:2,spoiler:'deck',bar:true,intakes:true,
   top:[[2.22,.27],[2.3,.36],[2.29,.48],[2.02,.6],[1.45,.76],[1.0,.72],[.85,.74],[-.6,.86],[-1.3,.92],[-2.05,.88],[-2.25,.78],[-2.28,.5],[-2.22,.3],[-2.18,.27]],
   cab:[[.85,.74],[-.1,1.1],[-.55,1.13],[-1.0,1.1],[-1.6,.9]]},
- hyper:{eng:'v12',mid:true,make:'Halvorsen',name:'Aether',type:'Hypercar',price:1700,speed:1,grip:1,perk:'Score ×2',mult:2,
+ hyper:{eng:'v12',mid:true,make:'Halvorsen',name:'Aether',type:'Hypercar',price:1700,speed:1,grip:1,perk:'Score ×2.5 · 1 crash save',mult:2.5,saves:1,
   L:4.65,W:2.05,wr:.35,tw:.31,y0:.25,fwx:1.5,rwx:-1.38,belt:.76,roofY:1.07,lamp:.46,tail:.7,doors:2,spoiler:'wing',bar:true,intakes:true,
   top:[[2.28,.25],[2.36,.33],[2.33,.44],[2.02,.58],[1.5,.76],[1.05,.69],[.9,.7],[-.7,.84],[-1.38,.94],[-2.1,.87],[-2.3,.74],[-2.33,.45],[-2.28,.28],[-2.24,.25]],
   cab:[[.9,.7],[-.05,1.04],[-.5,1.07],[-.95,1.03],[-1.55,.88]]}
@@ -655,11 +666,12 @@ function ribbon(s0,s1,extra,y,vs){const n=s1-s0+1,pos=new Float32Array(n*6),uv=n
 
 const _q=new THREE.Quaternion(),_e=new THREE.Euler(),_p=new THREE.Vector3(),_s=new THREE.Vector3();
 function M4(x,y,z,ry,sx,sy,sz){_e.set(0,ry,0);_q.setFromEuler(_e);_p.set(x,y,z);_s.set(sx,sy==null?sx:sy,sz==null?sx:sz);return new THREE.Matrix4().compose(_p,_q,_s)}
-function inst(geo,mat,ms,cast){if(!ms.length)return null;const m=new THREE.InstancedMesh(geo,mat,ms.length);ms.forEach((x,i)=>m.setMatrixAt(i,x));m.instanceMatrix.needsUpdate=true;m.castShadow=cast;m.receiveShadow=true;m.frustumCulled=false;return m}
+// cols (optional): a colour per instance, multiplied with the material colour, so no two trees or rocks look identical
+function inst(geo,mat,ms,cast,cols){if(!ms.length)return null;const m=new THREE.InstancedMesh(geo,mat,ms.length);ms.forEach((x,i)=>m.setMatrixAt(i,x));if(cols){cols.forEach((c,i)=>m.setColorAt(i,c));m.instanceColor.needsUpdate=true}m.instanceMatrix.needsUpdate=true;m.castShadow=cast;m.receiveShadow=true;m.frustumCulled=false;return m}
 
 const G={
  post:new THREE.BoxGeometry(.12,.95,.12).translate(0,.475,0),refl:new THREE.BoxGeometry(.135,.12,.135).translate(0,.8,0),
- coneA:new THREE.ConeGeometry(1.8,4.6,8).translate(0,3.3,0),coneB:new THREE.ConeGeometry(1.25,3.3,8).translate(0,5.3,0),
+ coneA:new THREE.ConeGeometry(1.8,4.6,8).translate(0,3.3,0),coneB:new THREE.ConeGeometry(1.25,3.3,8).translate(0,5.3,0),coneC:new THREE.ConeGeometry(.78,2.3,8).translate(0,6.95,0),
  trunk:new THREE.CylinderGeometry(.16,.26,1.4,6).translate(0,.7,0),rock:new THREE.DodecahedronGeometry(.7,0),
  canBody:new THREE.BoxGeometry(.52,.66,.26),canCap:new THREE.CylinderGeometry(.06,.06,.12,10),canHandle:new THREE.BoxGeometry(.3,.07,.08),
  ring:new THREE.RingGeometry(.75,1.05,32).rotateX(-Math.PI/2),boost:new THREE.PlaneGeometry(2.6,4.2).rotateX(-Math.PI/2),
@@ -708,13 +720,15 @@ function buildChunk(k){const s0=k*CH,s1=s0+CH;genTo(s1+8);const grp=new THREE.Gr
  const rg=ribbon(s0,s1,0,.03,1/12),sg=ribbon(s0,s1,1.4,.015,1/5);ch.geos.push(rg,sg);
  const mr=new THREE.Mesh(rg,roadMat),ms=new THREE.Mesh(sg,shoulderMat);mr.receiveShadow=ms.receiveShadow=true;grp.add(ms,mr);
  const posts=[];for(let i=s0;i<s1;i++){if(i%5)continue;const hw=RW[i]/2+1;posts.push(M4(RC[i]-hw,0,-i*SEG,0,1),M4(RC[i]+hw,0,-i*SEG,0,1))}
- const A=[],B=[],T=[],RK=[];
+ const A=[],B=[],C3=[],T=[],RK=[],TC=[],TK=[],RC2=[];
+ // a fir is three stacked tiers; each tree gets its own shade (a little lighter or darker, warmer or cooler) and trunk tone
+ const tint=(lo,span,warm)=>{const v=lo+Math.random()*span;return new THREE.Color(v*(1+(Math.random()-.5)*warm),v,v*(1-(Math.random()-.5)*warm))};
  const clear=(x,z)=>{const ci=Math.round(-z/SEG);for(let j=Math.max(0,ci-8);j<=ci+8;j++){if(Math.abs(x-RC[j])<RW[j]/2+3.2&&Math.abs(z+j*SEG)<5)return false}return true};
  for(let i=s0;i<s1;i++){for(const side of[-1,1]){
    const tries=[];if(Math.random()<.62)tries.push(RW[i]/2+3.6+Math.pow(Math.random(),1.6)*45);if(Math.random()<.3)tries.push(55+Math.random()*100);
-   for(const dist of tries){const x=RC[i]+side*dist,z=-(i+Math.random())*SEG;if(!clear(x,z))continue;const s=.75+Math.random()*.95,sy=s*(.85+Math.random()*.4),ry=Math.random()*6.3;A.push(M4(x,0,z,ry,s,sy,s));B.push(M4(x,0,z,ry+.4,s,sy,s));T.push(M4(x,0,z,0,s,sy,s))}
-   if(Math.random()<.07){const x=RC[i]+side*(RW[i]/2+2+Math.random()*4),z=-(i+Math.random())*SEG;if(clear(x,z))RK.push(M4(x,.15,z,Math.random()*6,.5+Math.random()*.9,.35+Math.random()*.5,.5+Math.random()*.9))}}}
- for(const m of[inst(G.post,MT.post,posts,true),inst(G.refl,MT.refl,posts,false),inst(G.coneA,BIOME_LEAVES[biomeAt(s0*SEG-START_D)][0],A,true),inst(G.coneB,BIOME_LEAVES[biomeAt(s0*SEG-START_D)][1],B,true),inst(G.trunk,MT.trunk,T,true),inst(G.rock,MT.rock,RK,true)])if(m){grp.add(m);ch.inst.push(m)}
+   for(const dist of tries){const x=RC[i]+side*dist,z=-(i+Math.random())*SEG;if(!clear(x,z))continue;const s=.75+Math.random()*.95,sy=s*(.85+Math.random()*.4),ry=Math.random()*6.3;A.push(M4(x,0,z,ry,s,sy,s));B.push(M4(x,0,z,ry+.4,s,sy,s));C3.push(M4(x,0,z,ry+.8,s,sy,s));T.push(M4(x,0,z,0,s,sy,s));TC.push(tint(.78,.4,.18));TK.push(tint(.75,.45,.1))}
+   if(Math.random()<.07){const x=RC[i]+side*(RW[i]/2+2+Math.random()*4),z=-(i+Math.random())*SEG;if(clear(x,z)){RK.push(M4(x,.15,z,Math.random()*6,.5+Math.random()*.9,.35+Math.random()*.5,.5+Math.random()*.9));RC2.push(tint(.8,.35,.12))}}}}
+ for(const m of[inst(G.post,MT.post,posts,true),inst(G.refl,MT.refl,posts,false),inst(G.coneA,BIOME_LEAVES[biomeAt(s0*SEG-START_D)][0],A,true,TC),inst(G.coneB,BIOME_LEAVES[biomeAt(s0*SEG-START_D)][1],B,true,TC),inst(G.coneC,BIOME_LEAVES[biomeAt(s0*SEG-START_D)][1],C3,true,TC),inst(G.trunk,MT.trunk,T,true,TK),inst(G.rock,MT.rock,RK,true,RC2)])if(m){grp.add(m);ch.inst.push(m)}
  for(let i=s0;i<s1;i++)if(BOOSTS[i]!=null){const x=RC[i]+BOOSTS[i]*RW[i],d=i*SEG,m=new THREE.Mesh(G.boost,MT.boost);m.position.set(x,.05,-d);m.rotation.y=-Math.atan2(RC[i+1]-RC[i-1],SEG*2);grp.add(m);ch.boosts.push({m,x,d,got:false})}
  for(let i=s0;i<s1;i++)if(OBST[i]){const o=OBST[i],x=RC[i]+o.c*RW[i],d=i*SEG,ry=-Math.atan2(RC[i+1]-RC[i-1],SEG*2);let m;
   // a road rock reads as a rockfall, not scenery: a darker, redder boulder than the grey roadside rocks, broken debris
@@ -1044,7 +1058,7 @@ function rebuildCar(){if(car)disposeCar(car);car=buildCar(cfg);scene.add(car.roo
  // with a guarded boost, and power (engine, turbo, intake, exhaust) makes boost pads last longer and pays more score.
  // Top speed rises only a little with power so an upgraded car is never harder to drive
  spec={start:(20+M.speed*4)*(1+pw*.08),max:(34+M.speed*14)*(1+pw*.08),turn:(2.6+M.grip*1.1)*(1+gr*.6),resp:1+gr*1.5,mult:(M.mult||1)*(1+pw*.5),canMult:M.canMult||1,
-  edge:PF.tires*.4+PF.susp*.06,edgeP:M.edge||0,turbo:PF.turbo,saves:SUSP_SAVES[PF.susp]||0,boostT:BOOST_T*(1+pw*1.4),launch:[0,2,3,4][PF.turbo]||0};
+  edge:PF.tires*.4+PF.susp*.06,edgeP:M.edge||0,turbo:PF.turbo,saves:(SUSP_SAVES[PF.susp]||0)+(M.saves||0),boostT:BOOST_T*(1+pw*1.4),launch:[0,2,3,4][PF.turbo]||0};
  glowLight.color.set(car.glow||'#ffffff');glowLight.intensity=car.glow?2.2:0;if(state==='garage'&&tab==='engine')setEngineView(true);buildEngineAudio()}
 
 /* ---------- particles ---------- */
@@ -1460,6 +1474,15 @@ function renderSettings(){document.querySelectorAll('#settings .seg').forEach(el
 function openSettings(){renderSettings();$('replayTut').textContent=store.get('tutDone',false)?'Replay the tutorial on next drive':'Tutorial will play on your next drive';show('settings',1)}
 $('setBtn').addEventListener('click',openSettings);$('pSettings').addEventListener('click',openSettings);
 $('setClose').addEventListener('click',()=>show('settings',0));
+// Android back button: close the open panel, pause a run, resume from pause, leave the start or results screen for the
+// garage, and from the garage send the app to the background. It never quits mid-run (the system default would)
+if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{
+ const open=[['settings','setClose'],['share','shareClose'],['achPanel','achClose']].find(([p])=>!$(p).hidden);if(open){$(open[1]).click();return}
+ if(!$('daily').hidden){show('daily',0);return}
+ if(state==='play'||(state==='paused'&&counting>0)){pause();return}
+ if(state==='paused'){resume();return}
+ if(state==='ready'||state==='over'){goGarage();return}
+ if(state==='garage')NATIVE.app.minimizeApp()});
 $('replayTut').addEventListener('click',()=>{store.set('tutDone',false);$('replayTut').textContent='Tutorial will play on your next drive'});
 
 /* ---------- tutorial ---------- */
@@ -1591,7 +1614,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
   // which on a slanted stretch still pointed off the road and pinned the car against the rail)
   if(Math.abs(off)>lim){if(tut||boostT>-GUARD_GRACE||guardT>0){C.x=r.c+Math.sign(off)*(lim-.05);C.a=Math.max(-.95,Math.min(.95,roadHeading(C.d)-Math.sign(off)*.3));C.av=0;burst(C.x,.5,-C.d,8,5,'#ffd27a');buzz(25);if(tut){coach('Whoa! <b>Stay on the road</b>',true);coachT=1.6}}
    // a suspension save: bounce back onto the road and get a short guard so the recovery itself can't crash you
-   else if(savesLeft>0){savesLeft--;C.x=r.c+Math.sign(off)*(lim-.05);C.a=Math.max(-.95,Math.min(.95,roadHeading(C.d)-Math.sign(off)*.3));C.av=0;guardT=.8;burst(C.x,.5,-C.d,14,6,'#ffd27a');buzz(40);popText('Suspension save! <b>'+(savesLeft?savesLeft+' left':'last one')+'</b>')}else crash()}
+   else if(savesLeft>0){savesLeft--;C.x=r.c+Math.sign(off)*(lim-.05);C.a=Math.max(-.95,Math.min(.95,roadHeading(C.d)-Math.sign(off)*.3));C.av=0;guardT=.8;burst(C.x,.5,-C.d,14,6,'#ffd27a');buzz(40);popText('Crash save! <b>'+(savesLeft?savesLeft+' left':'last one')+'</b>')}else crash()}
   if(tut)tutTick(dt);
   // close call: skim within 0.7m of the edge, then recover to 1.4m clear
   else if(state==='play'){const mg=lim-Math.abs(off);if(mg<.7)nearArmed=true;nearCD-=dt;if(nearArmed&&mg>1.4){nearArmed=false;if(nearCD<=0){nearCD=1.5;nearMiss++;missionEvent('close');bumpStat('close');const pts=Math.round(50*spec.mult);bonus+=pts;popText(`Close call! <b>+${pts}</b>`);buzz(15)}}}
@@ -1660,7 +1683,9 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  if(state==='play')missionEvent('tick');
  if(state==='play'&&(hudT+=dt)>.05){hudT=0;updateHud();checkAch()}
  drawFx(dt,sf);
- R.render(scene,cam);requestAnimationFrame(frame)}
+ R.render(scene,cam);if(!booted)bootDone();requestAnimationFrame(frame)}
+// the first rendered frame means the shaders are compiled: fade out the loading screen and log how long startup took
+let booted=false;function bootDone(){booted=true;const b=$('boot');b.classList.add('gone');setTimeout(()=>b.remove(),400);console.log('[swervy] first frame '+Math.round(performance.now())+' ms')}
 
 function resize(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);fxC.width=w;fxC.height=h;cam.aspect=w/h;applyView();cam.updateProjectionMatrix()}
 window.addEventListener('resize',resize);
