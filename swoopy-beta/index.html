@@ -107,7 +107,8 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 .seg{display:flex;gap:4px;padding:3px;border-radius:999px;background:rgba(255,255,255,.07);flex:0 0 auto}
 .seg button{padding:9px 13px;border-radius:999px;font-weight:700;font-size:13px;color:var(--mute)}
 .seg button.on{background:var(--amber);color:#1d1508}
-.linkbtn{align-self:center;font-weight:700;font-size:14px;color:var(--amber);text-decoration:underline;text-underline-offset:3px;padding:6px}
+.linkrow{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 18px}
+.linkbtn{text-align:center;font-weight:700;font-size:14px;color:var(--amber);text-decoration:underline;text-underline-offset:3px;padding:6px}
 .ver{margin:0;text-align:center;font-size:12px;color:var(--mute)}
 .pop{position:fixed;left:50%;top:30%;transform:translateX(-50%);font-family:var(--display);font-weight:800;font-size:28px;text-transform:uppercase;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.55);white-space:nowrap;pointer-events:none;animation:popUp 1.1s ease-out forwards}
 .pop b{color:var(--amber)}
@@ -447,9 +448,9 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Cockpit callouts<small>Spoken warnings in the airliners</small></span><div class="seg" data-s="callouts"></div></div>
     <div class="srow"><span>Throttle side<small>Pick left if you play left-handed</small></span><div class="seg" data-s="lefty"></div></div>
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
-    <button class="linkbtn" id="replayTut">Replay the flying lesson on next flight</button>
+    <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v22 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v23 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1759,7 +1760,10 @@ if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{
  if(state==='paused'){resume();return}
  if(state==='ready'||state==='over'){goGarage();return}
  if(state==='garage')NATIVE.app.minimizeApp()});
-$('replayTut').addEventListener('click',()=>{store.set('coached',false);$('replayTut').textContent='The lesson will play on your next flight'});
+// feedback: an email to the studio with the version, device and current course filled in
+$('feedback').addEventListener('click',e=>{const v=document.querySelector('.ver').textContent.split(' · ')[0],body=`What I liked:\n\nWhat was hard or broken:\n\n---\n${v} · ${CO.n} · ${PLANES[sel].name} · pilot level ${level} · ${innerWidth}x${innerHeight}\n${navigator.userAgent}`;
+ $('feedback').href='mailto:torquespecstudios@gmail.com?subject='+encodeURIComponent(v+' feedback')+'&body='+encodeURIComponent(body)});
+$('replayTut').addEventListener('click',()=>{store.set('coached',false);$('replayTut').textContent='Lesson will replay next flight'});
 
 /* ---------- input ---------- */
 // a floating stick: press anywhere and drag. Sideways banks, up/down climbs or dives. Keys: arrows/WASD, Q E throttle.
