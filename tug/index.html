@@ -323,6 +323,9 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .ob.on{background:#2f8f4e;border-color:#57c27a;color:#fff}
 .ob.hot{background:var(--amber);color:#1d1508;border-color:transparent}
 .ob.held{background:var(--amber);color:#1d1508}
+.ob.cue,.btn.cue{box-shadow:0 0 0 2px var(--amber),0 0 14px rgba(242,179,61,.55)}
+.opcue{font-size:14px;font-weight:700;color:var(--amber);padding:6px 10px;border-radius:10px;background:rgba(242,179,61,.1);border:1px solid rgba(242,179,61,.35)}
+.opcue b{color:var(--ink)}
 .ob:disabled{opacity:.38;cursor:not-allowed}
 .valve{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:72px;padding:8px 4px}
 .valve i{width:30px;height:30px;border-radius:50%;border:4px solid #d23a2a;position:relative;display:block;transition:border-color .3s}
@@ -341,8 +344,9 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
 #ops .note{text-align:center}
 /* short phones (iPhone SE): a taller sheet and a tighter boat header so the River / Upgrades list keeps room */
 @media (max-height:740px) and (max-aspect-ratio:1/1){.sheet{height:68%;gap:10px;padding-top:10px}.car-head h2{font-size:22px}.car-head .ty{font-size:11px;margin-top:2px}.stats{gap:3px}.perk{font-size:11px}.mcard{padding:7px 10px}.mcard .mn{font-size:17px}.tab{padding:7px 4px}}
+.pickh{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:2px 0 -2px}
 /* portrait phones: the whole garage sheet scrolls, so the races and jobs list isn't squeezed into one row above the button */
-@media (max-aspect-ratio:1/1) and (max-width:700px){.sheet{overflow-y:auto;-webkit-overflow-scrolling:touch}.sheet>.opts{flex:none;overflow:visible}.drive-wrap{margin-top:auto}}
+@media (max-aspect-ratio:1/1) and (max-width:700px){.sheet{overflow-y:auto;-webkit-overflow-scrolling:touch;height:72%}.sheet>.opts{flex:none;overflow:visible}.drive-wrap{margin-top:auto}}
 </style></head><body>
 
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -422,7 +426,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
 
 <div class="center" id="paused" hidden>
   <div class="disp t">Paused</div>
-  <div class="vbtns"><button class="btn primary" id="resume">Resume</button><button class="btn" id="restart">Restart</button><button class="btn" id="pGarage">Garage</button><button class="btn" id="pSettings">Settings</button></div>
+  <div class="vbtns"><button class="btn primary" id="resume">Resume</button><button class="btn" id="restart">Restart</button><button class="btn" id="pEnd" hidden>End job</button><button class="btn" id="pGarage">Garage</button><button class="btn" id="pSettings">Settings</button></div>
 </div>
 
 <div class="center" id="count" hidden>
@@ -449,7 +453,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v30 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v32 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -471,6 +475,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="pills"><div class="pill"><span class="can"></span><span id="gCans">0</span></div><button class="pill" id="setBtn" aria-label="Settings">⚙</button></div>
   </div>
   <div class="sheet" id="sheet">
+    <div class="pickh">Choose your boat</div>
     <div class="models" id="models"></div>
     <div class="car-head">
       <div><h2 class="disp" id="cName"></h2><div class="ty" id="cType"></div></div>
@@ -1695,7 +1700,7 @@ function fuelAct(a,arg){const f=F,p=f.pump,g=f.gen;audioInit();
  updateOps()}
 function renderOps(){const O=$('ops');if(!OPS){O.innerHTML='';return}const D=OPS.D;
  if(OPS.kind==='fuel'){const load=F.dir==='load';
-  O.innerHTML=`<div class="ophead"><b class="disp">${load?'Load fuel':'Discharge fuel'}</b><span>${D.stop.name}</span></div><div class="opnext" id="opNext"></div>
+  O.innerHTML=`<div class="ophead"><b class="disp">${load?'Load fuel':'Discharge fuel'}</b><span>${D.stop.name}</span></div><div class="opnext" id="opNext"></div><div class="opcue" id="opCue" hidden></div>
   <div class="gauges"><div class="gauge" id="gTankG"><span class="tankbar"><i id="gTank"></i><b style="bottom:${load?95:4}%"></b></span><span class="gv" id="gTankV">0%</span><span class="gl">Tank</span></div>
   <div class="gauge" id="gPres"><svg viewBox="0 0 100 62" aria-hidden="true"><path d="M10 56A40 40 0 0 1 90 56" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="7"/><path d="M78.3 27.7A40 40 0 0 1 90 56" fill="none" stroke="#ff5a3c" stroke-width="7"/><line id="gNeedle" x1="50" y1="56" x2="50" y2="22" stroke="#f5f0e6" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="56" r="4" fill="#f5f0e6"/></svg><span class="gv" id="gPresV">0</span><span class="gl">psi</span></div>
   <div class="gauge"><span class="gv" id="gFlow">0</span><span class="gl">bbl/min</span><span class="gv" id="gBbl" style="font-size:14px">0</span><span class="gl">bbl aboard</span></div>
@@ -1711,7 +1716,7 @@ function renderOps(){const O=$('ops');if(!OPS){O.innerHTML='';return}const D=OPS
   $('opHose').onclick=()=>fuelAct('hose');$('opGenStop').onclick=()=>fuelAct('genstop');$('opBrk').onclick=()=>fuelAct('brk');$('opPStop').onclick=()=>fuelAct('pstop');$('opCast').onclick=()=>fuelAct('cast');
   O.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>fuelAct('valve',b.dataset.v));O.querySelectorAll('#opDir button').forEach(b=>b.onclick=()=>fuelAct('dir',b.dataset.d));
   $('opThr').oninput=e=>{F.thrT=e.target.value/100;if(!F.pump.run&&F.thrT>0){F.thrT=0;e.target.value=0;popText('Start the <b>pump</b> first',true)}}}
- else if(OPS.kind==='ferry'){O.innerHTML=`<div class="ophead"><b class="disp">Car ferry</b><span>${D.stop.name}</span></div><div class="opnext" id="opNext"></div>
+ else if(OPS.kind==='ferry'){O.innerHTML=`<div class="ophead"><b class="disp">Car ferry</b><span>${D.stop.name}</span></div><div class="opnext" id="opNext"></div><div class="opcue" id="opCue" hidden></div>
   <div class="gauges"><div class="gauge"><span class="gv" id="gRamp">Up</span><span class="gl">Ramp</span></div><div class="gauge"><span class="gv" id="gGate">Shut</span><span class="gl">Gate</span></div>
   <div class="gauge"><span class="gv" id="gAboard">0</span><span class="gl">Cars aboard</span></div><div class="gauge"><span class="gv" id="gWait">0</span><span class="gl">Waiting</span></div></div>
   <div class="opsec"><span>Ramp <em id="eRamp"></em></span><div class="hold2"><button class="ob" data-hold="fRu" aria-label="Raise the ramp">▲ Raise</button><button class="ob" data-hold="fRd" aria-label="Lower the ramp">▼ Lower</button></div></div>
@@ -1719,7 +1724,7 @@ function renderOps(){const O=$('ops');if(!OPS){O.innerHTML='';return}const D=OPS
   <ol class="oplist" id="opList"></ol><button class="btn primary" id="opCast">Cast off</button>
   <p class="note">${TOUCH?'Hold the arrows to work the ramp.':'Keys: ↑ ↓ ramp · G gate · F cars off · R cars on · Space cast off'}</p>`;
   $('opGate').onclick=()=>ferryAct('gate');$('opOff').onclick=()=>ferryAct('off');$('opOn').onclick=()=>ferryAct('on');$('opCast').onclick=()=>ferryAct('cast')}
- else{O.innerHTML=`<div class="ophead"><b class="disp">Crane</b><span>${D.stop.name}</span></div><div class="opnext" id="opNext"></div>
+ else{O.innerHTML=`<div class="ophead"><b class="disp">Crane</b><span>${D.stop.name}</span></div><div class="opnext" id="opNext"></div><div class="opcue" id="opCue" hidden></div>
   <div class="gauges"><div class="gauge" id="gLm"><span class="gv" id="gLmV">0%</span><span class="gl">Load moment</span></div><div class="gauge"><span class="gv" id="gRad">0</span><span class="gl">Radius m</span></div>
   <div class="gauge"><span class="gv" id="gHt">0</span><span class="gl">Hook m</span></div><div class="gauge"><span class="gv" id="gSet">0/3</span><span class="gl">${K.dredge?'Grabs':K.box?'Boxes':'Beams'}${K.dredge?'':' set'}</span></div></div>
   <div class="cctl"><div class="opsec"><span>Slew</span><div class="hold2"><button class="ob" data-hold="slL" aria-label="Slew left">◀</button><button class="ob" data-hold="slR" aria-label="Slew right">▶</button></div></div>
@@ -1729,7 +1734,16 @@ function renderOps(){const O=$('ops');if(!OPS){O.innerHTML='';return}const D=OPS
   <div class="oprow"><button class="ob hot" id="opHook" style="flex:1.4">${K.dredge?'Close bucket':'Hook on'}</button><button class="btn primary" id="opCast" style="flex:1;font-size:18px;padding:10px">${D.salvage?'Raise spuds':'Cast off'}</button></div>
   <p class="note">${TOUCH?'Hold the arrows to run the crane.':'Keys: A D slew · W S boom · ↑ ↓ hoist'+(K.box||K.salvage?' · Q E turn':'')+(K.dredge?' · Space close / open the bucket':' · Space hook on / release')}</p>`;
   $('opHook').onclick=()=>craneHook();$('opCast').onclick=()=>craneCast()}
+ O.insertAdjacentHTML('beforeend','<button class="btn" id="opQuit" style="font-size:15px;padding:10px;opacity:.85">Finish up and cast off</button><p class="note" style="margin-top:-4px">The crew makes everything safe and you carry on. This stop counts as unfinished: less pay, bronze at best.</p>');
+ $('opQuit').onclick=()=>{const b=$('opQuit');if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Tap again: crew finishes up';b.classList.add('cue');setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent='Finish up and cast off';b.classList.remove('cue')}},3500);return}crewFinish()};
  bindHolds(O);updateOps()}
+// the crew finish up: stop and shut everything, stow the gear, cast off; the stop is logged as unfinished
+function crewFinish(){if(state!=='moored'||!OPS)return;const D=OPS.D,s=D.side;for(const k in HOLD)HOLD[k]=false;
+ if(OPS.kind==='fuel'&&F){const f=F;f.pump.run=false;f.thr=f.thrT=0;f.P=0;f.flow=0;for(const[k]of VALVES){f.valves[k].t=0;f.valves[k].p=0}f.gen.run=false;f.brk=false;f.bolt=0;f.hoseOn=false;
+  if(HC){HC.att=false;HC.H.set(s*5,D.deckY+.35,1.5);HC.V.set(0,0,0);HC.psi=Math.PI;HC.R=3}f.stowed=true;hoseSegs.forEach(m=>m.visible=false)}
+ if(OPS.kind==='crane'&&K){const k=K;if(k.hooked>=0){const b=k.beams[k.hooked];if(b.home&&!b.placed){b.p.copy(b.home);b.yaw=0}if(b.dredge){b.full=0;b.open=true}k.hooked=k.dredge?0:-1}k.L=4.6;k.phi=.9;k.th=0;k.thv=0;k.H=craneTip(k.th,k.phi).add(new THREE.Vector3(0,-k.L,0));k.V.set(0,0,0)}
+ if(OPS.kind==='ferry'&&FY){const f=FY;for(const a of f.anims){if(a.dir==='on'){ferryAboard.push({m:a.m,slot:a.slot});a.m.visible=true;const p=carAt(Object.assign({},a,{t:99}));a.m.position.set(p.x,p.y,p.z)}else a.m.visible=false}f.anims=[];f.up=1;ferryRamp(f.end,1);f.gate=false;boatM.userData.gates.forEach(g=>g.visible=true);FY=null}
+ jobLog.skipped=(jobLog.skipped||0)+1;popText('Crew finished up · <b>stop unfinished</b>',true);buzz(30);castOff()}
 function updateOps(){if(!OPS)return;const n=$('opNext');
  if(OPS.kind==='fuel'){const f=F,load=f.dir==='load',st=fuelSteps(),cur=st.find(x=>!x.done);
   $('gTank').style.height=fuelLv+'%';$('gTankV').textContent=Math.round(fuelLv)+'%';$('gBbl').textContent=fmt(fuelLv/100*CAP);$('gFlow').textContent=fmt(f.flow*RATE/100*CAP*60/20);
@@ -1793,14 +1807,65 @@ function hcTip(){const D=OPS.D,s=D.side;return new THREE.Vector3(s*2.2-s*Math.co
 function hcInit(D){HC={psi:Math.PI,pv:0,R:3,L:3.2,V:new THREE.Vector3(),att:false,hT:0};HC.H=hcTip().add(new THREE.Vector3(0,-HC.L,0))}
 function hcManifold(){const m=manifoldPos();if(!m)return null;OPS.D.g.updateMatrixWorld(true);return OPS.D.g.worldToLocal(m.clone())}
 function hcDist(){const m=hcManifold();return m&&HC?HC.H.distanceTo(m):99}
-function hcAligned(){if(!HC||HC.att)return false;const m=hcManifold();if(!m)return false;return Math.hypot(HC.H.x-m.x,HC.H.z-m.z)<.7&&Math.abs(HC.H.y-m.y)<.6&&HC.V.length()<.6}
+function hcAligned(){if(!HC||HC.att)return false;const m=hcManifold();if(!m)return false;return Math.hypot(HC.H.x-m.x,HC.H.z-m.z)<1.1&&Math.abs(HC.H.y-m.y)<.9&&HC.V.length()<.9}
+// banksman: works out the one control to use next, says so in the panel and lights its button; CUE keeps the target
+// (in the crane's or dock's own frame) for the drop line and target ring
+let CUE=null;
+function bankCue(){const el=$('opCue');document.querySelectorAll('#ops .cue').forEach(b=>{if(b!==el)b.classList.remove('cue')});CUE=null;if(!el||!OPS)return;let c=null;
+ if(OPS.kind==='fuel'&&HC&&F)c=hoseCue();else if(OPS.kind==='crane'&&K)c=craneCue();
+ el.hidden=!c;if(!c)return;el.innerHTML='Banksman: '+c.t;const b=c.k&&(c.k[0]==='#'?$(c.k.slice(1)):document.querySelector(`#ops [data-hold="${c.k}"]`));if(b)b.classList.add('cue')}
+function hoseCue(){const f=F,h=HC,D=OPS.D,s=D.side;let x,z,y,fin;
+ if(!f.hoseOn&&f.bolt<=0&&!f.done){const m=hcManifold();if(!m)return null;CUE={x:m.x,z:m.z,ty:m.y,ok:hcAligned(),dock:true};if(hcAligned())return{k:'#opHose',t:'hose end is on the flange: <b>Bolt up</b>'};x=m.x;z=m.z;y=m.y;fin='onto the flange'}
+ else if(f.done&&!f.hoseOn&&f.bolt<=0&&!f.stowed){x=s*5;z=1.5;y=D.deckY+1.3;fin='onto the dock';CUE={x,z,ty:D.deckY+.35,ok:false,dock:true}}
+ else return null;
+ const vx=x-s*2.2,vz=z-1.5,R=Math.hypot(vx,vz),ps=Math.atan2(vz,-s*vx),dp=wrapA(ps-h.psi),dR=R-h.R,dy=h.H.y-y,hor=Math.hypot(h.H.x-x,h.H.z-z);
+ if(h.V.length()>.9)return{k:null,t:'let the swing settle'};
+ if(hor>.8&&Math.abs(dp)*R>.5){const l=(dp>0)===(s>0);return{k:l?'hcL':'hcR',t:'slew '+(l?'◀':'▶')}}
+ if(hor>.8&&Math.abs(dR)>.4)return{k:dR>0?'hcO':'hcI',t:dR>0?'jib <b>Out</b>':'jib <b>In</b>'};
+ if(dy>.4)return{k:'hcD',t:'lower ▼ '+fin};if(dy<-.6)return{k:'hcU',t:'raise ▲'};return{k:null,t:'hold it there'}}
+function craneCue(){const k=K,H=k.H,ld=k.beams[k.hooked];
+ if(k.dredge){const b=k.beams[0],h=k.hop;if(k.placed>=k.need&&!b.full)return stowCue();
+  if(b.full){CUE={x:h.x,z:h.z,ty:h.floor,ok:Math.abs(H.x-h.x)<h.hx&&Math.abs(H.z-h.z)<h.hz};if(CUE.ok&&H.y-b.drop-b.hh-h.rim<5)return{k:'#opHook',t:'over the hopper: <b>Open bucket</b>'};if(H.y-b.drop-b.hh<2.6&&!CUE.ok)return{k:'hUp',t:'hoist up ▲ clear of the deck'};return aim(h.x,h.z,h.rim+b.hh+b.drop+1.2)}
+  if(!b.open)return{k:'#opHook',t:'<b>Open the bucket</b> to dig'};CUE={x:k.dig.x,z:k.dig.z,ty:-.1,ok:Math.hypot(H.x-k.dig.x,H.z-k.dig.z)<k.dig.r};
+  if(k.rest&&b.p.y<0&&CUE.ok)return{k:'#opHook',t:'on the bottom: <b>Close bucket</b>'};return aim(k.dig.x,k.dig.z,-9)}
+ if(k.placed>=k.beams.length)return stowCue();
+ if(!ld){const b=k.beams.filter(q=>!q.placed&&!k.beams.some(o=>o!==q&&!o.placed&&o.p.y>q.p.y+.5&&onItem(o,q.p.x,q.p.z))).sort((a,c)=>Math.hypot(a.p.x-H.x,a.p.z-H.z)-Math.hypot(c.p.x-H.x,c.p.z-H.z))[0];if(!b)return null;
+  CUE={x:b.p.x,z:b.p.z,ty:b.p.y+b.hh,ok:hookable()>=0};if(CUE.ok)return{k:'#opHook',t:'hook is on it: <b>'+(k.box?'Lock on':'Hook on')+'</b>'};return aim(b.p.x,b.p.z,b.p.y+b.hh+.5)}
+ const pad=k.pads.filter(p=>!p.used&&(p.stackOn==null||k.pads[p.stackOn].used)).sort((a,c)=>Math.hypot(a.p.x-H.x,a.p.z-H.z)-Math.hypot(c.p.x-H.x,c.p.z-H.z))[0];if(!pad)return null;
+ CUE={x:pad.p.x,z:pad.p.z,ty:pad.p.y,ok:!!padFor()||Math.hypot(H.x-pad.p.x,H.z-pad.p.z)<(ld.box?1.6:2.4)};
+ if(k.rest&&padFor())return{k:'#opHook',t:'down in place: <b>Release</b>'};
+ const hor=Math.hypot(H.x-pad.p.x,H.z-pad.p.z),clr=H.y-ld.drop-ld.hh-Math.max(craneSurf(H.x,H.z,k.hooked),pad.p.y);if(hor>2.5&&clr<1.2)return{k:'hUp',t:'hoist up ▲ to clear the deck'};
+ if(pad.yaw!=null&&hor<7){const e=wrapA(pad.yaw-ld.yaw),e2=wrapA(pad.yaw+Math.PI-ld.yaw),ee=Math.abs(e)<Math.abs(e2)?e:e2;if(Math.abs(ee)>.25)return{k:ee>0?'rL':'rR',t:'turn the load '+(ee>0?'⟲':'⟳')+' to line it up'}}
+ return aim(pad.p.x,pad.p.z,pad.p.y+ld.hh+ld.drop-.6)}
+function aim(x,z,y){const k=K,H=k.H,th=Math.atan2(-x,-(z+1)),r=Math.hypot(x,z+1),phi=Math.acos(clamp((r-1)/BOOM,-1,1)),dth=wrapA(th-k.th),dphi=phi-k.phi,hor=Math.hypot(H.x-x,H.z-z);
+ if(Math.hypot(k.V.x,k.V.z)>1.1)return{k:null,t:'let the swing settle'};
+ const ldA=k.beams[k.hooked],clA=H.y-(ldA?ldA.drop+ldA.hh:.3)-craneSurf(H.x,H.z,k.hooked);
+ if(hor>.7){const coast=k.thv*k.thv/(2*.55);if(Math.sign(k.thv)===Math.sign(dth)&&Math.abs(k.thv)>.02&&Math.abs(dth)<=coast+.015)return{k:null,t:'ease off the slew, it will coast in'};if(Math.abs(dth)*r>.4)return{k:dth>0?'slL':'slR',t:'slew '+(dth>0?'◀':'▶')};if(Math.abs(dphi)>.01){if(dphi<0&&clA<1.6&&y>H.y-6)return{k:'hUp',t:'hoist up ▲ before you reach out'};return{k:dphi>0?'bUp':'bDn',t:dphi>0?'boom ▲ (bring it in)':'boom ▼ (reach out)'}}}
+ const dy=H.y-y;if(dy>.3)return{k:'hDn',t:'lower ▼ slowly'};if(dy<-.8)return{k:'hUp',t:'hoist ▲'};return{k:null,t:'hold it there'}}
+function stowCue(){const k=K;if(k.L>6.5)return{k:'hUp',t:'stow: hoist the hook ▲'};if(k.phi<.8)return{k:'bUp',t:'stow: boom ▲'};return{k:'#opCast',t:'crane stowed: <b>'+(OPS.D.salvage?'Raise spuds':'Cast off')+'</b>'}}
+// depth aids: a line dropped straight down from the hook (or hose end) to a spot where it would land, and a ring on the
+// target that turns green when it's close enough
+const AIDA=new THREE.MeshBasicMaterial({color:0x7fe3ea,transparent:true,opacity:.9,depthWrite:false,depthTest:false,fog:false}),AIDG=new THREE.MeshBasicMaterial({color:0x5ad17a,transparent:true,opacity:.95,depthWrite:false,depthTest:false,fog:false}),AIDT=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.95,depthWrite:false,depthTest:false,fog:false});
+const aidLine=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,1,6).translate(0,.5,0),AIDA),aidSpot=new THREE.Mesh(new THREE.RingGeometry(.3,.5,24).rotateX(-Math.PI/2),AIDA),aidTgt=new THREE.Mesh(new THREE.RingGeometry(.75,1.05,36).rotateX(-Math.PI/2),AIDT);
+[aidLine,aidSpot,aidTgt].forEach(m=>{m.visible=false;m.renderOrder=4;scene.add(m)});
+function aidsDraw(){const on=state==='moored'&&OPS&&(OPS.kind==='crane'&&K||OPS.kind==='fuel'&&HC);aidLine.visible=aidSpot.visible=aidTgt.visible=!!on;if(!on)return;
+ let a,b;const crane=OPS.kind==='crane',D=OPS.D,w=v=>crane?L2W(v.x,v.y,v.z):D.g.localToWorld(v.clone());
+ if(crane){const k=K,ld=k.beams[k.hooked],bot=k.H.y-(ld?ld.drop+ld.hh:.35),sy=Math.max(craneSurf(k.H.x,k.H.z,k.hooked),0);a=w(new THREE.Vector3(k.H.x,bot,k.H.z));b=w(new THREE.Vector3(k.H.x,sy+.06,k.H.z))}
+ else{const h=HC,m=hcManifold(),s=D.side,onDock=h.H.x*s>.25&&Math.abs(h.H.z)<D.len/2,nearM=m&&Math.hypot(h.H.x-m.x,h.H.z-m.z)<2.6,fl=onDock?D.deckY+.35:nearM?m.y-.2:.05;a=w(h.H);b=w(new THREE.Vector3(h.H.x,fl,h.H.z))}
+ if(a.y-b.y>.05){lineBetween(aidLine,b,a);aidLine.visible=true}else aidLine.visible=false;aidSpot.position.copy(b);
+ if(CUE){const t=w(new THREE.Vector3(CUE.x,CUE.ty+.06,CUE.z));aidTgt.position.copy(t);aidTgt.material=CUE.ok?AIDG:AIDT;aidTgt.scale.setScalar(1+.08*Math.sin(performance.now()/180));aidTgt.visible=true}else aidTgt.visible=false}
 function hcTick(dt){const h=HC,D=OPS.D,s=D.side;if(!h)return;
  const want=((HOLD.hcL?1:0)-(HOLD.hcR?1:0))*.45*s;h.pv+=clamp(want-h.pv,-.8*dt,.8*dt);h.psi+=h.pv*dt;
  if(HOLD.hcO)h.R=Math.min(9.5,h.R+1.2*dt);if(HOLD.hcI)h.R=Math.max(2,h.R-1.2*dt);
- const hd=(HOLD.hcD?1:0)-(HOLD.hcU?1:0);h.hT=hd?h.hT+dt:0;if(hd)h.L=clamp(h.L+hd*Math.min(1.1,.3+h.hT*.8)*dt,1,D.jibY+1);
+ const hd=(HOLD.hcD?1:0)-(HOLD.hcU?1:0);h.hT=hd?h.hT+dt:0;
+ // the hose winch creeps in the last metre and a half above the manifold or the dock
+ const mC=hcManifold(),lowC=hd>0&&(mC&&Math.hypot(h.H.x-mC.x,h.H.z-mC.z)<3&&h.H.y-mC.y<1.5||h.H.x*s>.25&&h.H.y-D.deckY<1.8);if(hd)h.L=clamp(h.L+hd*(lowC?.3:Math.min(1.1,.3+h.hT*.8))*dt,1,D.jibY+1);
  if(h.att&&F.hoseOn){const m=hcManifold();if(m)h.H.copy(m);h.V.set(0,0,0);return}
  if(h.att&&F.bolt>0){const m=hcManifold();if(m)h.H.lerp(m,Math.min(1,dt*4));h.V.set(0,0,0);return}
- const prev=h.H.clone(),tip=hcTip();h.V.y-=9.8*dt;h.V.multiplyScalar(Math.exp(-.35*dt));h.H.addScaledVector(h.V,dt);
+ const prev=h.H.clone(),tip=hcTip();h.V.y-=9.8*dt;h.V.multiplyScalar(Math.exp(-1.1*dt));h.H.addScaledVector(h.V,dt);
+ // deckhands: once the hose end is close over the manifold and steady, they take hold of it and walk it onto the flange
+ {const m=hcManifold();if(m&&!F.hoseOn&&F.bolt<=0&&!F.done){const hd=Math.hypot(h.H.x-m.x,h.H.z-m.z),up=h.H.y-m.y;
+  if(hd<1.8&&up>-.4&&up<1.8&&h.V.length()<1.4){h.H.x+=(m.x-h.H.x)*Math.min(1,dt*2.2);h.H.z+=(m.z-h.H.z)*Math.min(1,dt*2.2);h.V.x*=Math.exp(-4*dt);h.V.z*=Math.exp(-4*dt);if(!h.crew){h.crew=true;popText('Deckhand has <b>the hose</b>')}}else if(hd>2.6)h.crew=false}}
  const dv=h.H.clone().sub(tip),len=dv.length();if(len>h.L)h.H.copy(tip).addScaledVector(dv.multiplyScalar(1/len),h.L);h.V.copy(h.H).sub(prev).multiplyScalar(1/dt);
  // what the hose end can rest on: the dock deck, the barge deck by the manifold, or the river
  const m=hcManifold(),onDock=h.H.x*s>.25&&Math.abs(h.H.z)<D.len/2,nearM=m&&Math.hypot(h.H.x-m.x,h.H.z-m.z)<2.6,floor=onDock?D.deckY+.35:nearM?m.y-.25:-.1;
@@ -1832,11 +1897,13 @@ function craneSurf(x,z,excl){if(K.dredge){const h=K.hop,d=K.dig;if(Math.abs(x-h.
   if(Math.abs(x)<4&&z>-11&&z<5)return Math.abs(x)<1.9&&z>-3&&z<2.8?4.1:1.37;return Math.hypot(x-d.x,z-d.z)<d.r?-2.2:-4.2}
  let y=0;if(Math.abs(x)<4&&z>-11&&z<5)y=Math.abs(x)<1.9&&z>-3&&z<2.8?4.1:1.37;else{const P=K.pier;if(Math.abs(x-P.x)<P.hx&&Math.abs(z-P.z)<P.hz)y=2.42}
  K.beams.forEach((b,i)=>{if(i!==excl&&i!==K.hooked&&onItem(b,x,z))y=Math.max(y,b.p.y+b.hh)});return y}
+// the highest surface within a load's reach of (x,z): a load drifting sideways can come down on the edge of something
+function surfNear(x,z,excl){let y=craneSurf(x,z,excl);for(const[a,b]of[[1.5,0],[-1.5,0],[0,1.5],[0,-1.5]])y=Math.max(y,craneSurf(x+a,z+b,excl));return y}
 const noun=()=>K&&K.box?'container':K&&K.salvage?'bundle':K&&K.dredge?'bucket':'beam';
 function hookable(){if(K.hooked>=0)return-1;for(let i=0;i<K.beams.length;i++){const b=K.beams[i];if(b.placed)continue;if(K.beams.some((o,j)=>j!==i&&!o.placed&&o.p.y>b.p.y+.5&&onItem(o,b.p.x,b.p.z)))continue;
-  const dy=K.H.y-(b.p.y+b.hh);if(Math.hypot(K.H.x-b.p.x,K.H.z-b.p.z)<(b.box?.8:1.1)&&dy>.15&&dy<(b.box?1.3:1.9)&&K.V.length()<1.4)return i}return-1}
+  const dy=K.H.y-(b.p.y+b.hh);if(Math.hypot(K.H.x-b.p.x,K.H.z-b.p.z)<(b.box?1.2:1.6)&&dy>.1&&dy<(b.box?1.6:2.2)&&K.V.length()<1.8)return i}return-1}
 // a bay that fits: free, its base already stacked, the load close enough and (for containers) turned within about 11 degrees
-function padFor(){const k=K,b=k.beams[k.hooked];if(!b)return null;return k.pads.find(p=>!p.used&&(p.stackOn==null||k.pads[p.stackOn].used)&&Math.hypot(p.p.x-k.H.x,p.p.z-k.H.z)<(b.box?1.2:1.8)&&Math.abs(b.p.y-b.hh-p.p.y)<.35&&(p.yaw==null||Math.abs(wrapA(b.yaw-p.yaw))<.2||Math.abs(wrapA(b.yaw-p.yaw-Math.PI))<.2))}
+function padFor(){const k=K,b=k.beams[k.hooked];if(!b)return null;return k.pads.find(p=>!p.used&&(p.stackOn==null||k.pads[p.stackOn].used)&&Math.hypot(p.p.x-k.H.x,p.p.z-k.H.z)<(b.box?1.6:2.4)&&Math.abs(b.p.y-b.hh-p.p.y)<.35&&(p.yaw==null||Math.abs(wrapA(b.yaw-p.yaw))<.3||Math.abs(wrapA(b.yaw-p.yaw-Math.PI))<.3))}
 function craneHook(){audioInit();const k=K;if(k.dredge){bucketAct();return}if(k.hooked<0){const i=hookable();if(i<0)return;k.hooked=i;k.rot=wrapA(k.beams[i].yaw-k.th);chime([523,659]);popText(k.box?'Spreader <b>locked on</b>':'Rigger: <b>hooked on</b>');k.L=Math.min(k.L,k.H.distanceTo(craneTip(k.th,k.phi))+.05);updateOps();return}
  if(!k.rest)return;const b=k.beams[k.hooked],pad=padFor();
  if(pad){pad.used=true;b.placed=true;b.p.set(pad.p.x,pad.p.y+b.hh,pad.p.z);if(pad.yaw!=null)b.yaw=pad.yaw;k.placed++;k.hooked=-1;chime([523,659,784,1047]);buzz(30);popText(`${k.box?'Container':k.salvage?'Bundle aboard':'Beam'}${k.salvage?'':' set'}! <b>${k.placed}/${k.beams.length}</b>`)}
@@ -1860,16 +1927,22 @@ function craneTick(dt){const k=K,H=k.H,V=k.V;
  // turning the load on its hook (tag lines and a rotating spreader)
  if(ld){if(HOLD.rL)k.rot+=.6*dt;if(HOLD.rR)k.rot-=.6*dt}
  if(over&&(HOLD.bDn||HOLD.hUp))jobErr('lmi'+k.placed,'Overloaded the crane: the limiter stopped the lift');
- if(HOLD.bUp)k.phi=Math.min(1.32,k.phi+.13*dt);if(HOLD.bDn&&!over)k.phi=Math.max(.22,k.phi-.13*dt);
+ if(HOLD.bUp)k.phi=Math.min(1.32,k.phi+.13*dt);
+ // booming down drops the hook as it reaches out; close above the deck or pier it goes slowly so the load isn't slammed down
+ if(HOLD.bDn&&!over){const lb=k.beams[k.hooked],cl=k.H.y-(lb?lb.drop+lb.hh:.3)-surfNear(k.H.x,k.H.z,k.hooked);k.phi=Math.max(.22,k.phi-(cl<1.5?.035:.13)*dt)}
  // hoist winch: a tap creeps at 0.35 m/s, a long hold winds up to 1.5 m/s; letting go brakes at once
- const hd=(HOLD.hDn?1:0)-(HOLD.hUp&&!over?1:0);k.hT=hd?(k.hT||0)+dt:0;const hs=Math.min(1.5,.35+k.hT*.95);if(hd)k.L=clamp(k.L+hd*hs*dt,1.4,24);
+ const hd=(HOLD.hDn?1:0)-(HOLD.hUp&&!over?1:0);k.hT=hd?(k.hT||0)+dt:0;
+ // the winch creeps in the last metre and a half above whatever is below, so a held button doesn't slam the load down
+ const ldH=k.beams[k.hooked],clr=k.H.y-(ldH?ldH.drop+ldH.hh:.3)-surfNear(k.H.x,k.H.z,k.hooked),hs=hd>0&&clr<1.5?Math.min(.4,.35+k.hT*.95):Math.min(1.5,.35+k.hT*.95);if(hd)k.L=clamp(k.L+hd*hs*dt,1.4,24);
+ // tag lines: near the load to pick up, or near a free pad with a load on, the deck crew steady the swing
+ {const tgt=ld?k.pads.filter(p=>!p.used):k.beams.filter(q=>!q.placed),near=tgt.some(q=>Math.hypot((q.p||q.v).x-H.x,(q.p||q.v).z-H.z)<(k.dredge?0:4));if(near||k.dredge&&!k.rest&&H.y<4){V.x*=Math.exp(-2.4*dt);V.z*=Math.exp(-2.4*dt)}}
  // position-based pendulum: integrate, pull back onto the rope, then take the velocity from how far the hook really moved
  const prev=H.clone(),tip=craneTip(k.th,k.phi);V.y-=9.8*dt;V.multiplyScalar(Math.exp(-.2*dt));H.addScaledVector(V,dt);
  const dv=H.clone().sub(tip),len=dv.length();if(len>k.L)H.copy(tip).addScaledVector(dv.multiplyScalar(1/len),k.L);V.copy(H).sub(prev).multiplyScalar(1/dt);
  // contact: the beam (or the bare hook) lands on the deck, the pier, or the river
  const drop=ld?ld.drop+ld.hh:.3,sy=craneSurf(H.x,H.z,k.hooked);k.rest=false;k.hard-=dt;
  if(H.y-drop<sy){const vy=V.y,vh=Math.hypot(V.x,V.z);H.y=sy+drop;if(V.y<0)V.y=0;V.x*=.4;V.z*=.4;k.rest=true;
-  if(k.hooked>=0&&k.hard<=0&&!(k.dredge&&sy<0)){if(vy<-.9){jobErr('hard'+k.placed,'Set a '+noun()+' down hard');damage(6,'cargo');k.hard=1;sfxHit(.5);buzz(40)}
+  if(k.hooked>=0&&k.hard<=0&&!(k.dredge&&sy<0)){if(vy<-1.1){jobErr('hard'+k.placed,'Set a '+noun()+' down hard');damage(6,'cargo');k.hard=1;sfxHit(.5);buzz(40)}
    else if(vh>1.3){jobErr('strike'+k.placed,'Swung a '+noun()+' into '+(sy>4.5?'another container':sy>2?'the pier':'the deck'));damage(8,'cargo');k.hard=1;sfxHit(.8);buzz(50)}
    if(sy<.5&&!k.salvage&&!k.dredge)jobErr('wet'+k.placed,'Dipped a '+noun()+' in the river')}}
  if(ld){const was=ld.p.y;ld.p.set(H.x,H.y-ld.drop,H.z);ld.yaw=k.th+k.rot;if(k.dredge&&was>=0&&ld.p.y<0){const w=L2W(H.x,0,H.z);splash(w.x,w.z,10,'#ffffff');sfxSplash()}}
@@ -1924,17 +1997,17 @@ function acceptRevive(){if(state!=='revive'||cans<REVIVE_COST)return;audioInit()
  chime([392,523,784]);buzz(30);show('hud',1);state='count';counting=2.4;$('countN').textContent='3';show('count',1);show('pauseBtn',1);showSteer();show('hornBtn',1)}
 $('rvYes').addEventListener('click',acceptRevive);$('rvNo').addEventListener('click',()=>{if(state!=='revive')return;show('revive',0);finishRun()});
 function finishJob(){const J=JOBD(),ok=result.kind==='job',key='job_'+J.id+'_'+sel,spill=Math.round(jobLog.spill),errs=jobLog.errs.length;
- const m=!ok?0:spill===0&&cargo>=80&&hull>=60?(errs===0&&result.time<=J.par?3:2):1,prevM=num(medals[key],0),prevBest=num(bests[key],0);
- const base=ok?Math.round(J.pay*(.5+.5*cargo/100)*(spec.dpay||1)):0,fine=Math.min(base,Math.round(spill*.3)),medalPay=m>prevM?[0,10,20,40].slice(prevM+1,m+1).reduce((a,b)=>a+b,0):0,pay=Math.max(0,Math.round((runCans+base-fine+medalPay+(ok&&J.sights?TS.tips:0))*(ENV==='night'?1.25:1)));if(ok&&ENV==='night')stats.night=(stats.night||0)+1;
- const nb=ok&&(!prevBest||result.time<prevBest);if(nb)bests[key]=+result.time.toFixed(2);if(m>prevM)medals[key]=m;
+ const skip=jobLog.skipped||0,m=!ok?0:skip?1:spill===0&&cargo>=80&&hull>=60?(errs===0&&result.time<=J.par?3:2):1,prevM=num(medals[key],0),prevBest=num(bests[key],0);
+ const base=ok?Math.round(J.pay*(.5+.5*cargo/100)*(spec.dpay||1)*Math.max(.25,1-.45*skip)):result.kind==='quit'&&DOCKS.length?Math.round(J.pay*.5*Math.min(stopI,DOCKS.length)/DOCKS.length):0,fine=Math.min(base,Math.round(spill*.3)),medalPay=m>prevM?[0,10,20,40].slice(prevM+1,m+1).reduce((a,b)=>a+b,0):0,pay=Math.max(0,Math.round((runCans+base-fine+medalPay+(ok&&J.sights?TS.tips:0))*(ENV==='night'?1.25:1)));if(ok&&ENV==='night')stats.night=(stats.night||0)+1;
+ const nb=ok&&!skip&&(!prevBest||result.time<prevBest);if(nb)bests[key]=+result.time.toFixed(2);if(m>prevM)medals[key]=m;
  lastShare={job:true,where:J.n,time:ok?clock(result.time):stopI+' of '+DOCKS.length+' stops',boat:BOATS[sel].name,cargo:spec.cargo?Math.round(cargo):null,medal:m,fog:false};
  cans+=pay;stats.runs++;if(ok){stats.jobs++;if(J.id==='fuel'){stats.fuelJobs++;if(spill===0)stats.zeroSpill++}if(J.id==='lift')stats.lifts++;if(J.id==='yard')stats.yard++;if(J.id==='salvage')stats.salvage=(stats.salvage||0)+1;if(J.id==='rescue')stats.rescue=(stats.rescue||0)+1;if(J.id==='ferry')stats.ferry=(stats.ferry||0)+1;if(J.id==='dredge')stats.dredge=(stats.dredge||0)+1;if(J.id==='tour')stats.tours=(stats.tours||0)+1;if(J.id==='assist')stats.assists=(stats.assists||0)+1;if(J.id==='search')stats.searches=(stats.searches||0)+1;if(J.id==='logdrive')stats.drives=(stats.drives||0)+1}if(m===3)stats.gold++;
  store.set('cans',cans);store.set('best',bests);store.set('medals',medals);store.set('stats',stats);
- const got=checkAch(),t=$('oT');t.textContent=ok?'Job complete!':result.kind==='sunk'?'Sunk!':result.kind==='missed'?'Missed the dock':driveJob()?'Too many logs lost':rescueJob()?'Tow lost':assistJob()?'Ship damaged':tourJob()?'Tour called off':'Cargo lost';t.classList.toggle('bad',!ok);
+ const got=checkAch(),t=$('oT');t.textContent=ok?'Job complete!':result.kind==='sunk'?'Sunk!':result.kind==='quit'?'Job ended early':result.kind==='missed'?'Missed the dock':driveJob()?'Too many logs lost':rescueJob()?'Tow lost':assistJob()?'Ship damaged':tourJob()?'Tour called off':'Cargo lost';t.classList.toggle('bad',!ok);
  $('oTime').innerHTML=ok?clock(result.time)+(nb?'<small>New best!</small>':''):`${stopI}<small>of ${DOCKS.length} stops done</small>`;
  const cond=[['Bronze','Complete the job'],J.logs?['Silver','4 of 5 logs or better']:J.swimmers?['Silver','Hull 60% or better']:J.id==='assist'?['Silver','Ship condition 80%+']:J.sights?['Silver','Comfort 80% or better']:J.ferry?['Silver','Hull 60% or better']:['Silver','No spills · 80% cargo'],['Gold','No slips · under '+clock(J.par)]];
  $('oMed').innerHTML=cond.map(([n,c],i)=>`<div class="medal m${i+1} ${m>i?'on':''}" style="animation-delay:${.15+i*.18}s"><i></i><b>${n}</b>${c}</div>`).join('');
- $('oMeta').innerHTML=`<span>Hull <b>${Math.round(hull)}%</b></span>`+(J.logs?`<span>Logs <b>${OB.filter(o=>o.drive&&o.penned).length} of ${J.logs.length}</b></span>`:spec.cargo||J.sights?`<span>${J.sights?'Comfort':J.id==='assist'?'Ship':'Cargo'} <b>${Math.round(cargo)}%</b></span>`:'')+(J.id==='fuel'?`<span>Spills <b>${fmt(spill)} bbl</b></span>`:'')+(J.sights?`<span>Sights <b>${TS.seen}/${J.sights.length}</b></span><span>Tips <b>${TS.tips}</b></span>`:'')+`<span>Slips <b>${errs}</b></span><span><span class="can"></span> <b>+${pay}</b>${fine?` (fine −${fine})`:''}</span>`;
+ $('oMeta').innerHTML=`<span>Hull <b>${Math.round(hull)}%</b></span>`+(J.logs?`<span>Logs <b>${OB.filter(o=>o.drive&&o.penned).length} of ${J.logs.length}</b></span>`:spec.cargo||J.sights?`<span>${J.sights?'Comfort':J.id==='assist'?'Ship':'Cargo'} <b>${Math.round(cargo)}%</b></span>`:'')+(J.id==='fuel'?`<span>Spills <b>${fmt(spill)} bbl</b></span>`:'')+(J.sights?`<span>Sights <b>${TS.seen}/${J.sights.length}</b></span><span>Tips <b>${TS.tips}</b></span>`:'')+`${skip?`<span>Unfinished stops <b>${skip}</b></span>`:''}<span>Slips <b>${errs}</b></span><span><span class="can"></span> <b>+${pay}</b>${fine?` (fine −${fine})`:''}</span>`;
  $('oAch').hidden=!got.length;$('oAch').innerHTML=got.length>2?`${TROPHY} ${got.length} trophies unlocked · +${got.reduce((t,g)=>t+g[1],0)} <span class="can"></span>`:got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
  $('oTip').innerHTML=errs?'<b>Slips:</b> '+jobLog.errs.slice(0,3).join(' · ')+(errs>3?' …':''):ok?(m<3?`Gold needs no slips and <b>${clock(J.par)}</b> or better.`:'A clean job. The dock crew are impressed.'):'Take the river slowly on a job: there is no prize for speed if the cargo is lost.';
  $('toGarage').classList.toggle('nudge',canSpend());state='over';clearTimeout(banner.t);show('region',0);toastQ=[];toastBusy=false;show('mtoast',0);show('hud',0);show('over',1);if(m===3&&m>prevM)chime([523,659,784,1047,1319]);afterRun(ok,m,nb)}
@@ -2098,7 +2171,7 @@ function renderGarage(){checkAch();renderAch();renderLevel();spec=specFor(sel);c
  $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;renderGarage()});
  const O=$('opts');
  if(tab==='river'){const med=m=>[1,2,3].map(k=>`<i class="${m>=k?'m'+k:''}"></i>`).join('');
-  O.innerHTML=`<div class="srow" style="font-size:13px"><span>Time of day<small>${LV.env==='fog'?'Foghollow is always fog at dusk':'Night runs pay 25% more'}</small></span><div class="seg" id="todSeg"><button data-n="0" class="${settings.night?'':'on'}">Day</button><button data-n="1" class="${settings.night?'on':''}">Night</button></div></div><div class="opt"><span>Races</span></div>`+LEVELS.map((L,i)=>{if(L.soon)return`<div class="lv soon"><span class="ln">${L.n}</span><span class="ls">${L.sub} · coming soon</span><span class="lm"></span></div>`;
+  O.innerHTML=`<div class="pickh">Choose a race or job</div><div class="srow" style="font-size:13px"><span>Time of day<small>${LV.env==='fog'?'Foghollow is always fog at dusk':'Night runs pay 25% more'}</small></span><div class="seg" id="todSeg"><button data-n="0" class="${settings.night?'':'on'}">Day</button><button data-n="1" class="${settings.night?'on':''}">Night</button></div></div><div class="opt"><span>Races</span></div>`+LEVELS.map((L,i)=>{if(L.soon)return`<div class="lv soon"><span class="ln">${L.n}</span><span class="ls">${L.sub} · coming soon</span><span class="lm"></span></div>`;
    if(L.unlock&&!levelOpen(L))return`<div class="lv soon"><span class="ln">${L.n}</span><span class="ls">${L.sub} · finish ${LEVELS.find(x=>x.id===L.unlock).n} to unlock</span><span class="lm"></span></div>`;
    const key=L.id+'_'+sel,m=num(medals[key],0),bt=num(bests[key],0);return`<button class="lv ${!isJob()&&i===lvl?'on':''}" data-i="${i}"><span class="ln">${L.n}</span><span class="ls">${L.sub} · ${km(L.len)} km · ${bt?'best '+clock(bt):'no time yet'} · gold ${clock(L.par[sel])}</span><span class="lm">${med(m)}</span></button>`}).join('')
    +`<div class="opt"><span>Jobs</span></div>`+JOBS.map((J,i)=>{if(J.level&&!levelOpen(LEVELS[J.level]))return`<div class="lv soon"><span class="ln">${J.n}</span><span class="ls">${LEVELS[J.level].n} · finish ${LEVELS.find(x=>x.id===LEVELS[J.level].unlock).n} to unlock</span><span class="lm"></span></div>`;const okB=J.boats.includes(sel),key='job_'+J.id+'_'+sel,m=num(medals[key],0),bt=num(bests[key],0);
@@ -2113,7 +2186,7 @@ function renderGarage(){checkAch();renderAch();renderLevel();spec=specFor(sel);c
   O.querySelectorAll('.buy').forEach(b=>b.onclick=()=>{const u=UPG.find(x=>x.id===b.dataset.u),P2=perfFor(sel),c=u.cost[P2[u.id]+1];if(cans<c)return;cans-=c;P2[u.id]++;perf[sel]=P2;store.set('perf',perf);store.set('cans',cans);stats.upg++;store.set('stats',stats);chime([523,784,1047]);buzz(20);renderGarage();const el=O.querySelector(`.part[data-u="${u.id}"]`);if(el)el.classList.add('just')})}
  else{O.innerHTML=`<div class="opt"><span>Hull paint <em>${PAINTS[paintFor(sel)].n}</em></span><div class="row">${PAINTS.map((p,i)=>`<button class="sw ${i===paintFor(sel)?'on':''}" style="background:${p.c}" data-i="${i}" aria-label="${p.n}"></button>`).join('')}</div></div>`;
   O.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{paints[sel]=+b.dataset.i;store.set('paints',paints);rebuildBoat();resetWorld();renderGarage()})}
- const dr=$('drive');if(own&&isJob()&&!JOBD().boats.includes(sel)){dr.innerHTML='Not for this job';dr.disabled=true}else if(own){dr.innerHTML=isJob()?'Start job':'Launch';dr.disabled=false}else{dr.innerHTML=`Unlock · ${fmt(B.price)} <span class="can"></span>`;dr.disabled=cans<B.price}}
+ const dr=$('drive');if(own&&isJob()&&!JOBD().boats.includes(sel)){dr.innerHTML='Not for this job';dr.disabled=true}else if(own){dr.innerHTML='Start · '+(isJob()?JOBD().n:LV.n);dr.disabled=false}else{dr.innerHTML=`Unlock · ${fmt(B.price)} <span class="can"></span>`;dr.disabled=cans<B.price}}
 const km=m=>(m/1000).toLocaleString('en-US',{maximumFractionDigits:1});
 $('drive').addEventListener('click',()=>{audioInit();if(!unlocked.includes(sel)){const B=BOATS[sel];if(cans<B.price)return;cans-=B.price;unlocked.push(sel);store.set('unlocked',unlocked);store.set('cans',cans);store.set('sel',sel);chime([392,523,659,784,1047]);buzz(40);renderGarage();return}goReady()});
 
@@ -2131,9 +2204,9 @@ canvas.addEventListener('pointerdown',e=>{if(state==='moored')return;e.preventDe
 window.addEventListener('pointermove',e=>{if(drag){orbA-=(e.clientX-drag.x)*.008;drag.x=e.clientX}if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,e.clientX)});
 const up=e=>{drag=null;ptrs.delete(e.pointerId)};window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
 let NOPAUSE=false;
-function pause(){if(NOPAUSE)return;if(state!=='play'&&state!=='count'&&state!=='moored')return;pausedFrom=state;for(const k in HOLD)HOLD[k]=false;state='paused';ptrs.clear();keyL=keyR=false;show('count',0);show('pauseBtn',0);show('coach',0);show('paused',1)}
+function pause(){if(NOPAUSE)return;if(state!=='play'&&state!=='count'&&state!=='moored')return;pausedFrom=state;for(const k in HOLD)HOLD[k]=false;state='paused';show('pEnd',isJob());ptrs.clear();keyL=keyR=false;show('count',0);show('pauseBtn',0);show('coach',0);show('paused',1)}
 function resume(){show('paused',0);show('pauseBtn',1);if(pausedFrom==='moored'){state='moored';return}state='count';counting=2.4;$('countN').textContent='3';show('count',1)}
-$('pauseBtn').addEventListener('click',e=>{e.stopPropagation();pause()});$('hornBtn').addEventListener('click',e=>{e.stopPropagation();horn()});$('hornBtn').addEventListener('pointerdown',e=>e.stopPropagation());$('resume').addEventListener('click',resume);
+$('pauseBtn').addEventListener('click',e=>{e.stopPropagation();pause()});$('hornBtn').addEventListener('click',e=>{e.stopPropagation();horn()});$('hornBtn').addEventListener('pointerdown',e=>e.stopPropagation());$('resume').addEventListener('click',resume);$('pEnd').addEventListener('click',()=>{if(state!=='paused'||!isJob())return;show('paused',0);show('pauseBtn',1);state=pausedFrom;endRun('quit')});
 $('restart').addEventListener('click',()=>{show('paused',0);goReady()});$('pGarage').addEventListener('click',()=>{show('paused',0);goGarage()});
 window.addEventListener('blur',()=>{drag=null;ptrs.clear();keyL=keyR=false;pause()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
@@ -2174,7 +2247,7 @@ function updateHud(){$('time').textContent=clock(runT);const u=SPD[settings.unit
  const pb=$('progB');pb.hidden=!(ghost&&state==='play'&&!isJob());if(!pb.hidden)pb.style.left=clamp(ghostD/LV.len,0,1)*100+'%';
  $('stL').classList.toggle('on',steerInput()<0);$('stR').classList.toggle('on',steerInput()>0);
  const B=BG[0];show('winch',state==='play'&&!!B&&!B.hip&&!B.cut);if(B)$('winL').textContent='Tow '+Math.round(B.L-6)+' m';
- if(isJob()){$('jobNext').innerHTML=berthText();renderJobBtns()}if(state==='moored')updateOps()}
+ if(isJob()){$('jobNext').innerHTML=berthText();renderJobBtns()}if(state==='moored'){updateOps();bankCue()}}
 
 /* ---------- frame ---------- */
 let last=performance.now(),hudT=0,ghostD=0;
@@ -2215,7 +2288,7 @@ function tick(dt,t){
  const heel=state==='moored'&&K&&K.hooked>=0&&!K.rest?-craneTip(K.th,K.phi).x*.004:0,lean=T.av*spec.lean+heel;T.roll+=(lean+Math.sin(t*1.3)*.025+r.rp*Math.sin(t*4.1)*.05-T.roll)*Math.min(1,dt*4);
  T.pitch+=(sf*spec.pitch+Math.sin(t*1.1)*.012+T.sink*.5-T.pitch)*Math.min(1,dt*3);
  boatM.position.set(T.x,T.y,-T.d);boatM.rotation.set(T.pitch,-T.a,T.roll,'YXZ');
- craneDraw(t);if(boatM.userData.wheel)boatM.userData.wheel.rotation.x-=(state==='garage'?.7:state==='play'||state==='done'?(T.fw||0)*.55:0)*dt;if(boatM.userData.spuds){spudY+=(spudT-spudY)*Math.min(1,dt*1.5);boatM.userData.spuds.forEach(m=>m.position.y=5+spudY)}if(ghost&&ghostM){if(state==='play'||state==='done'){const gd=placeGhost(runT);if(gd!=null)ghostD=gd}else if(state==='ready'||state==='count'){placeGhost(0);ghostD=0}else ghostM.visible=false}if(boatM.userData.prop)boatM.userData.prop.rotation.z+=dt*(state==='play'||state==='done'?40:state==='garage'?8:14);
+ craneDraw(t);aidsDraw();if(boatM.userData.wheel)boatM.userData.wheel.rotation.x-=(state==='garage'?.7:state==='play'||state==='done'?(T.fw||0)*.55:0)*dt;if(boatM.userData.spuds){spudY+=(spudT-spudY)*Math.min(1,dt*1.5);boatM.userData.spuds.forEach(m=>m.position.y=5+spudY)}if(ghost&&ghostM){if(state==='play'||state==='done'){const gd=placeGhost(runT);if(gd!=null)ghostD=gd}else if(state==='ready'||state==='count'){placeGhost(0);ghostD=0}else ghostM.visible=false}if(boatM.userData.prop)boatM.userData.prop.rotation.z+=dt*(state==='play'||state==='done'?40:state==='garage'?8:14);
  if(spec.cannon&&(state==='play'||state==='garage')&&(cannonT-=dt)<=0){cannonT=.035;boatM.updateMatrixWorld(true);const fx=Math.sin(T.a),fd=Math.cos(T.a);
   for(const m of boatM.userData.monitors){const p=boatM.localToWorld(m.clone()),sp=state==='garage'?9:13,side=(m.x>0?1:m.x<0?-1:0)*1.2+(Math.random()-.5)*.6;
    spray(p.x,p.y,p.z,fx*sp+fd*side+T.vx*.6,5+Math.random()*2,-(fd*sp-fx*side+T.vd*.6),.75,'#f4fbff',1.2,3.2,9.8,.9)}}
@@ -2286,7 +2359,7 @@ window.__tug={get state(){return state},get SW(){return SW},get T(){return T},ge
  setCans:n=>{cans=n;store.set('cans',n);renderGarage()},unlockAll:()=>{unlocked=ORDER.slice();store.set('unlocked',unlocked);renderGarage()},
  OB:()=>OB.map(o=>({k:o.k,x:o.x,d:o.d,r:o.r,len:o.len,th:o.th})),boats:()=>BOATSX.map(b=>({x:b.x,d:b.d})),sand:()=>SAND.slice(),level:()=>LV,horn:()=>horn(),loadLevel:i=>{loadLevel(i);buildDocks();rebuildBoat();resetWorld()},
  // fast-forward: runs the game at 60 steps a second without drawing, calling cb before each step, until the run ends or secs pass
- get F(){return F},get K(){return K},get OPS(){return OPS},get HC(){return HC},hcManifold:()=>hcManifold(),hcAligned:()=>hcAligned(),get fuelLv(){return fuelLv},get jobLog(){return jobLog},get coal(){return coal},driveLogs:()=>OB.filter(o=>o.drive).map(o=>({x:o.x,d:o.d,penned:!!o.penned,lost:!!o.lost})),swimmers:()=>SWIM.map(q=>({x:q.x,d:q.d,got:q.got})),get heard(){return heard},get SH(){return SH},shipPos:()=>SH&&shipPos(),get TS(){return TS},job:()=>JOBD(),cur:(x,d)=>{const o={};current(x,d,o);return o},ferryAct:a=>ferryAct(a),get FY(){return FY},get ferryAboard(){return ferryAboard.length},get hornDue(){return hornDue},ships:()=>BOATSX.filter(b=>b.big).map(b=>({x:b.x,d:b.d,honked:b.honked})),setNight:v=>{settings.night=v;loadLevel(lvl);buildDocks();rebuildBoat();resetWorld()},get env(){return ENV},revive:()=>acceptRevive(),get ghost(){return ghost},get ghostD(){return ghostD},share:()=>openShare(),get captain(){return level},get xp(){return xp},get missions(){return missions},get HOLD(){return HOLD},get stopI(){return stopI},berth:()=>berthStatus(),
+ get F(){return F},get K(){return K},get OPS(){return OPS},get HC(){return HC},hcManifold:()=>hcManifold(),hcAligned:()=>hcAligned(),get fuelLv(){return fuelLv},get jobLog(){return jobLog},get coal(){return coal},crewFinish:()=>crewFinish(),get CUE(){return CUE},cue:()=>{bankCue();const e=document.getElementById('opCue');return e&&!e.hidden?e.textContent:null},setPR:v=>{prNow=prMax=v;R.setPixelRatio(v);resize()},driveLogs:()=>OB.filter(o=>o.drive).map(o=>({x:o.x,d:o.d,penned:!!o.penned,lost:!!o.lost})),swimmers:()=>SWIM.map(q=>({x:q.x,d:q.d,got:q.got})),get heard(){return heard},get SH(){return SH},shipPos:()=>SH&&shipPos(),get TS(){return TS},job:()=>JOBD(),cur:(x,d)=>{const o={};current(x,d,o);return o},ferryAct:a=>ferryAct(a),get FY(){return FY},get ferryAboard(){return ferryAboard.length},get hornDue(){return hornDue},ships:()=>BOATSX.filter(b=>b.big).map(b=>({x:b.x,d:b.d,honked:b.honked})),setNight:v=>{settings.night=v;loadLevel(lvl);buildDocks();rebuildBoat();resetWorld()},get env(){return ENV},revive:()=>acceptRevive(),get ghost(){return ghost},get ghostD(){return ghostD},share:()=>openShare(),get captain(){return level},get xp(){return xp},get missions(){return missions},get HOLD(){return HOLD},get stopI(){return stopI},berth:()=>berthStatus(),
  setMode:(m,j)=>{mode=m;if(j!=null)jobIdx=j;if(m==='job'&&lvl!==(JOBD().level||0))loadLevel(JOBD().level||0);buildDocks();rebuildBoat();resetWorld();renderGarage()},thr:v=>{botThr=v},hip:()=>toggleHip(),moor:()=>moor(),docks:()=>DOCKS.map(D=>({d:D.d,side:D.side,face:D.face,h:D.h})),
  sim:(secs,cb)=>{const np=NOPAUSE;NOPAUSE=true;for(let i=0;i<secs*60;i++){if(cb)cb();tick(1/60,simClock+=1/60);if(state==='over')break}NOPAUSE=np;return state},simClock:v=>{simClock=v},render:()=>R.render(scene,cam),info:()=>({calls:R.info.render.calls,tris:R.info.render.triangles,geos:R.info.memory.geometries,tex:R.info.memory.textures,pr:R.getPixelRatio()}),nopause:v=>{NOPAUSE=v}};
 
