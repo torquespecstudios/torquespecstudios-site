@@ -27,3 +27,13 @@ Notes:
 - Each private repo also has its own `CLAUDE.md` with the same rule.
 - If you can't push to a game's private repo (for example a cloud session without access to it), say so plainly to the user. Don't skip it silently, and don't push it to a different repo instead.
 - Commit messages follow the existing style: "<Game> beta vN: what changed".
+
+## Visit counting (GoatCounter)
+
+Every page on this site has this line just before `</head>`:
+
+```html
+<script data-goatcounter="https://torquespecstudios.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+```
+
+It is a website-only addition. When you copy or rebuild a game's beta page from its private repo (Tuggy, Swervy, Swoopy, Scoopy), put this line back if the copy removed it. Any new page added to the site gets it too. Stats: torquespecstudios.goatcounter.com
