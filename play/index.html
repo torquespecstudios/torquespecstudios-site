@@ -70,7 +70,20 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 /* pause, countdown, settings, tutorial coach */
 #paused,#settings{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.88));pointer-events:auto}
-#settings,#daily,#share,#achPanel{z-index:10}
+#settings,#daily,#share,#achPanel,#shop{z-index:10}
+#shop{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.9));pointer-events:auto}
+.trophy.deals{display:flex;width:max-content;color:var(--amber);position:relative}
+.trophy.deals .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#ff4a32;box-shadow:0 0 0 2px #151a20}
+.dealgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.deal{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px;border-radius:14px;background:var(--glass-2);border:1px solid var(--hair);text-align:left;min-height:44px}
+.deal .pv{width:100%;height:58px;border-radius:9px;margin-bottom:5px;background:#20242b center/cover no-repeat;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:22px;color:var(--mute)}
+.deal b{font-size:14px;line-height:1.15}
+.deal small{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.deal .pr{display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px;color:var(--amber)}
+.deal .pr s{color:var(--mute);font-weight:700;font-size:12px}
+.deal .off{position:absolute;top:6px;right:6px;background:#ff4a32;color:#fff;font-weight:800;font-size:12px;padding:2px 7px;border-radius:999px}
+.deal.got{opacity:.55}
+.pz.sale{color:var(--amber)}
 #achPanel{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.88));pointer-events:auto}
 .trophy{margin-top:6px;display:inline-flex;white-space:nowrap;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--hair);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .trophy svg,.ach svg{width:14px;height:14px;flex:0 0 auto}
@@ -382,6 +395,15 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
   </div>
 </div>
 
+<div class="center" id="shop" hidden>
+  <div class="card" role="dialog" aria-label="Daily deals">
+    <h2 class="disp">Daily deals</h2>
+    <p class="dsub" id="shopSub"></p>
+    <div class="dealgrid" id="dealList"></div>
+    <button class="btn" id="shopClose">Close</button>
+  </div>
+</div>
+
 <div class="center" id="daily" hidden>
   <div class="card" role="dialog" aria-label="Daily reward">
     <h2 class="disp" id="dTitle">Day 1</h2>
@@ -432,7 +454,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 <div id="garage">
   <div class="g-top">
-    <div><div class="logo disp">Swer<i>vy</i></div><div class="glv" id="gLv"></div><button class="trophy" id="achBtn" type="button"></button></div>
+    <div><div class="logo disp">Swer<i>vy</i></div><div class="glv" id="gLv"></div><button class="trophy" id="achBtn" type="button"></button><button class="trophy deals" id="shopBtn" type="button" aria-label="Daily deals"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12.6V4a1 1 0 0 1 1-1h8.6a1 1 0 0 1 .7.3l7.4 7.4a1 1 0 0 1 0 1.4l-8.6 8.6a1 1 0 0 1-1.4 0L3.3 13.3a1 1 0 0 1-.3-.7zM7.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg> Deals<i class="dot" id="shopDot"></i></button></div>
     <div class="pills"><div class="pill">Best <span id="gBest">0</span></div><div class="pill"><span class="can"></span><span id="gCans">0</span></div><button class="pill" id="setBtn" aria-label="Settings">⚙</button><button class="pill" id="photoBtn" aria-label="Photo mode"><svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M9 4h6l1.6 2.2H20a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.2a2 2 0 0 1 2-2h3.4L9 4zm3 4.6a4.4 4.4 0 1 0 0 8.8 4.4 4.4 0 0 0 0-8.8zm0 2a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8z"/></svg></button></div>
   </div>
   <div class="sheet" id="sheet">
@@ -591,6 +613,18 @@ const sideH=()=>settings.flip?'right':'left',sideR=()=>settings.flip?'left':'rig
 const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140],livery:[0,200,150,150,200,350,250,300,300]};
 let owned=new Set((v=>Array.isArray(v)?v.filter(x=>typeof x==='string'):[])(store.get('owned',[]))),pv=null;
 const isOwned=(id,k,i)=>!PRICE[k]||!PRICE[k][i]||owned.has(k+':'+i)||defLook(id)[k]===i;
+// daily deals: four looks the player doesn't own, 25-40% off until midnight. The first is a livery while any are left
+// (the headline skins). Today's list is saved, so buying one doesn't reshuffle the rest.
+const DEAL_OFF=[30,25,35,40];
+function todaysDeals(){const day=todayKey(),sv=obj(store.get('deals',{}));if(sv.day===day&&Array.isArray(sv.list))return sv.list;
+ const r=mulberry(dailySeed()^0x5eed),pool=[];for(const k in PRICE)PRICE[k].forEach((p,i)=>{if(p>=40&&!owned.has(k+':'+i))pool.push([k,i])});
+ for(let i=pool.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+ const list=[],used=new Set(),liv=pool.find(([k])=>k==='livery');if(liv){list.push(liv);used.add('livery')}
+ for(const d of pool){if(list.length>=4)break;if(!used.has(d[0])){list.push(d);used.add(d[0])}}
+ const out=list.map(([k,i],n)=>({k,i,off:DEAL_OFF[n]}));store.set('deals',{day,list:out});return out}
+const dealFor=(k,i)=>todaysDeals().find(d=>d.k===k&&d.i===i);
+// what a look costs right now: today's deal price if it's on sale
+function costOf(k,i){const p=PRICE[k][i],d=p&&dealFor(k,i);return d?Math.max(5,Math.round(p*(1-d.off/100)/5)*5):p}
 let looks=store.get('looks',null);if(looks!==null)looks=obj(looks);const oldCfg=obj(store.get('cfg',{}));
 if(!looks){looks={};if(oldCfg.model&&MODELS[oldCfg.model]&&oldCfg.paint!=null){const L=defLook(oldCfg.model),oldP=['#c92a18','#1d4cb8','#e8ebee','#15181e','#f0a012','#1d5838','#5a2aa6','#4b5159'];
  const pi=PAINTS.findIndex(p=>p.c===oldP[oldCfg.paint]);if(pi>=0)L.paint=pi;['rimStyle','caliper','glow'].forEach(k=>{if(oldCfg[k]!=null)L[k]=oldCfg[k]});if(oldCfg.finish!=null)L.finish=[0,1,3][oldCfg.finish]||0;
@@ -1695,6 +1729,7 @@ if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{
  const open=[['settings','setClose'],['share','shareClose'],['achPanel','achClose']].find(([p])=>!$(p).hidden);if(open){$(open[1]).click();return}
  if(!$('daily').hidden){show('daily',0);return}
  if(!$('share').hidden){show('share',0);return}
+ if(!$('shop').hidden){show('shop',0);clearInterval(renderShop.t);return}
  if(photo){closePhoto();return}
  if(state==='play'||(state==='paused'&&counting>0)){pause();return}
  if(state==='paused'){resume();return}
@@ -1715,8 +1750,31 @@ function tutTick(dt){tutT+=dt;
  else if(tutS===2){coach('Tap and let go to <b>follow the road</b>');if(tutT>4)next()}
  else if(tutS===3){coach('Grab <span class="can"></span> <b>fuel cans</b> to buy cars and upgrades');if(tutT>4)next()}
  else show('coach',0)}
+// the shop panel: each deal shows a preview, the old and new price and today's discount; tapping one tries it on
+const optInfo=k=>{for(const t of TABS)for(const o of t.opts)if(o[0]===k)return{tab:t.id,label:o[1]};return{tab:'style',label:k}};
+function dealPreview(k,i){const o=LISTS[k][i];
+ if(k==='livery'){const L=LIVERIES[i],c=document.createElement('canvas');c.width=256;c.height=116;const g=c.getContext('2d');g.fillStyle=L.base||PAINTS[cfg.paint].c;g.fillRect(0,0,256,116);
+  g.save();g.scale(256/1024,116/290);g.translate(0,-130);L.draw(g,1,false,.55);g.restore();return`style="background-image:url(${c.toDataURL()})"`}
+ if(o&&o.c&&typeof o.c==='string'&&o.c[0]==='#')return`style="background:radial-gradient(circle at 50% 50%,${o.c} 0 18px,transparent 19px),#20242b"`;
+ // small drawn icons for looks without a colour: a paint sphere for finishes, a wheel, a seat, or the car's outline
+ const c=document.createElement('canvas');c.width=256;c.height=116;const g=c.getContext('2d'),cx=128,cy=58;g.fillStyle='#20242b';g.fillRect(0,0,256,116);
+ if(k==='finish'){const F=FINISHES[i],col=F.m>.9?'#d9dde3':PAINTS[cfg.paint].c,gr=g.createRadialGradient(cx-12,cy-14,2,cx,cy,40);gr.addColorStop(0,F.r<.4?'#fff':col);gr.addColorStop(.35,col);gr.addColorStop(1,F.m>.9?'#3a3e45':'#111');g.fillStyle=gr;g.beginPath();g.arc(cx,cy,38,0,7);g.fill()}
+ else if(/^(rimStyle|rimSize|tires)$/.test(k)){g.fillStyle='#0d0e10';g.beginPath();g.arc(cx,cy,42,0,7);g.fill();g.fillStyle='#c9ced6';g.beginPath();g.arc(cx,cy,28,0,7);g.fill();g.strokeStyle='#5d636c';g.lineWidth=6;
+  const n=[5,10,6,7,5][i]||5;for(let j=0;j<n;j++){const a=j/n*Math.PI*2;g.beginPath();g.moveTo(cx+Math.cos(a)*7,cy+Math.sin(a)*7);g.lineTo(cx+Math.cos(a)*26,cy+Math.sin(a)*26);g.stroke()}g.fillStyle='#3a3e45';g.beginPath();g.arc(cx,cy,7,0,7);g.fill()}
+ else if(k==='cabin'){const rr=g.roundRect?g.roundRect.bind(g):(x,y,w,h)=>g.rect(x,y,w,h);g.fillStyle='#1b1c20';g.beginPath();rr(cx-24,cy-40,40,58,10);g.fill();g.beginPath();rr(cx-30,cy+12,62,20,8);g.fill();g.fillStyle='#d1261c';g.fillRect(cx-14,cy-30,14,52);g.fillRect(cx+4,cy-30,6,40)}
+ else{g.fillStyle='#f2b33d';g.beginPath();g.moveTo(40,82);g.lineTo(52,62);g.lineTo(96,56);g.lineTo(122,38);g.lineTo(170,38);g.lineTo(196,58);g.lineTo(222,64);g.lineTo(222,82);g.closePath();g.fill();
+  g.fillStyle='#20242b';for(const x of[78,184]){g.beginPath();g.arc(x,84,15,0,7);g.fill()}g.fillStyle='#0d0e10';for(const x of[78,184]){g.beginPath();g.arc(x,84,11,0,7);g.fill()}}
+ return`style="background-image:url(${c.toDataURL()})"`}
+function renderShop(){const ms=new Date().setHours(24,0,0,0)-Date.now(),h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4);$('shopSub').textContent=`New deals in ${h}h ${m}m · try one on before you buy`;
+ $('dealList').innerHTML=todaysDeals().map(({k,i,off})=>{const o=LISTS[k][i],got=owned.has(k+':'+i),info=optInfo(k),pv0=dealPreview(k,i);
+  return`<button class="deal ${got?'got':''}" data-k="${k}" data-i="${i}" ${got?'disabled':''} aria-label="${o.n}, ${info.label}, ${got?'owned':costOf(k,i)+' cans, '+off+'% off'}"><span class="pv" ${pv0}>${pv0?'':info.label[0]}</span>${got?'':`<span class="off">-${off}%</span>`}
+   <b>${o.n}</b><small>${info.label}</small><span class="pr">${got?'Owned ✓':`<s>${PRICE[k][i]}</s><span class="can"></span>${costOf(k,i)}`}</span></button>`}).join('');
+ $('dealList').querySelectorAll('.deal:not(.got)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=+b.dataset.i;show('shop',0);clearInterval(renderShop.t);
+  if(pv)cancelPreview(false);tab=optInfo(k).tab;if(car&&car.engineOn)setEngineView(false);pv={k,prev:cfg[k]};cfg[k]=i;rebuildCar();renderGarage();$('opts').scrollTop=0})}
+function openShop(){if(state!=='garage')return;audioInit();store.set('dealsSeen',todayKey());$('shopDot').hidden=true;renderShop();show('shop',1);clearInterval(renderShop.t);renderShop.t=setInterval(renderShop,30000)}
+$('shopBtn').addEventListener('click',openShop);$('shopClose').addEventListener('click',()=>{show('shop',0);clearInterval(renderShop.t)});
 function cancelPreview(render=true){if(!pv)return;cfg[pv.k]=pv.prev;pv=null;rebuildCar();if(render)renderGarage()}
-function buyLook(){const k=pv.k,i=cfg[k],p=PRICE[k][i],nm=LISTS[k][i].n;if(cans<p)return;cans-=p;store.set('cans',cans);owned.add(k+':'+i);store.set('owned',[...owned]);pv=null;saveCfg();
+function buyLook(){const k=pv.k,i=cfg[k],p=costOf(k,i),nm=LISTS[k][i].n;if(cans<p)return;cans-=p;store.set('cans',cans);owned.add(k+':'+i);store.set('owned',[...owned]);pv=null;saveCfg();
  sfxCan();chime([523,659,784,1047]);buzz(30);toast(`${nm} unlocked · yours on every car`);renderGarage()}
 $('drive').addEventListener('click',()=>{audioInit();if(pv){buyLook();return}const M=MODELS[cfg.model];
  if(unlocked.includes(cfg.model)){justUnlocked=null;show('unlockFx',0);goReady(false);return}
@@ -1733,7 +1791,7 @@ let tab='paint',plateT=0;
 function swBg(o){return o.c==='carbon'?'background:repeating-conic-gradient(#3a3d44 0 25%,#141619 0 50%) 0 0/8px 8px':o.c==='body'?'background:'+PAINTS[cfg.paint].c:o.c?'background:'+o.c:''}
 // the garage pills share one row with the logo, so very large totals are shortened (123k, 9.99M); exact numbers stay elsewhere
 function fmtShort(n){n=Math.floor(n);return n<1e4?fmt(n):n<1e5?(Math.floor(n/100)/10).toFixed(1)+'k':n<1e6?Math.floor(n/1e3)+'k':(n/1e6).toFixed(n<1e7?2:1)+'M'}
-function renderGarage(){checkAch();renderAch();
+function renderGarage(){checkAch();renderAch();$('shopDot').hidden=store.get('dealsSeen','')===todayKey();
  $('gCans').textContent=fmtShort(cans);$('gBest').textContent=fmtShort(best);$('gLv').innerHTML=`Level ${level}<span class="xpbar"><i style="width:${Math.min(100,xp/xpNeed(level)*100)}%"></i></span>`;
  const ms=$('models').scrollLeft;
  $('models').innerHTML=ORDER.map(id=>{const m=MODELS[id],own=unlocked.includes(id);return`<button class="mcard ${cfg.model===id?'on':''} ${!own&&cans>=m.price?'ready':''}" data-m="${id}"><span class="mk">${m.make}</span><span class="mn">${m.name}</span><span class="mt">${own?m.type:cans>=m.price?'Ready to unlock':`<span class="can"></span>${fmt(m.price)} to unlock`}</span></button>`}).join('');
@@ -1747,8 +1805,8 @@ function renderGarage(){checkAch();renderAch();
  if(tab==='engine')renderPerf();else $('opts').innerHTML=TABS.find(t=>t.id===tab).opts.map(([key,label,kind])=>{
   if(kind==='text')return`<div class="opt"><span>${label}</span><input class="plate" id="plateIn" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="License plate text" value="${cfg.plate}"></div>`;
   const list=LISTS[key],cur=list[cfg[key]];
-  const items=list.map((o,i)=>{const lk=!isOwned(cfg.model,key,i),p=lk?PRICE[key][i]:0,lab=lk?`${o.n}, ${p} cans`:o.n;
-   return kind==='sw'?`<button class="sw ${o.c===null?'none':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" style="${swBg(o)}" aria-label="${lab}" title="${lab}" data-k="${key}" data-i="${i}" ${lk?`data-p="${p}"`:''}></button>`:`<button class="chip ${cfg[key]===i?'on':''} ${lk?'lock':''}" aria-label="${lab}" data-k="${key}" data-i="${i}">${o.n}${lk?` <small class="pz"><span class="can"></span>${p}</small>`:''}</button>`}).join('');
+  const items=list.map((o,i)=>{const lk=!isOwned(cfg.model,key,i),p=lk?costOf(key,i):0,sale=lk&&p<PRICE[key][i],lab=lk?`${o.n}, ${p} cans`:o.n;
+   return kind==='sw'?`<button class="sw ${o.c===null?'none':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" style="${swBg(o)}" aria-label="${lab}" title="${lab}" data-k="${key}" data-i="${i}" ${lk?`data-p="${p}"`:''}></button>`:`<button class="chip ${cfg[key]===i?'on':''} ${lk?'lock':''}" aria-label="${lab}" data-k="${key}" data-i="${i}">${o.n}${lk?` <small class="pz${sale?' sale':''}"><span class="can"></span>${p}</small>`:''}</button>`}).join('');
   return`<div class="opt"><span>${label}${kind==='sw'?` <em>${cur.n}</em>`:''}</span><div class="row">${items}</div></div>`}).join('');
  $('opts').querySelectorAll('.row').forEach((r,i)=>{if(keep[i])r.scrollLeft=keep[i]});
  $('opts').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=+b.dataset.i;if(pv&&pv.k!==k)cancelPreview(false);
@@ -1757,7 +1815,7 @@ function renderGarage(){checkAch();renderAch();
   if(!pv)pv={k,prev:cfg[k]};cfg[k]=i;rebuildCar();renderGarage()});
  const pi=$('plateIn');if(pi)pi.oninput=()=>{const v=pi.value.toUpperCase().replace(/[^A-Z0-9 ]/g,'').slice(0,7);if(pi.value!==v)pi.value=v;cfg.plate=v.trim()||'SWERVY';saveCfg();clearTimeout(plateT);plateT=setTimeout(rebuildCar,250)};
  const own=unlocked.includes(cfg.model),d=$('drive');$('rand').textContent=pv?'Cancel':'Random';
- d.classList.toggle('buying',!!pv);if(pv){const p=PRICE[pv.k][cfg[pv.k]],nm=LISTS[pv.k][cfg[pv.k]].n;d.classList.remove('go');d.disabled=cans<p;d.innerHTML=cans>=p?`Buy ${nm} · ${fmt(p)} <span class="can"></span>`:`Need ${fmt(p-cans)} more <span class="can"></span>`;d.setAttribute('aria-label',cans>=p?`Buy ${nm} for ${p} cans`:`${nm} costs ${p} cans, ${p-cans} more needed`);return}
+ d.classList.toggle('buying',!!pv);if(pv){const p=costOf(pv.k,cfg[pv.k]),nm=LISTS[pv.k][cfg[pv.k]].n;d.classList.remove('go');d.disabled=cans<p;d.innerHTML=cans>=p?`Buy ${nm} · ${fmt(p)} <span class="can"></span>`:`Need ${fmt(p-cans)} more <span class="can"></span>`;d.setAttribute('aria-label',cans>=p?`Buy ${nm} for ${p} cans`:`${nm} costs ${p} cans, ${p-cans} more needed`);return}
  d.removeAttribute('aria-label');d.classList.toggle('go',own&&justUnlocked===cfg.model);if(own){d.textContent=justUnlocked===cfg.model?`Drive the ${M.name}`:'Drive';d.disabled=false}else if(cans>=M.price){d.textContent=`Unlock for ${fmt(M.price)} cans`;d.disabled=false}else{d.textContent=`Collect ${fmt(M.price-cans)} more cans`;d.disabled=true}}
 // what this car's upgrades do, in plain words, for the Engine tab summary
 function perfLine(P,pw){const t=[];if(pw>0)t.push(`Boosts +${Math.round(pw*140)}% longer`,`+${Math.round(pw*50)}% score`);if(P.turbo)t.push(`${[0,2,3,4][P.turbo]}s launch boost`);
