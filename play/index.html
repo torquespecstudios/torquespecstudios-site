@@ -1612,7 +1612,12 @@ const ACH=[
  ['streak_7','Weekly Driver','Play 7 days in a row',100,()=>daily.streak,7],
  ['level_10','Pro Driver','Reach driver level 10',100,()=>level,10],
  ['second_wind','Second Wind','Use a revive',10,()=>stats.revives,1],
- ['photo','Showroom Shot','Take a photo of your car',15,()=>stats.photos,1]];
+ ['photo','Showroom Shot','Take a photo of your car',15,()=>stats.photos,1],
+ // collection trophies: they reward building up the garage, and point players at liveries, themes and saved builds
+ ['liv_5','Livery Collector','Own 5 liveries',60,()=>[...owned].filter(k=>/^livery:/.test(k)).length,5],
+ ['legend','Legendary','Own a legendary paint',100,()=>LIVERIES.filter((l,i)=>l.leg&&owned.has('livery:'+i)).length,1],
+ ['theme','Interior Designer','Own a garage theme',30,()=>[...owned].filter(k=>/^room:/.test(k)).length,1],
+ ['build','Tuner','Save a build',10,()=>{try{return Object.values(builds).flat().filter(Boolean).length}catch(e){return 0}},1]];
 // trophies earned during a run are also listed on its Wrecked screen, in case a crash cut their pop-up short
 let runAch=[];
 function checkAch(){const got=[];for(const[id,name,,rw,val,n]of ACH){if(achGot[id]||val()<n)continue;achGot[id]=1;cans+=rw;got.push([name,rw])}
