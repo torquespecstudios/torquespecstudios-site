@@ -341,6 +341,9 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
 .oplist{margin:0;padding-left:20px;font-size:13px;color:var(--mute);line-height:1.55}
 .oplist li.done{color:#7be08f}
 .oplist li.cur{color:var(--ink);font-weight:700}
+/* the full checklist folds away on a phone: the Next line and the banksman already give the step */
+.opchk summary{cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);padding:6px 0;list-style-position:inside}
+.opchk[open] summary{margin-bottom:4px}
 #ops .note{text-align:center}
 /* short phones (iPhone SE): a taller sheet and a tighter boat header so the River / Upgrades list keeps room */
 @media (max-height:740px) and (max-aspect-ratio:1/1){.sheet{height:68%;gap:10px;padding-top:10px}.car-head h2{font-size:22px}.car-head .ty{font-size:11px;margin-top:2px}.stats{gap:3px}.perk{font-size:11px}.mcard{padding:7px 10px}.mcard .mn{font-size:17px}.tab{padding:7px 4px}}
@@ -455,7 +458,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v43 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v44 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -563,7 +566,7 @@ const UPG=[
 const PAINTS=[{n:'Harbor red',c:'#b8322a'},{n:'Navy',c:'#1f3a6b'},{n:'Forest',c:'#1d5838'},{n:'Sunburst',c:'#f0a012'},{n:'Arctic',c:'#e8ebee'},{n:'Midnight',c:'#15181e'},{n:'Teal',c:'#0f7a84'},{n:'Hot pink',c:'#d43a7a'}];
 // river stretches ("levels"); par is the gold-medal time for each boat
 const LEVELS=[
- {id:'mill',n:'Mill Creek Run',sub:'Stretch 1',len:1500,seed:11,rapids:[[380,540],[1030,1170]],bridges:[780],traffic:[260,640,900,1310],par:{tug:172,bigmo:180,hercules:185,jetski:83,airboat:100,pilot:110,speed:92,crew:98,fire:120,atb:165,crane:175,push:185,ferry:160,stern:176}},
+ {id:'mill',n:'Mill Creek Run',sub:'Stretch 1',len:1500,seed:11,rapids:[[380,540],[1030,1170]],bridges:[780],traffic:[260,640,900,1310],par:{tug:172,bigmo:180,hercules:185,jetski:83,airboat:100,pilot:110,speed:92,crew:98,fire:120,atb:165,crane:178,push:185,ferry:163,stern:176}},
  // Copper Rapids: narrower and faster, three long white-water sections with rock gardens, a steel rail bridge, autumn woods
  {id:'copper',n:'Copper Rapids',sub:'Stretch 2',len:1800,seed:23,w0:44,wr:31,cur:5,clear:13,dense:true,rail:true,rapids:[[180,420],[700,1010],[1330,1560]],bridges:[1180],traffic:[560,1250],
   unlock:'mill',par:{tug:190,bigmo:198,hercules:199,jetski:95,airboat:115,pilot:122,speed:104,crew:112,fire:135,atb:185,crane:195,push:196,ferry:180,stern:194},
@@ -574,7 +577,7 @@ const LEVELS=[
   theme:{cols:['#3a5232','#41583a','#4a3e30','#8a7a5e','#3a443a'],leaves:[[.3,.25,.12],[.33,.2,.1],[.28,.3,.14]],rock:0x5f6266,shoreRocks:220}},
  // Harbor Mouth: the river widens into the estuary; slack water, a tide race over the bar, and cargo ships that cannot give way
  {id:'harbor',n:'Harbor Mouth',sub:'Stretch 4',len:2000,seed:53,w0:74,wr:52,cur:4.2,clear:11,rapids:[[1600,1760]],bridges:[640],traffic:[420,1120,1450],ships:[[300,1],[900,-1],[1380,1]],unlock:'fog',lighthouse:true,
-  par:{tug:232,bigmo:240,hercules:245,jetski:112,airboat:135,pilot:146,speed:122,crew:132,fire:160,atb:220,crane:235,push:238,ferry:220,stern:240},
+  par:{tug:232,bigmo:245,hercules:245,jetski:112,airboat:135,pilot:146,speed:122,crew:132,fire:160,atb:220,crane:235,push:243,ferry:220,stern:240},
   theme:{cols:['#5f6a3a','#6b7040','#6a5a40','#b8a47a','#4a5040'],leaves:[[.17,.3,.28],[.2,.28,.3],[.14,.3,.26]],rock:0x6c6a66,shoreRocks:300}}];
 
 let cans=num(store.get('cans',0),0);
@@ -1734,7 +1737,7 @@ function renderOps(){const O=$('ops');if(!OPS){O.innerHTML='';return}const D=OPS
   <div class="opsec"><span>Valves <em>tap to open or close</em></span><div class="oprow">${VALVES.map(([k,n])=>`<button class="ob valve" data-v="${k}"><i></i><small>${n}</small><em></em></button>`).join('')}</div></div>
   <div class="opsec"><span>Cargo pump <em id="ePump"></em></span><div class="oprow"><div class="seg" id="opDir"><button data-d="load">Load</button><button data-d="discharge">Discharge</button></div><button class="ob" data-hold="pstart" id="opPStart" style="flex:1">Start (hold)</button><button class="ob" id="opPStop">Stop</button></div>
    <div class="oprow"><span class="gl" style="font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--mute)">THROTTLE</span><input type="range" class="thr" id="opThr" min="0" max="100" value="${Math.round(F.thrT*100)}" aria-label="Pump throttle"></div></div>
-  <ol class="oplist" id="opList"></ol><button class="btn primary" id="opCast">Cast off</button>`;
+  <details class="opchk" id="opChk"${innerWidth>520?' open':''}><summary>Checklist</summary><ol class="oplist" id="opList"></ol></details><button class="btn primary" id="opCast">Cast off</button>`;
   $('opHose').onclick=()=>fuelAct('hose');$('opGenStop').onclick=()=>fuelAct('genstop');$('opBrk').onclick=()=>fuelAct('brk');$('opPStop').onclick=()=>fuelAct('pstop');$('opCast').onclick=()=>fuelAct('cast');
   O.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>fuelAct('valve',b.dataset.v));O.querySelectorAll('#opDir button').forEach(b=>b.onclick=()=>fuelAct('dir',b.dataset.d));
   $('opThr').oninput=e=>{F.thrT=e.target.value/100;if(!F.pump.run&&F.thrT>0){F.thrT=0;e.target.value=0;popText('Start the <b>pump</b> first',true)}}}
@@ -1743,7 +1746,7 @@ function renderOps(){const O=$('ops');if(!OPS){O.innerHTML='';return}const D=OPS
   <div class="gauge"><span class="gv" id="gAboard">0</span><span class="gl">Cars aboard</span></div><div class="gauge"><span class="gv" id="gWait">0</span><span class="gl">Waiting</span></div></div>
   <div class="opsec"><span>Ramp <em id="eRamp"></em></span><div class="hold2"><button class="ob" data-hold="fRu" aria-label="Raise the ramp">▲ Raise</button><button class="ob" data-hold="fRd" aria-label="Lower the ramp">▼ Lower</button></div></div>
   <div class="oprow"><button class="ob" id="opGate" style="flex:1"></button><button class="ob" id="opOff" style="flex:1">Cars off</button><button class="ob" id="opOn" style="flex:1">Cars on</button></div>
-  <ol class="oplist" id="opList"></ol><button class="btn primary" id="opCast">Cast off</button>
+  <details class="opchk" id="opChk"${innerWidth>520?' open':''}><summary>Checklist</summary><ol class="oplist" id="opList"></ol></details><button class="btn primary" id="opCast">Cast off</button>
   <p class="note">${TOUCH?'Hold the arrows to work the ramp.':'Keys: ↑ ↓ ramp · G gate · F cars off · R cars on · Space cast off'}</p>`;
   $('opGate').onclick=()=>ferryAct('gate');$('opOff').onclick=()=>ferryAct('off');$('opOn').onclick=()=>ferryAct('on');$('opCast').onclick=()=>ferryAct('cast')}
  else{O.innerHTML=`<div class="ophead"><b class="disp">Crane</b><span>${D.stop.name}</span></div><div class="opnext" id="opNext"></div><div class="opcue" id="opCue" hidden></div>
