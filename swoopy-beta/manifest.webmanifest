@@ -1,0 +1,15 @@
+{
+  "name": "Swoopy Wings: Sky Racer",
+  "short_name": "Swoopy",
+  "description": "Fly low and fast through canyons, an airport and a storm, in 14 planes from a bush plane to a jumbo.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#151a20",
+  "theme_color": "#151a20",
+  "icons": [
+    {"src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
