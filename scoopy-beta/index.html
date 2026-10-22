@@ -66,6 +66,8 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .bpips i.on{background:linear-gradient(#c98d52,#8a5a2e);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
 .meter.full{border-color:var(--red);animation:fullP .8s ease-in-out infinite}
 .meter.full .lab b{color:var(--red)}
+.meter .mhint{display:none;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink);margin-top:-1px}
+.meter.full .mhint{display:block}
 @keyframes fullP{50%{box-shadow:0 0 0 3px rgba(255,90,60,.35)}}
 .fbar{height:14px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
 .fbar i{display:block;height:100%;width:100%;border-radius:4px;background:linear-gradient(90deg,#f2b33d,#ffd77a);transition:width .2s linear}
@@ -99,17 +101,17 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .seg button.on{background:var(--amber);color:#1d1508}
 .linkbtn{align-self:flex-start;color:var(--amber);font-weight:700;padding:4px 0}
 .ver{margin:0;text-align:center;font-size:12px;color:var(--mute)}
-.pop{position:fixed;left:50%;top:30%;transform:translateX(-50%);font-family:var(--display);font-weight:800;font-size:28px;text-transform:uppercase;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.55);white-space:nowrap;pointer-events:none;animation:popUp 1.1s ease-out forwards}
+.pop{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 112px);transform:translateX(-50%);font-family:var(--display);font-weight:800;font-size:22px;text-transform:uppercase;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.55);white-space:nowrap;pointer-events:none;animation:popUp 1.1s ease-out forwards}
 .pop b{color:var(--amber)}
 .pop.bad b{color:var(--red)}
-@keyframes popUp{0%{transform:translateX(-50%) scale(.6);opacity:0}15%{transform:translateX(-50%) scale(1.1);opacity:1}30%{transform:translateX(-50%) scale(1)}100%{transform:translateX(-50%) translateY(-40px);opacity:0}}
+@keyframes popUp{0%{transform:translateX(-50%) scale(.6);opacity:0}15%{transform:translateX(-50%) scale(1.1);opacity:1}30%{transform:translateX(-50%) scale(1)}100%{transform:translateX(-50%) translateY(-24px);opacity:0}}
 #mtoast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 132px);max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;transform:translateX(-50%);padding:9px 16px;border-radius:999px;background:var(--amber);color:#1d1508;font-weight:700;font-size:14px;white-space:nowrap;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:mtPop 2.4s ease-out forwards}
 @keyframes mtPop{0%{transform:translateX(-50%) translateY(-12px);opacity:0}10%{transform:translateX(-50%);opacity:1}85%{opacity:1}100%{transform:translateX(-50%);opacity:0}}
 @media (max-height:700px){.tip{display:none}}
 .tip{margin:6px 0 0;max-width:320px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.06);font-weight:500;font-size:15px;line-height:1.35}
 .tip:empty{display:none}
 .tip b{color:var(--amber)}
-#coach{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 150px);transform:translateX(-50%);max-width:calc(100% - 32px);padding:12px 20px;border-radius:14px;background:var(--glass);border:1px solid var(--hair);font-weight:700;font-size:17px;text-align:center;pointer-events:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:opacity .25s}
+#coach{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 150px);transform:translateX(-50%);width:max-content;max-width:min(280px,calc(100% - 150px));padding:7px 14px;border-radius:12px;background:var(--glass);border:1px solid var(--hair);font-weight:700;font-size:14px;line-height:1.3;text-align:center;pointer-events:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:opacity .25s}
 #coach b{color:var(--amber)}
 #coach.warn{border-color:var(--red)}
 #newBest{pointer-events:none}
@@ -357,7 +359,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
   </div>
 </div>
 <div id="bhud" hidden>
-  <div class="meter" id="bucketM"><div class="lab">Bucket <b id="bucketN">0/3</b></div><div class="bpips" id="bPips"></div></div>
+  <div class="meter" id="bucketM"><div class="lab">Bucket <b id="bucketN">0/3</b></div><div class="bpips" id="bPips"></div><div class="mhint">Dump it in a truck</div></div>
   <div class="meter" id="fuelM"><div class="lab">Diesel <b id="fuelN">100%</b></div><div class="fbar"><i id="fuelBar"></i></div></div>
 </div>
 <div class="steer" id="stL" hidden>‹</div><div class="steer" id="stR" hidden>›</div>
@@ -445,7 +447,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next job</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Scoopy beta v2 · by Torque Spec Studios</p>
+    <p class="ver">Scoopy beta v3 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1025,7 +1027,7 @@ function scoop(o){o.done=true;
  if(C.load>=C.cap){// a full bucket can't take more: the pile spills, the combo is lost and it costs points
   o.m.scale.y=.25;o.m.children.forEach(c=>c.position.x*=1.6);C.combo=0;C.comboT=0;bonus-=T.OVERFLOW;shake=Math.max(shake,settings.shake?.35:0);
   puff(o.x,.6,-o.d,1.6);puff(o.x,.6,-o.d,1.3);sfx('overflow');buzz(35);popText(`Bucket full! <b>−${T.OVERFLOW}</b>`,true);
-  if(!truck)truckCD=Math.min(truckCD,.5);coach('Bucket full · <b>dump it in a truck</b>',true);coachT=2.2;return}
+  if(!truck)truckCD=Math.min(truckCD,.5);return}
  o.m.visible=false;C.load++;C.scoops++;C.combo=C.comboT>0?C.combo+1:1;C.comboT=T.COMBO_T;C.scoopT=.001;
  const pts=Math.round(T.SCOOP*mult()*coffeeX()*spec.teeth);bonus+=pts;burst(o.x,.8,-o.d,14,5,'#ffffff',-2);
  if(C.combo>C.maxCombo){C.maxCombo=C.combo;missionEvent('combo',mult(),true);if(C.combo===T.COMBO_MAX){stats.combo5++}}missionEvent('scoops1',C.scoops,true);puff(o.x,.4,-o.d,1.4);puff(o.x+.5,.4,-o.d,1.1);
