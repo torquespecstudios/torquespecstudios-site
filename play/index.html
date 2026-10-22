@@ -631,7 +631,8 @@ const ROOMS=[{n:'Classic',c:'#f2b33d',floor:[.55,.56,.6],wall:[1,1,1],led:0xf2b3
  {n:'Arctic',c:'#7fd4ff',floor:[4.4,4.6,4.9],wall:[5.4,5.8,6.4],glow:[3.4,3.7,4.1],led:0x7fd4ff,rim:0x7fd4ff,bar:0xcfeaff,s:['#eaf8ff','#7fd4ff','#7fd4ff','#3fa9ff']},
  {n:'Gold vault',c:'#ffcc55',floor:[.42,.34,.24],wall:[3,2.1,.8],glow:[1.6,1.05,.25],led:0xffb020,rim:0xffb020,bar:0xffd27a,s:['#fff1c8','#ffcc55','#ffb84a','#d99a14']},
  // new items go at the end of each list: owned looks are stored by position
- {n:'Haunted',ev:'halloween',c:'#7cff3a',floor:[.32,.26,.4],wall:[.9,1.5,.7],glow:[.18,.55,.12],led:0x7cff3a,rim:0xff7a1a,bar:0x9a4cff,s:['#e9ffd8','#ff8a1a','#7cff3a','#ff6a00']}];
+ {n:'Haunted',ev:'halloween',c:'#7cff3a',floor:[.32,.26,.4],wall:[.9,1.5,.7],glow:[.18,.55,.12],led:0x7cff3a,rim:0xff7a1a,bar:0x9a4cff,s:['#e9ffd8','#ff8a1a','#7cff3a','#ff6a00']},
+ {n:'Winter lodge',ev:'winter',c:'#ffd9a0',floor:[.7,.5,.34],wall:[2.4,1.5,.85],glow:[.75,.42,.18],led:0xffd9a0,rim:0xd3141c,bar:0xfff1d6,s:['#ffffff','#ff3b3b','#ffd9a0','#d3141c']}];
 // tire smoke and boost flame colours ('rainbow' cycles through hues); the first of each is the free classic look
 const SMOKES=[{n:'White',c:null},{n:'Red',c:'#ff3b30'},{n:'Blue',c:'#3a8dff'},{n:'Yellow',c:'#ffd23a'},{n:'Purple',c:'#a64dff'},{n:'Black',c:'#2a2a2e'},{n:'Rainbow',c:'rainbow'}];
 const TRAILS=[{n:'Classic',c:null},{n:'Blue flame',c:'#3fa9ff'},{n:'Green',c:'#4dff7a'},{n:'Purple',c:'#b45cff'},{n:'Pink',c:'#ff4fb0'},{n:'Rainbow',c:'rainbow'}];
@@ -656,8 +657,9 @@ function livShards(g,cols,y0,y1,n,seed){for(let k=0;k<n;k++){const x=livRnd(seed
  g.beginPath();g.moveTo(x-w*.6,y1);g.lineTo(x+w*.25,yt);g.lineTo(x+w*.9,y1);g.closePath();g.fill()}}
 // limited-time drops: an item with `ev` shows only while its event runs (month/day ranges, every year), and stays for
 // anyone who bought it. window.__evDate lets tests move the clock.
-const EVENTS={halloween:{n:'Halloween',from:[10,24],to:[11,2]}};
-function eventOn(id){const e=EVENTS[id];if(!e)return false;const d=window.__evDate||new Date(),v=(d.getMonth()+1)*100+d.getDate();return v>=e.from[0]*100+e.from[1]&&v<=e.to[0]*100+e.to[1]}
+const EVENTS={halloween:{n:'Halloween',from:[10,24],to:[11,2]},winter:{n:'Winter',from:[12,15],to:[1,2]}};
+function eventOn(id){const e=EVENTS[id];if(!e)return false;const d=window.__evDate||new Date(),v=(d.getMonth()+1)*100+d.getDate(),a=e.from[0]*100+e.from[1],b=e.to[0]*100+e.to[1];
+ return a<=b?v>=a&&v<=b:v>=a||v<=b} // a range like Dec 15 to Jan 2 wraps the new year
 const activeEvent=()=>Object.keys(EVENTS).find(eventOn);
 // a look can be shown: it isn't an event item, its event is on, or the player already owns it
 const itemOn=(k,i)=>{const o=LISTS[k]&&LISTS[k][i];return!o||!o.ev||eventOn(o.ev)||owned.has(k+':'+i)};
@@ -687,7 +689,9 @@ const LIVERIES=[{n:'None'},
  {n:'Molten',leg:1,fx:2,base:'#0a0909',glow:1.6,fin:{m:.1,r:.72},sw:['#120a07','#ff6a10','#120a07'],draw:(g,sd,top)=>livCracks(g,top?77:11)},
  {n:'Holographic',leg:1,fx:3,base:'#c0c6ce',fin:{m:.75,r:.18},sw:['#ff5ac8','#5ad7ff','#ffd25a']},
  {n:'Liquid gold',leg:1,base:'#d4a537',fin:{m:.95,r:.16},sw:['#8a6417','#ffe08a','#b3841f']},
- {n:'Pumpkin',ev:'halloween',base:'#b84305',fin:{m:.1,r:.55},sw:['#e2680f','#ffcc4d','#1a0d04'],draw:(g,sd,top,k)=>{if(top){g.fillStyle='#2f5a17';g.fillRect(0,236,1024,40);return}livPumpkin(g,sd,k)}}];
+ {n:'Pumpkin',ev:'halloween',base:'#b84305',fin:{m:.1,r:.55},sw:['#e2680f','#ffcc4d','#1a0d04'],draw:(g,sd,top,k)=>{if(top){g.fillStyle='#2f5a17';g.fillRect(0,236,1024,40);return}livPumpkin(g,sd,k)}},
+ {n:'Candy cane',ev:'winter',base:'#f4f1ec',fin:{m:.1,r:.3},sw:['#f4f1ec','#d3141c','#f4f1ec'],draw:(g,sd,top)=>{g.fillStyle='#d3141c';for(let x=-600;x<1100;x+=120){g.beginPath();g.moveTo(x,512);g.lineTo(x+46,512);g.lineTo(x+46+(top?260:300),0);g.lineTo(x+(top?260:300),0);g.closePath();g.fill()}
+  g.fillStyle='#2f8a3a';for(let x=-600;x<1100;x+=120){g.beginPath();g.moveTo(x+52,512);g.lineTo(x+60,512);g.lineTo(x+60+(top?260:300),0);g.lineTo(x+52+(top?260:300),0);g.closePath();g.fill()}}}];
 function liveryTex(L,M){const k=(1024/M.L)/(250/(M.belt-M.y0));const c=document.createElement('canvas');c.width=1024;c.height=1536;const g=c.getContext('2d');
  for(let i=0;i<3;i++){g.save();g.translate(0,i*512);g.beginPath();g.rect(0,0,1024,512);g.clip();L.draw(g,i===1?-1:1,i===2,k);g.restore()}
  // uploaded premultiplied, like the clouds, so iPhones keep the soft edges clean; the shader un-premultiplies
@@ -716,7 +720,7 @@ for(const k of['haptics','shake','flip','music'])settings[k]=settings[k]!==false
 const sideH=()=>settings.flip?'right':'left',sideR=()=>settings.flip?'left':'right';
 // premium styling: some looks cost cans, bought once and then usable on every car, so there is always something to save for;
 // a car's factory look is always free, and options a save already used before prices existed stay owned
-const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140],livery:[0,200,150,150,200,350,250,300,300,800,900,750,600,250],smoke:[0,60,60,60,60,60,150],trail:[0,80,80,80,80,200],room:[0,150,200,250,400,300]};
+const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140],livery:[0,200,150,150,200,350,250,300,300,800,900,750,600,250,250],smoke:[0,60,60,60,60,60,150],trail:[0,80,80,80,80,200],room:[0,150,200,250,400,300,300]};
 let owned=new Set((v=>Array.isArray(v)?v.filter(x=>typeof x==='string'):[])(store.get('owned',[]))),pv=null;
 const isOwned=(id,k,i)=>!PRICE[k]||!PRICE[k][i]||owned.has(k+':'+i)||defLook(id)[k]===i;
 // daily deals: four looks the player doesn't own, 25-40% off until midnight. The first is a livery while any are left
