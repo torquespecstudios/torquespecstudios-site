@@ -194,11 +194,6 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 #over .dist small.off{color:var(--mute);opacity:1}
 #over .meta{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;font-weight:700;color:var(--mute);letter-spacing:.06em;max-width:340px}
 #over .meta b{color:var(--ink)}
-#over .close{width:min(300px,100%);text-align:center;font-weight:700;font-size:14px;color:var(--mute);letter-spacing:.03em}
-#over .close b{color:var(--amber)}
-#over .close .xpbar{position:relative;overflow:visible;margin-top:6px}
-#over .close .xpbar i{transition:width .7s ease-out .3s}
-#over .close .xpbar u{position:absolute;right:-2px;top:-3px;width:4px;height:14px;border-radius:2px;background:var(--ink)}
 .medals{display:flex;gap:16px;margin:4px 0}
 .medal{display:flex;flex-direction:column;align-items:center;gap:5px;width:84px;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--mute);line-height:1.25}
 .medal i{width:38px;height:38px;border-radius:50%;border:2px dashed rgba(255,255,255,.22);box-sizing:border-box}
@@ -463,7 +458,6 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 <div class="center" id="over" hidden>
   <div class="disp t" id="oT">Landed!</div>
   <div class="dist" id="oTime">0:00.0</div>
-  <div class="close" id="oClose" hidden></div>
   <div class="oach" id="oAch" hidden></div>
   <div class="medals" id="oMed"></div>
   <div class="meta" id="oMeta"></div>
@@ -1314,10 +1308,10 @@ function buzz(ms){if(!settings.haptics)return;if(NATIVE.haptics){NATIVE.haptics.
 
 /* ---------- game state ---------- */
 // T is the plane: position (x, y, d), heading a, speed v along the heading, climb rate vy, bank, and sideways drift wx from gusts
-let cabin=100,lastVy=0,seatbeltT=0,gpwsT={},tank=0,firesRun=0,rollT=0,rollDir=1,rollHit=false,rollCD=0,skimOn=0,curSec='',missionTick=0,state='garage',T={},throttle=1,runT=0,hull=100,runCans=0,runRings=0,ringCombo=0,maxCombo=0,pts=0,lowT=0,lowRun=0,shake=0,camYaw=0,counting=0,endT=0,result=null,coachT=0,hitFlash=0,orbA=.9,drag=null,smokeT=0,boostT=0,inGust=false,underRun=0,birdHits=0,warnT=0;
+let lastHit='',cabin=100,lastVy=0,seatbeltT=0,gpwsT={},tank=0,firesRun=0,rollT=0,rollDir=1,rollHit=false,rollCD=0,skimOn=0,curSec='',missionTick=0,state='garage',T={},throttle=1,runT=0,hull=100,runCans=0,runRings=0,ringCombo=0,maxCombo=0,pts=0,lowT=0,lowRun=0,shake=0,camYaw=0,counting=0,endT=0,result=null,coachT=0,hitFlash=0,orbA=.9,drag=null,smokeT=0,boostT=0,inGust=false,underRun=0,birdHits=0,warnT=0;
 const desired=new THREE.Vector3(),lookT=new THREE.Vector3(),lookD=new THREE.Vector3();
 function resetWorld(){const p=lanePos(0);T={x:p.x,y:p.y,d:0,a:p.h,v:spec.top*.9,vy:0,bank:0,wx:0,roll:0,pitch:0,cool:0,spin:0,dead:0};
- runT=0;hull=100;runCans=0;runRings=0;ringCombo=0;maxCombo=0;pts=0;lowT=0;lowRun=0;boostT=0;inGust=false;underRun=0;birdHits=0;result=null;throttle=1;closeRun=0;missionXP=0;curSec=CO.sec[0][0];missionTick=0;rollT=0;rollCD=0;skimOn=0;reviveUsed=false;ghostRec=[];ghostRecT=0;
+ runT=0;hull=100;lastHit='';runCans=0;runRings=0;ringCombo=0;maxCombo=0;pts=0;lowT=0;lowRun=0;boostT=0;inGust=false;underRun=0;birdHits=0;result=null;throttle=1;closeRun=0;missionXP=0;curSec=CO.sec[0][0];missionTick=0;rollT=0;rollCD=0;skimOn=0;reviveUsed=false;ghostRec=[];ghostRecT=0;
  for(const c of CANS){c.got=false;c.m.visible=true}
  for(const r of RINGS){r.got=false;r.miss=false;r.fx=0;r.m.visible=true;r.m.scale.setScalar(1);r.m.material.opacity=1;r.m.material.transparent=false}
  for(const o of OBS){o.near=99;o.passed=false;o.hit=false}for(const b of BRIDGES)b.got=false;for(const H of HANGARS)H.got=false;
@@ -1445,7 +1439,7 @@ function boxTick(){const P=contactPoints();
   if(!o.hit&&o.near<3.5&&o.near>-1&&state==='play'){closeRun++;bonus(50,'Close call!');missionEvent('close')}}
  for(const b of BRIDGES){if(b.got||T.d<b.d)continue;b.got=true;if(state==='play'&&T.y<b.y&&hull>0){underRun++;stats.under++;bonus(100,'Under the bridge!');missionEvent('under')}}}
 function bonus(n,label){pts+=n;popText(`${label} <b>+${n}</b>`);buzz(15)}
-function hit(k,dmg,x,y,d,label,wet){const n=Math.round(dmg*k*spec.tough);if(spec.airliner)cabin=Math.max(0,cabin-8);T.cool=.55;rollHit=true;hull=Math.max(0,hull-n);ringCombo=0;
+function hit(k,dmg,x,y,d,label,wet){lastHit=label;const n=Math.round(dmg*k*spec.tough);if(spec.airliner)cabin=Math.max(0,cabin-8);T.cool=.55;rollHit=true;hull=Math.max(0,hull-n);ringCombo=0;
  burst(x,y,-d,10+n,wet?6:8,wet?'#ffffff':'#d8c9b0',wet?.9:.6);sfxHit(Math.min(1,k));buzz(n>12?60:30);shake=Math.max(shake,settings.shake?.35+k*.5:0);
  const el=$('mHull');el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');
  popText(`${label} <b>−${n}%</b>`,true);if(hull<=0&&state==='play')endRun('crash')}
@@ -1610,22 +1604,20 @@ function finishRun(){const nextI=lvl+1,wasOpen=nextI<COURSES.length&&!COURSES[ne
  $('oMeta').innerHTML=`<span><span class="ring"></span> <b>${runRings}/${RINGS.length}</b></span><span><b>${fmt(pts)}</b> pts</span><span>Airframe <b>${Math.round(hull)}%</b></span>`+(spec.airliner?`<span>Cabin <b>${Math.round(cabin)}%</b></span>`:'')+`<span><span class="can"></span> <b>+${pay}</b></span>`+(prevBest&&!nb&&ok?`<span>Best <b>${clock(prevBest)}</b></span>`:'');
  const opened=nextI<COURSES.length&&!COURSES[nextI].soon&&!wasOpen&&courseOpen(nextI);
  $('oAch').hidden=!got.length&&!opened&&!isDaily;$('oAch').innerHTML=(isDaily?`Daily challenge done · cans ×2!`+(got.length||opened?'<br>':''):'')+(opened?`New course unlocked: ${COURSES[nextI].n}!`+(got.length?'<br>':''):'')+got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
- soClose(ok,m);
  $('oTip').innerHTML=pickTip(ok,m);renderMissions('oMissions');
  lastRun=ok?{time:result.time,course:CO.n,sub:CO.sub,plane:PLANES[sel].name,type:PLANES[sel].type,medal:m,rings:runRings,ringsN:RINGS.length,pts,best:nb,sky:SKY}:null;
  show('shareBtn',ok);$('oBtns').classList.toggle('solo',!ok);$('toGarage').classList.toggle('nudge',canSpend());
  state='over';clearTimeout(banner.t);show('region',0);show('hud',0);show('over',1);showXP(xr);if(m===3&&m>prevM)chime([523,659,784,1047,1319])}
-// "So close!": as in Swervy, a near miss is named on the results screen, with a bar that ends at the target, because it's the
-// strongest reason to tap Retry. A finish up to 3 s short of the next medal (with enough rings for gold) says how far off it was;
-// a crash in the last 40% says how far the finish was. The gap to your best is already under the time.
-function soClose(ok,m){const el=$('oClose');let msg='',f=0;
- if(!ok){const d=Math.min(CO.len,Math.max(0,T.d));if(d>=CO.len*.6){msg=`So close! <b>${fmt(Math.ceil((CO.len-d)/10)*10)} m</b> from the finish`;f=d/CO.len}}
- else{const par=parOf(CO,sel),tgt=m===1?par*1.15:m===2&&runRings>=ringNeed()?par:0,gap=tgt?result.time-tgt:0;
-  if(tgt&&gap>0&&gap<=3){msg=`So close! <b>${gap.toFixed(1)} s</b> off ${m===1?'Silver':'Gold'}`;f=tgt/result.time}}
- el.hidden=!msg;if(!msg)return;el.innerHTML=`${msg}<div class="xpbar"><i></i><u></u></div>`;const bar=el.querySelector('i');requestAnimationFrame(()=>requestAnimationFrame(()=>bar.style.width=Math.round(f*100)+'%'))}
 function canSpend(){if(ORDER.some(id=>!unlocked.includes(id)&&cans>=PLANES[id].price))return true;const P=perfFor(sel);return UPG.some(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1])}
 const TIPS=['Each ring gives a short <b>speed boost</b>. Chain them for ×2 and ×3 points.','Skim the ground or the water to score <b>low pass</b> points.','Slower is tighter: ease off the <b>throttle</b> before a hairpin bend.','Fly <b>under</b> the bridges for a bonus.','Birds circle near the rings. Bank around the flock.'];
-function pickTip(ok,m){const b=ORDER.find(id=>!unlocked.includes(id)&&cans>=PLANES[id].price);if(b)return`You can unlock the <b>${PLANES[b].name}</b> ${PLANES[b].type.toLowerCase()} in the Hangar!`;
+// after a crash, a tip about whatever hit you last (the label of the last hit)
+const CRASH_TIPS={'Wall!':'The <b>walls</b> got you. Ease off the throttle before a bend: slower turns tighter.','Wingtip!':'A <b>wingtip</b> clipped the slope. Bank less when you\'re low, or climb a little before the turn.',
+ 'Pull up!':'You flew into the <b>ground</b>. Keep a few metres of air under you: low-pass points start higher than you think.','Splash!':'You touched the <b>water</b>. Skim it, don\'t land on it: ease up as you get close.',
+ 'Wires!':'<b>Wires</b> hang between the towers. Spot the towers early and go over or under the line.','Bird strike!':'<b>Birds</b> circle near the rings. Bank around the flock, not through it.',
+ 'Mid-air!':'Other <b>traffic</b> shares the sky. Look ahead and slide aside early.','Lightning!':'The sky <b>glows</b> just before lightning strikes. Steer away from the glow.',
+ 'Bridge!':'Fly <b>under</b> bridges in the middle of the span, where there\'s the most room.','Hangar!':'Line up with the <b>hangar door</b> early and keep the wings level through Bay 1.'};
+function crashTip(){const t=CRASH_TIPS[lastHit];if(t)return t;const n=lastHit.replace(/!$/,'').toLowerCase();return lastHit&&lastHit!=='Hit!'?`The <b>${n}</b> got you. Follow the <b>rings</b>: they mark the safe line.`:''}
+function pickTip(ok,m){if(!ok&&crashTip())return crashTip();const b=ORDER.find(id=>!unlocked.includes(id)&&cans>=PLANES[id].price);if(b)return`You can unlock the <b>${PLANES[b].name}</b> ${PLANES[b].type.toLowerCase()} in the Hangar!`;
  if(!ok)return'Canyon walls, towers and the ground all damage the plane. Follow the <b>rings</b> for the safe line.';
  const P=perfFor(sel),up=UPG.find(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1]);if(up)return`You can afford ${/^[aeiou]/i.test(up.n)?'an':'a'} <b>${up.n.toLowerCase()}</b> upgrade in the Hangar.`;
  // the next plane in reach: the cheapest locked one, shown as a goal a little over half the time
@@ -1945,7 +1937,7 @@ window.addEventListener('resize',resize);
 try{new ResizeObserver(()=>resize()).observe(document.documentElement)}catch(e){}
 
 // test hook for the QA scripts in qa/ (drives the plane and reads the state)
-window.__sky={get state(){return state},get T(){return T},get hull(){return hull},get runT(){return runT},get cans(){return cans},get runCans(){return runCans},get runRings(){return runRings},get pts(){return pts},get level(){return level},get xp(){return xp},get missions(){return missions},setMissions:m=>{missions=m;store.set('missions',m)},setBest:(k,t)=>{bests[k]=t;delete medals[k]},checkDaily,get throttle(){return throttle},
+window.__sky={get state(){return state},get T(){return T},get hull(){return hull},get runT(){return runT},get cans(){return cans},get runCans(){return runCans},get runRings(){return runRings},get pts(){return pts},get level(){return level},get xp(){return xp},get missions(){return missions},setMissions:m=>{missions=m;store.set('missions',m)},checkDaily,get throttle(){return throttle},
  crs:d=>{const o=crs(d,{});return o},groundAt,lanePos,input:v=>{botIn=v},setThrottle,start:()=>{goReady();startCount()},garage:goGarage,select:id=>{sel=id;rebuildPlane();resetWorld();renderGarage()},course:i=>{loadCourse(i);resetWorld();renderGarage()},
  setCans:n=>{cans=n;store.set('cans',n);renderGarage()},unlockAll:()=>{unlocked=ORDER.slice();store.set('unlocked',unlocked);renderGarage()},
  rings:()=>RINGS.map(r=>({x:r.x,y:r.y,d:r.d,got:r.got})),obs:()=>OBS.map(o=>({k:o.k,x:o.x,d:o.d,y0:o.y0,y1:o.y1})),level:()=>CO,get courses(){return COURSES.filter(c=>!c.soon).length},get sel(){return sel},get renderer(){return R},
