@@ -111,6 +111,17 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 #mtoast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 132px);max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;transform:translateX(-50%);padding:9px 16px;border-radius:999px;background:var(--amber);color:#1d1508;font-weight:700;font-size:14px;white-space:nowrap;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:mtPop 2.4s ease-out forwards;z-index:20}
 @keyframes mtPop{0%{transform:translateX(-50%) translateY(-12px);opacity:0}10%{transform:translateX(-50%);opacity:1}85%{opacity:1}100%{transform:translateX(-50%);opacity:0}}
 @media (max-height:700px){.tip{display:none}}
+/* first launch: pick a starter plane. A bottom card, so the chosen plane stays in view on the runway above it */
+#starter{justify-content:flex-end;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 16px);background:linear-gradient(transparent 35%,rgba(10,12,16,.85));pointer-events:auto;z-index:9}
+#starter .card{gap:12px}
+#starter h2{font-size:30px}
+.starters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.starters button{text-align:left;padding:10px 12px;border-radius:12px;background:var(--glass-2);border:1px solid var(--hair);display:flex;flex-direction:column;gap:2px}
+.starters button.on{border-color:var(--amber);background:rgba(242,179,61,.14)}
+.starters .mn{font-family:var(--display);font-weight:800;font-size:20px;text-transform:uppercase;line-height:1}
+.starters .mt{font-size:12px;font-weight:700;color:var(--amber);letter-spacing:.06em;text-transform:uppercase}
+.starters small{font-size:12px;color:var(--mute);line-height:1.3}
+@media (min-width:860px) and (min-aspect-ratio:1/1){#starter{justify-content:center;align-items:flex-end;padding-right:max(24px,env(safe-area-inset-right,0px))}}
 #daily{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.88));pointer-events:auto;z-index:10}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .day{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--hair);font-size:11px;font-weight:700;color:var(--mute)}
@@ -400,6 +411,15 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
   </div>
 </div>
 
+<div class="center" id="starter" hidden>
+  <div class="card" role="dialog" aria-label="Pick your first plane">
+    <h2 class="disp">Pick your first plane</h2>
+    <p class="dsub">It's yours to keep. Earn cans to unlock the rest of the hangar, airliners included.</p>
+    <div class="starters" id="starterList"></div>
+    <button class="btn primary" id="starterGo">Fly it</button>
+  </div>
+</div>
+
 <div class="center" id="daily" hidden>
   <div class="card" role="dialog" aria-label="Daily reward">
     <h2 class="disp" id="dTitle">Day 1</h2>
@@ -424,7 +444,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="replayTut">Replay the flying lesson on next flight</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v20 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v21 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1301,7 +1321,7 @@ const parOf=(L,id)=>L.par[id]||90;
 function show(id,on){$(id).hidden=!on}
 function applyView(){const w=innerWidth,h=innerHeight;if(state==='garage'&&!photo){if(w>=860&&w>=h)cam.setViewOffset(w,h,w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*.26,w,h)}else cam.clearViewOffset()}
 function hideRunUI(){document.querySelectorAll('.pop').forEach(e=>e.remove());show('region',0);show('paused',0);show('count',0);show('pauseBtn',0);show('coach',0);show('stick',0);show('thr',0);show('warn',0);show('rollBtn',0);show('revive',0);show('share',0);counting=0}
-function goGarage(){if(tut){tut=null;show('coach',0)}state='garage';resetWorld();hideRunUI();show('hud',0);show('ready',0);show('over',0);show('garage',1);renderGarage();applyView();checkDaily()}
+function goGarage(){if(tut){tut=null;show('coach',0)}state='garage';resetWorld();hideRunUI();show('hud',0);show('ready',0);show('over',0);show('garage',1);renderGarage();applyView();if(!checkStarter())checkDaily()}
 function goReady(){if(photo)closePhoto();tut=null;if(!unlocked.includes(sel)){sel='bush';store.set('sel',sel);rebuildPlane()}
  state='ready';resetWorld();hideRunUI();show('garage',0);show('over',0);show('hud',1);show('ready',1);
  {const dp=dailyPick();$('readyL').textContent=(dp.course===lvl&&dp.plane===sel&&!dailyDoneToday()?'Daily challenge · ×2 cans · ':CO.sub+' · ')+CO.n}$('readyTip').innerHTML=spec.airliner?(spec.jet?'Flat out it turns <b>wide</b>: throttle back for bends. Keep it <b>smooth</b> for the passengers.':'Passengers aboard: gentle banks and smooth climbs keep the <b>Cabin</b> meter up, and a smooth flight pays more.'):spec.glider?'No engine: <b>dive</b> to gain speed, and fly into the swirling <b>thermals</b> to climb for free.':spec.scoop?'<b>Skim the river</b> to fill the tank, then fly low over a <b>wildfire</b> to drop it: <b>+250</b>.':spec.stunt?'Tap <b>ROLL</b> (or Space) for a barrel roll: <b>+150</b> if you don\'t hit anything.':spec.float?'Your floats can <b>skim the river</b>: touch down gently on the water for big points.':spec.dust?'A crop duster: <b>low passes</b> score double.':spec.jet?'Very fast, very wide turns. <b>Throttle back</b> before the canyon bends.':spec.cargo?'A <b>22 m wingspan</b>: thread the bridge piers carefully. Finishing pays ×1.6.':'Fly through the <b>gold rings</b> and stay low for bonus points. Ease off the <b>throttle</b> for tight turns.';
@@ -1589,7 +1609,7 @@ const ACH=[
  ['cans_300','Tank Farm','Collect 300 fuel cans',60,()=>stats.cans,300],
  ['upg_1','Tuned Up','Buy an upgrade',10,()=>stats.upg,1],
  ['upg_max','Fully Loaded','Max out an upgrade',50,maxedUpg,1],
- ['fleet_2','Second Plane','Own 2 planes',20,()=>unlocked.length,2],
+ ['fleet_2','Second Plane','Unlock a second plane with cans',20,()=>unlocked.length-(store.get('starterPicked','bush')==='bush'?0:1),2],
  ['fleet_all','Full Hangar','Own all 14 planes',150,()=>unlocked.length,ORDER.length],
  ['thermals','Riding High','Ride 30 thermals in the glider',50,()=>stats.thermals||0,30],
  ['fires','Smokejumper','Put out 20 wildfires with the Scooper',60,()=>stats.fires||0,20],
@@ -1618,6 +1638,18 @@ const DAILY=[20,30,40,60,80,100,200];
 const dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 let daily=Object.assign({last:'',streak:0},obj(store.get('daily',{})));daily.streak=num(daily.streak,0);if(typeof daily.last!=='string')daily.last='';
 // the streak starts after the first flight, so a new player's first screen is the plane, not a reward popup
+/* ---------- first plane ---------- */
+// a brand-new player starts in the hangar and picks one of four starters for free; the pick is shown on the runway as they tap
+const STARTERS=['bush','duster','biplane','commuter'];
+let starterPick='bush';
+function checkStarter(){if(store.get('starterPicked',false)||stats.runs>0)return false;
+ if(!STARTERS.includes(starterPick))starterPick='bush';renderStarter();show('garage',0);show('starter',1);return true}
+function renderStarter(){$('starterList').innerHTML=STARTERS.map(id=>{const P=PLANES[id];return`<button class="${id===starterPick?'on':''}" data-id="${id}"><span class="mn">${P.name}</span><span class="mt">${P.type}</span><small>${P.perk}</small></button>`}).join('');
+ $('starterList').querySelectorAll('button').forEach(b=>b.onclick=()=>{audioInit();starterPick=b.dataset.id;sel=starterPick;rebuildPlane();resetWorld();renderStarter();buzz(10)});
+ $('starterGo').textContent=`Fly the ${PLANES[starterPick].name}`;
+ if(sel!==starterPick){sel=starterPick;rebuildPlane();resetWorld()}}
+$('starterGo').addEventListener('click',()=>{audioInit();const id=starterPick;if(!unlocked.includes(id))unlocked.push(id);store.set('unlocked',unlocked);sel=id;store.set('sel',sel);store.set('starterPicked',id);
+ chime([392,523,659,784,1047]);buzz(40);show('starter',0);show('garage',1);renderGarage();goReady()});
 function checkDaily(){if(stats.runs<1)return;const now=new Date(),today=dayKey(now);if(daily.last===today)return;
  const y=new Date(now);y.setDate(y.getDate()-1);const streak=daily.last===dayKey(y)?daily.streak+1:1,idx=(streak-1)%7,amt=DAILY[idx];
  $('dTitle').textContent=streak>1?`Day ${streak} streak!`:'Daily reward';
