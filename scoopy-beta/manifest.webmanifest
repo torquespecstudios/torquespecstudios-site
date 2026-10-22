@@ -1,0 +1,15 @@
+{
+  "name": "Scoopy",
+  "short_name": "Scoopy",
+  "description": "A one-tap excavator game: swing lanes, scoop the dirt, load the trucks and dodge the hazards on the job site.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#1b1712",
+  "theme_color": "#1b1712",
+  "icons": [
+    {"src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

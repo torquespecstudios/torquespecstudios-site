@@ -1,0 +1,1435 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- public beta copy of the game for torquespecstudios.com/scoopy-beta: kept out of search results, and installable to the home screen -->
+<meta name="robots" content="noindex">
+<!-- SCOOPY by Torque Spec Studios: game 4 of the family, built on the Swervy codebase (same single-file layout, save store,
+     HUD, menus, audio engine and native iOS hooks) so all the games look and feel like one family -->
+<title>Scoopy (beta)</title>
+<meta name="description" content="Scoopy is a free one-tap excavator game by Torque Spec Studios. Tap to swing lanes, scoop the dirt, load the trucks and dodge the hazards on the job site.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scoopy">
+<meta name="theme-color" content="#1b1712">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://torquespecstudios.com/scoopy-beta/">
+<meta property="og:site_name" content="Torque Spec Studios">
+<meta property="og:title" content="Scoopy beta: dig the job site, load the trucks">
+<meta property="og:description" content="A one-tap excavator game. 4 jobs, 7 machines. Free beta from Torque Spec Studios, the makers of Swervy.">
+<meta property="og:image" content="https://torquespecstudios.com/scoopy-beta/icon.png">
+<link rel="icon" href="icon.png"><link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;800&family=Barlow:wght@500;700&display=swap">
+<style>
+/* Layout: full-bleed WebGL canvas; HUD + glass panels float above. The yard (title screen) = bottom sheet on phones, right rail on desktop.
+   Same dark glass UI as Swervy; the amber accent is swapped for safety yellow to suit the job site. */
+:root{
+  --glass:rgba(20,16,12,.74); --glass-2:rgba(255,255,255,.06); --hair:rgba(255,255,255,.13);
+  --ink:#f7f1e3; --mute:#b2a894; --amber:#ffc21a; --orange:#ff7a1a; --red:#ff5a3c; --dirt:#a8743f;
+  --display:"Saira Condensed","Arial Narrow",Impact,sans-serif; --body:"Barlow",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;overflow:hidden;background:#1b1712;color:var(--ink);font-family:var(--body);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.disp{font-family:var(--display);font-weight:800;text-transform:uppercase;font-style:normal;transform:skewX(-8deg);display:inline-block}
+
+/* HUD */
+#hud{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 10px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none;text-shadow:0 2px 10px rgba(0,0,0,.45)}
+#score{font-size:54px;line-height:.9;font-variant-numeric:tabular-nums}
+#score small{font-size:22px;margin-left:2px;opacity:.8}
+.sub{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);opacity:.85;margin-top:6px;font-variant-numeric:tabular-nums}
+.hud-r{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.pill{display:flex;align-items:center;gap:7px;background:var(--glass);border:1px solid var(--hair);border-radius:999px;padding:6px 12px;font-weight:700;font-variant-numeric:tabular-nums;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.pill svg{width:18px;height:18px;flex:0 0 auto}
+.pill.hat{color:var(--amber);border-color:rgba(255,194,26,.5)}
+.pill.cof{color:#ffd9a8;border-color:rgba(255,160,80,.5)}
+#mute,#pauseBtn,#setBtn{pointer-events:auto;width:38px;height:38px;justify-content:center;padding:0}
+#pauseBtn{gap:4px}
+#pauseBtn i{width:4px;height:13px;border-radius:1px;background:currentColor}
+#setBtn{font-size:18px}
+#combo{display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-family:var(--display);font-weight:800;font-size:26px;line-height:1;color:var(--amber);text-shadow:0 2px 10px rgba(0,0,0,.5)}
+#combo small{font-size:12px;letter-spacing:.14em;color:var(--ink)}
+#combo i{display:block;width:56px;height:4px;border-radius:2px;background:var(--amber)}
+.tobest{margin-top:8px;display:inline-block;padding:4px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--hair);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.tobest b{color:var(--amber)}
+.tobest.beat{background:var(--amber);color:#1d1508;border-color:transparent}
+
+/* bottom HUD: the bucket meter (the core loop) and the fuel gauge */
+#bhud{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 14px) max(16px,env(safe-area-inset-left,0px));pointer-events:none}
+.meter{box-sizing:border-box;width:min(46%,190px);background:var(--glass);border:1px solid var(--hair);border-radius:14px;padding:8px 12px 10px;display:flex;flex-direction:column;gap:6px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.meter .lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.meter .lab b{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:.04em;color:var(--ink);font-variant-numeric:tabular-nums}
+.bpips{display:flex;gap:4px}
+.bpips i{flex:1;height:14px;border-radius:4px;background:rgba(255,255,255,.12)}
+.bpips i.on{background:linear-gradient(#c98d52,#8a5a2e);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.meter.full{border-color:var(--red);animation:fullP .8s ease-in-out infinite}
+.meter.full .lab b{color:var(--red)}
+@keyframes fullP{50%{box-shadow:0 0 0 3px rgba(255,90,60,.35)}}
+.fbar{height:14px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
+.fbar i{display:block;height:100%;width:100%;border-radius:4px;background:linear-gradient(90deg,#f2b33d,#ffd77a);transition:width .2s linear}
+.meter.low{border-color:var(--red)}
+.meter.low .fbar i{background:var(--red)}
+.meter.low .lab b{color:var(--red)}
+/* a truck waiting alongside: which side, and how long it will wait */
+#tchip{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--amber);color:#1d1508;font-family:var(--display);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.04em;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none;overflow:hidden}
+#tchip.l{left:max(16px,env(safe-area-inset-left,0px))}
+#tchip.r{right:max(16px,env(safe-area-inset-right,0px))}
+#tchip svg{width:24px;height:24px}
+#tchip .tt{position:absolute;left:0;bottom:0;height:4px;background:rgba(0,0,0,.4)}
+#tchip.go{animation:tcP .7s ease-in-out infinite}
+@keyframes tcP{50%{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){#tchip.go,.meter.full{animation:none}}
+
+/* pause, countdown, settings, tutorial coach */
+#paused,#settings{background:radial-gradient(ellipse at center,rgba(14,11,8,.6),rgba(14,11,8,.88));pointer-events:auto}
+#settings{z-index:10}
+#paused .disp.t{font-size:clamp(46px,13vw,72px);line-height:.9}
+.vbtns{display:flex;flex-direction:column;gap:10px;width:min(280px,100%);margin-top:10px}
+.vbtns .btn{width:100%}
+#count .disp{font-size:120px;line-height:1;text-shadow:0 4px 24px rgba(0,0,0,.5)}
+#count p{margin:0;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:14px;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.card{box-sizing:border-box;width:min(398px,100%);max-height:calc(100% - 32px);overflow-y:auto;overscroll-behavior:contain;background:var(--glass);border:1px solid var(--hair);border-radius:20px;padding:20px 18px;display:flex;flex-direction:column;gap:14px;text-align:left;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.card h2{margin:0;font-size:32px;line-height:1}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700}
+.srow small{display:block;font-size:12px;color:var(--mute);font-weight:500;margin-top:2px}
+.seg{display:flex;gap:4px;padding:3px;border-radius:999px;background:rgba(255,255,255,.07);flex:0 0 auto}
+.seg button{padding:9px 13px;border-radius:999px;font-weight:700;font-size:13px;color:var(--mute)}
+.seg button.on{background:var(--amber);color:#1d1508}
+.linkbtn{align-self:flex-start;color:var(--amber);font-weight:700;padding:4px 0}
+.ver{margin:0;text-align:center;font-size:12px;color:var(--mute)}
+.pop{position:fixed;left:50%;top:30%;transform:translateX(-50%);font-family:var(--display);font-weight:800;font-size:28px;text-transform:uppercase;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.55);white-space:nowrap;pointer-events:none;animation:popUp 1.1s ease-out forwards}
+.pop b{color:var(--amber)}
+.pop.bad b{color:var(--red)}
+@keyframes popUp{0%{transform:translateX(-50%) scale(.6);opacity:0}15%{transform:translateX(-50%) scale(1.1);opacity:1}30%{transform:translateX(-50%) scale(1)}100%{transform:translateX(-50%) translateY(-40px);opacity:0}}
+#mtoast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 132px);max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;transform:translateX(-50%);padding:9px 16px;border-radius:999px;background:var(--amber);color:#1d1508;font-weight:700;font-size:14px;white-space:nowrap;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:mtPop 2.4s ease-out forwards}
+@keyframes mtPop{0%{transform:translateX(-50%) translateY(-12px);opacity:0}10%{transform:translateX(-50%);opacity:1}85%{opacity:1}100%{transform:translateX(-50%);opacity:0}}
+@media (max-height:700px){.tip{display:none}}
+.tip{margin:6px 0 0;max-width:320px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.06);font-weight:500;font-size:15px;line-height:1.35}
+.tip:empty{display:none}
+.tip b{color:var(--amber)}
+#coach{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 150px);transform:translateX(-50%);max-width:calc(100% - 32px);padding:12px 20px;border-radius:14px;background:var(--glass);border:1px solid var(--hair);font-weight:700;font-size:17px;text-align:center;pointer-events:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:opacity .25s}
+#coach b{color:var(--amber)}
+#coach.warn{border-color:var(--red)}
+#newBest{pointer-events:none}
+#newBest .disp{font-size:clamp(48px,14vw,84px);line-height:.9;color:var(--amber);text-shadow:0 4px 24px rgba(0,0,0,.5);animation:nbPop 1.6s ease-out forwards}
+@keyframes nbPop{0%{transform:skewX(-8deg) scale(.4);opacity:0}15%{transform:skewX(-8deg) scale(1.12);opacity:1}25%{transform:skewX(-8deg) scale(1)}80%{opacity:1}100%{transform:skewX(-8deg) scale(1) translateY(-30px);opacity:0}}
+@media (prefers-reduced-motion:reduce){#newBest .disp{animation:none}}
+/* job banner: same look as Swervy's region banner */
+#region{position:fixed;left:0;right:0;top:36%;text-align:center;pointer-events:none;animation:rgIn 3.2s ease-out forwards}
+#region small,#unlockFx small{display:block;margin-bottom:6px;font-weight:700;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);text-shadow:0 2px 10px rgba(0,0,0,.6)}
+#region .disp{font-size:clamp(34px,10vw,52px);line-height:1;color:#fff;text-shadow:0 4px 22px rgba(0,0,0,.55)}
+#region em,#unlockFx em{display:table;margin:6px auto 0;font-style:normal;font-weight:700;font-size:15px;color:#fff;background:rgba(0,0,0,.35);border-radius:999px;padding:3px 12px}
+#unlockFx{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 118px);text-align:center;pointer-events:none;z-index:5;animation:rgIn 3s ease-out forwards}
+#unlockFx .disp{font-size:clamp(38px,11vw,60px);line-height:1;color:#fff;text-shadow:0 4px 22px rgba(0,0,0,.55)}
+@keyframes rgIn{0%{opacity:0;transform:translateY(14px)}12%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+@media (prefers-reduced-motion:reduce){#region,#unlockFx{animation:rgFade 3.2s linear forwards}@keyframes rgFade{0%,85%{opacity:1}100%{opacity:0}}}
+
+/* center prompts */
+.center{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#ready .disp{font-size:clamp(34px,9vw,56px);line-height:.95;text-shadow:0 3px 18px rgba(0,0,0,.5)}
+/* start screen sits in the upper half so the machine below stays in view */
+#ready{justify-content:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 112px)}
+#ready p{margin:0;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:14px;text-wrap:balance;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:pulse 1.3s ease-in-out infinite}
+#ready p.goal{animation:none;font-size:12px;letter-spacing:.08em;opacity:.95;margin:0 0 12px;padding:6px 12px;border-radius:999px;background:var(--glass);border:1px solid var(--hair);text-shadow:none}
+#ready p.goal b{color:var(--amber)}
+@keyframes pulse{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){#ready p{animation:none}}
+
+#over{background:radial-gradient(ellipse at center,rgba(14,11,8,.55),rgba(14,11,8,.85));pointer-events:auto}
+#over .disp.t{font-size:clamp(46px,13vw,80px);color:var(--red);line-height:.9}
+#over .why{margin:0;max-width:320px;font-weight:700;font-size:14px;color:var(--mute)}
+#over .dist{font-family:var(--display);font-weight:800;font-size:72px;line-height:1;font-variant-numeric:tabular-nums}
+#over .dist small{font-size:28px;opacity:.75}
+#over .meta{display:flex;gap:18px;font-weight:700;color:var(--mute);letter-spacing:.06em;flex-wrap:wrap;justify-content:center}
+#over .meta b{color:var(--ink)}
+#over .meta svg{width:18px;height:18px;vertical-align:-3px;color:var(--amber)}
+.btns{display:flex;gap:10px;margin-top:12px}
+/* Retry is the main action, full width on top; Yard and Share share the row below */
+#over .btns{display:grid;grid-template-columns:1fr 1fr;width:min(320px,100%)}
+#over .btns .btn{padding:12px 10px}
+#over #retry{grid-column:1/-1;order:-1;font-size:26px}
+.btn{font-family:var(--display);font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:22px;padding:12px 26px;border-radius:12px;border:1px solid var(--hair);background:var(--glass)}
+.btn.primary{background:var(--amber);color:#1d1508;border-color:transparent}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Yard (title screen) */
+#yard{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.g-top{display:flex;justify-content:space-between;align-items:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:auto}
+.logo{font-size:52px;line-height:1;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.55),0 3px 18px rgba(0,0,0,.55)}
+.logo i{font-style:normal;color:var(--amber)}
+.g-top .pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+/* studio logo spot: swap the inline mark for <img src="img/torque-spec-logo.png" alt=""> once the logo art is final */
+.studio{display:inline-flex;align-items:center;gap:7px;margin-top:6px;padding:4px 10px 4px 6px;border-radius:999px;background:var(--glass);border:1px solid var(--hair);font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);text-shadow:none}
+.studio .mark{width:22px;height:22px;flex:0 0 auto;color:var(--amber)}
+.studio img{height:22px;width:auto}
+.studio small{display:block;font-size:9px;letter-spacing:.18em;color:var(--mute)}
+@media (max-width:400px){.g-top .logo{font-size:42px}.pills{gap:6px}.pills .pill{padding:6px 9px;gap:5px}}
+.sheet{pointer-events:auto;height:56%;background:var(--glass);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);border-top:1px solid var(--hair);border-radius:20px 20px 0 0;overflow:hidden;overscroll-behavior:contain;padding-top:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+.sheet>*{flex-shrink:0}
+.sheet .opts{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.opt{display:flex;flex-direction:column;gap:8px}
+.opt>span{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.models{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.models::-webkit-scrollbar{display:none}
+.mcard{position:relative;flex:1 0 auto;min-width:104px;text-align:left;padding:10px 12px;border-radius:12px;background:var(--glass-2);border:1px solid var(--hair);display:flex;flex-direction:column;gap:2px}
+.mcard.on{border-color:var(--amber);background:rgba(255,194,26,.12)}
+.mcard.lk{border-style:dashed}
+.mcard .mn{font-family:var(--display);font-weight:800;font-size:19px;text-transform:uppercase;line-height:1}
+.mcard .mk{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--amber)}
+.mcard.lk .mk{color:var(--mute)}
+.mcard .mt{font-size:12px;color:var(--mute);font-weight:700}
+.car-head{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+.car-head h2{margin:0;font-size:28px;line-height:.95}
+.car-head .ty{font-size:13px;color:var(--mute);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.stats{display:flex;flex-direction:column;gap:6px;min-width:0}
+.stat{display:grid;grid-template-columns:50px 1fr;gap:8px;align-items:center;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.bar{height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--amber);border-radius:3px;transition:width .5s cubic-bezier(.2,.9,.3,1)}
+.perk{font-size:12px;color:var(--amber);font-weight:700}
+.jobs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.job{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:9px 11px;border-radius:12px;background:var(--glass-2);border:1px solid var(--hair);text-align:left;min-height:44px}
+.job.on{border-color:var(--amber);background:rgba(255,194,26,.12)}
+.job.lk{border-style:dashed;opacity:.62}
+.job .mk{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+.job.lk .mk{color:var(--mute)}
+.job b{font-size:16px;line-height:1.05}
+.job small{font-size:11px;font-weight:700;color:var(--mute)}
+.job .ck{position:absolute;top:8px;right:9px;font-size:12px;color:var(--amber)}
+.drive-wrap{position:sticky;bottom:0;display:flex;gap:10px;padding-top:6px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 14px);background:linear-gradient(transparent,rgba(20,16,12,.9) 30%)}
+.drive-wrap .btn{font-size:24px;padding:14px 16px}
+#drive{flex:1}
+#drive.lkd{font-size:clamp(15px,4.6vw,20px)}
+@media (max-height:740px){
+ .sheet{height:62%;padding-top:10px;gap:9px}
+ .mcard{min-width:92px;padding:6px 10px;gap:1px}
+ .mcard .mn{font-size:16px}
+ .car-head h2{font-size:22px}
+ .perk{display:none}
+ .job{padding:6px 10px}
+ .drive-wrap .btn{font-size:20px;padding:11px 12px}
+}
+/* ---------- the family's shared panels (Swervy / Tuggy) ---------- */
+.can{display:inline-block;width:11px;height:14px;border-radius:2px;background:linear-gradient(#e2412c,#a51e12);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);position:relative;vertical-align:-1px}
+.can::after{content:"";position:absolute;top:-3px;left:2px;width:4px;height:3px;background:#f2b33d;border-radius:1px}
+.trophy{margin-top:6px;display:inline-flex;white-space:nowrap;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--hair);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;position:relative}
+.trophy::before{content:"";position:absolute;inset:-11px -4px}
+.trophy svg,.ach svg{width:14px;height:14px;flex:0 0 auto}
+#mtoast svg,#oAch svg{width:1.15em;height:1.15em;vertical-align:-.2em}
+.glv{display:flex;white-space:nowrap;align-items:center;gap:8px;margin-top:4px;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.glv .xpbar{width:70px;height:6px;background:rgba(255,255,255,.3);box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+#achPanel,#daily,#share,#help{background:radial-gradient(ellipse at center,rgba(14,11,8,.6),rgba(14,11,8,.9));pointer-events:auto;z-index:10}
+/* How to play opens from Settings, so it stacks above it */
+#help{z-index:11}
+.achlist{display:flex;flex-direction:column;gap:8px}
+.ach{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--hair);color:var(--mute)}
+.ach b{display:block;color:var(--ink);font-size:14px}
+.ach small{font-size:12px}
+.ach .xpbar{display:block;height:4px;margin-top:5px}
+.ach .rw{font-weight:700;font-size:12px;white-space:nowrap}
+.ach.got{border-color:var(--amber);background:rgba(255,194,26,.1)}
+.ach.got svg{color:var(--amber)}
+.oach{font-weight:700;font-size:14px;color:var(--amber);text-align:center}
+#share .card{align-items:center;text-align:center}
+#shareImg{width:min(260px,62vw);aspect-ratio:4/5;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45);-webkit-touch-callout:default;user-select:auto}
+#share .vbtns{width:100%}
+#shareMsg{margin:0;font-size:13px;color:var(--mute);min-height:1.3em}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--hair);font-size:11px;font-weight:700;color:var(--mute)}
+.day b{font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
+.day.got{opacity:.5}
+.day.today{background:rgba(255,194,26,.16);border-color:var(--amber);color:var(--amber);transform:scale(1.06)}
+.day.big b{color:var(--amber)}
+.dsub{margin:0;color:var(--mute);font-size:14px}
+#revive{background:radial-gradient(ellipse at center,rgba(14,11,8,.55),rgba(14,11,8,.85));pointer-events:auto}
+#revive .disp.t{font-size:clamp(44px,12vw,68px);line-height:.9;color:var(--amber)}
+#revive p{margin:0;font-weight:700;color:var(--mute)}
+.rvT{font-family:var(--display);font-weight:800;font-size:64px;line-height:1;width:96px;height:96px;border-radius:50%;border:4px solid var(--amber);display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.help b{display:block;color:var(--amber);font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin-top:6px}
+.help p{margin:3px 0 0;font-size:14px;line-height:1.4;color:var(--ink)}
+.xpbox{width:min(300px,100%);display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.xprow{display:flex;justify-content:space-between;font-weight:700;font-size:14px;letter-spacing:.04em}
+.xprow span:last-child{color:var(--amber)}
+.xpbar{height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
+.xpbar i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,#ffc21a,#ffe08a);transition:width .8s ease-out}
+.lvup{font-family:var(--display);font-weight:800;font-size:22px;text-transform:uppercase;color:var(--amber);text-align:center}
+.lvup b{color:var(--ink)}
+.mlist{width:min(320px,100%);display:flex;flex-direction:column;gap:5px;text-align:left;margin-top:4px}
+.mlist>span{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);opacity:.8;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.mrow{display:grid;grid-template-columns:16px 1fr auto;gap:9px;align-items:center;padding:7px 10px;border-radius:10px;background:rgba(14,11,8,.6);border:1px solid var(--hair);font-size:13px;font-weight:700;color:var(--ink);letter-spacing:0;text-transform:none}
+.mrow .ck{width:16px;height:16px;border-radius:50%;border:2px solid var(--mute);display:flex;align-items:center;justify-content:center;font-size:10px;color:#1d1508;box-sizing:border-box}
+.mrow.done .ck{background:var(--amber);border-color:var(--amber)}
+.mrow .mp{color:var(--mute);font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap}
+.mrow.done .mp{color:var(--amber)}
+#ready .mrow{padding:5px 10px;font-size:12px}
+#ready .lvl{font-weight:700;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);text-shadow:0 1px 3px rgba(0,0,0,.9),0 2px 12px rgba(0,0,0,.6)}
+.medals{display:flex;gap:12px;margin:2px 0}
+.medal{display:flex;flex-direction:column;align-items:center;gap:3px;width:84px;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--mute);line-height:1.25}
+.medal i{width:30px;height:30px;border-radius:50%;border:2px dashed rgba(255,255,255,.22);box-sizing:border-box}
+.medal b{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.medal.on b{color:var(--ink)}
+.medal.on.m1 i{border:0;background:radial-gradient(circle at 35% 30%,#f0b98a,#a8622f 60%,#6e3a17);box-shadow:0 0 0 3px rgba(168,98,47,.35)}
+.medal.on.m2 i{border:0;background:radial-gradient(circle at 35% 30%,#ffffff,#b9bfc6 60%,#7d838b);box-shadow:0 0 0 3px rgba(185,191,198,.35)}
+.medal.on.m3 i{border:0;background:radial-gradient(circle at 35% 30%,#fff2b0,#f2b33d 60%,#a8741a);box-shadow:0 0 0 3px rgba(242,179,61,.45)}
+.medal.on{animation:medalIn .5s cubic-bezier(.3,1.6,.5,1) backwards}
+@keyframes medalIn{0%{transform:scale(.3);opacity:0}100%{transform:none;opacity:1}}
+.tabs{display:flex;gap:4px;padding:4px;border-radius:12px;background:rgba(255,255,255,.06)}
+.tab{flex:1;padding:9px 4px;border-radius:9px;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);position:relative}
+.tab::before{content:"";position:absolute;inset:-5px 0}
+.tab.on{background:var(--ink);color:#16120c}
+.lv{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;text-align:left;padding:11px 12px;border-radius:12px;background:var(--glass-2);border:1px solid var(--hair)}
+.lv.on{border-color:var(--amber);background:rgba(255,194,26,.1)}
+.lv.soon{opacity:.45;border-style:dashed;cursor:default}
+.lv .ln{font-family:var(--display);font-weight:800;font-size:21px;text-transform:uppercase;line-height:1}
+.lv .ls{grid-column:1;font-size:12px;font-weight:700;color:var(--mute)}
+.lv .lm{grid-row:1/3;grid-column:2;display:flex;gap:4px}
+.lv .lm i{width:14px;height:14px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.25);box-sizing:border-box}
+.lv .lm i.m1{border:0;background:#b8733d}.lv .lm i.m2{border:0;background:#c9ced4}.lv .lm i.m3{border:0;background:#f2b33d}
+.part{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--hair)}
+.pinfo b{display:block;font-size:15px}
+.pinfo span{font-size:12px;color:var(--mute);font-weight:700}
+.pips{display:flex;gap:4px;margin-top:5px}
+.pips i{width:18px;height:5px;border-radius:2px;background:rgba(255,255,255,.14)}
+.pips i.on{background:var(--amber)}
+.part.just{animation:partFlash 1.3s ease-out}
+@keyframes partFlash{0%{background:rgba(255,194,26,.3)}100%{background:transparent}}
+.buy{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:10px;background:var(--amber);color:#1d1508;font-weight:700;font-variant-numeric:tabular-nums;min-width:74px;justify-content:center}
+.buy:disabled{background:rgba(255,255,255,.08);color:var(--mute);cursor:not-allowed}
+.note{margin:0;font-size:13px;color:var(--mute)}
+.opt>span em{font-style:normal;color:var(--ink);letter-spacing:.04em;text-transform:none;margin-left:4px}
+.row{display:flex;gap:10px;flex-wrap:wrap;padding:5px 3px 6px}
+.sw{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.2);box-shadow:inset 0 -6px 10px rgba(0,0,0,.28),inset 0 4px 8px rgba(255,255,255,.25);position:relative}
+.sw::before{content:"";position:absolute;inset:-5px}
+.sw.on{outline:2px solid var(--amber);outline-offset:3px;border-color:transparent}
+.mcard.ready{border-color:var(--amber);animation:glow 1.6s ease-in-out infinite}
+.mcard.ready .mt{color:var(--amber)}
+@keyframes glow{50%{box-shadow:0 0 0 3px rgba(255,194,26,.35)}}
+@media (prefers-reduced-motion:reduce){.mcard.ready,.medal.on,.part.just{animation:none}}
+/* boot screen: covers the scene until the first 3D frame is drawn (slow phones compile shaders on first launch), then fades out */
+#boot{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#1b1712;color:var(--ink);transition:opacity .35s ease}
+#boot .logo{font-size:64px}
+#boot p{margin:0;font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#a89f8f}
+#boot .bbar{display:block;width:120px;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
+#boot .bbar::after{content:"";position:absolute;inset:0;width:40%;border-radius:2px;background:var(--amber);animation:bootBar 1.1s ease-in-out infinite}
+#boot .studio{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 28px)}
+@keyframes bootBar{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+#boot.gone{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){#boot .bbar::after{animation:none;width:100%}}
+/* touch targets reach Apple's 44pt minimum through invisible hit areas, so the look doesn't change */
+.pill,.seg button{position:relative}
+.pill::before{content:"";position:absolute;inset:-4px}
+.seg button::before{content:"";position:absolute;inset:-5px 0}
+/* tablets: the centred screens are sized for phones, so scale their contents up */
+@media (min-width:700px) and (min-height:900px){.center>*,#hud>*,#bhud>*,#region>*,#unlockFx>*{zoom:1.35}.pop{font-size:38px}}
+/* side-panel yard only on wide landscape screens; portrait tablets use the phone's bottom sheet so the machine stays in frame */
+@media (min-width:860px) and (min-aspect-ratio:1/1){
+  #yard{display:block}
+  .sheet{height:auto;position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:96px;bottom:16px;width:380px;border-radius:20px;border:1px solid var(--hair);padding-left:18px;padding-right:18px}
+  .drive-wrap{padding-bottom:16px;margin-top:auto}
+}
+</style></head><body>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div id="boot" role="status"><div class="logo disp">Scoo<i>py</i></div><p>Loading the job site…</p><i class="bbar"></i>
+  <div class="studio"><svg class="mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.6 2h2.8l.5 2.6a7.6 7.6 0 0 1 1.9.8l2.2-1.5 2 2-1.5 2.2c.3.6.6 1.2.8 1.9l2.6.5v2.8l-2.6.5a7.6 7.6 0 0 1-.8 1.9l1.5 2.2-2 2-2.2-1.5a7.6 7.6 0 0 1-1.9.8l-.5 2.6h-2.8l-.5-2.6a7.6 7.6 0 0 1-1.9-.8l-2.2 1.5-2-2 1.5-2.2a7.6 7.6 0 0 1-.8-1.9L2 13.4v-2.8l2.6-.5c.2-.7.5-1.3.8-1.9L3.9 6l2-2 2.2 1.5c.6-.3 1.2-.6 1.9-.8L10.6 2zM12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6z"/></svg><span>Torque Spec Studios</span></div></div>
+
+<div id="hud" hidden>
+  <div>
+    <div id="score" class="disp">0<small>pts</small></div>
+    <div class="sub" id="sub">0 m</div>
+    <div class="tobest" id="toBest" hidden></div>
+  </div>
+  <div class="hud-r">
+    <div class="pill"><span class="can"></span><span id="runCans">0</span></div>
+    <div class="pill" id="trucksPill"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 6h11v4h3.6a2 2 0 0 1 1.7 1l2.4 3.8a2 2 0 0 1 .3 1V18h-2a2.5 2.5 0 0 1-5 0H9a2.5 2.5 0 0 1-5 0H2V6zm13 6v2.5h4.6L18 12h-3zM6.5 17a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm10 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg><span id="trucksN">0/3</span></div>
+    <div id="combo" hidden><span><small>COMBO </small><span id="comboN">x2</span></span><i id="comboBar"></i></div>
+    <div class="pill hat" id="hatPill" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 4h2a7 7 0 0 1 7 7v3h1.5a1 1 0 0 1 1 1v1.5a1 1 0 0 1-1 1h-19a1 1 0 0 1-1-1V15a1 1 0 0 1 1-1H4v-3a7 7 0 0 1 7-7zm0 2.2V11h2V6.2h-2z"/></svg>Shield</div>
+    <div class="pill cof" id="cofPill" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 8h11v2h1.5a3 3 0 0 1 0 6H15.6A5 5 0 0 1 11 19H10a5 5 0 0 1-5-5V8zm11 4v2h1.5a1 1 0 0 0 0-2H16zM8 2.5c.8.9.8 1.8 0 2.7-.8.9-.8 1.8 0 2.3H6.6c-.6-.8-.6-1.7.1-2.6.7-.9.6-1.6 0-2.4H8zm4 0c.8.9.8 1.8 0 2.7-.8.9-.8 1.8 0 2.3h-1.4c-.6-.8-.6-1.7.1-2.6.7-.9.6-1.6 0-2.4H12z"/></svg><span id="cofN">x2</span></div>
+    <button class="pill" id="pauseBtn" aria-label="Pause" hidden><i></i><i></i></button>
+    <button class="pill" id="mute" aria-label="Sound" aria-pressed="true">♪</button>
+  </div>
+</div>
+<div id="bhud" hidden>
+  <div class="meter" id="bucketM"><div class="lab">Bucket <b id="bucketN">0/3</b></div><div class="bpips" id="bPips"></div></div>
+  <div class="meter" id="fuelM"><div class="lab">Diesel <b id="fuelN">100%</b></div><div class="fbar"><i id="fuelBar"></i></div></div>
+</div>
+<div id="tchip" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 6h11v4h3.6a2 2 0 0 1 1.7 1l2.4 3.8a2 2 0 0 1 .3 1V18h-2a2.5 2.5 0 0 1-5 0H9a2.5 2.5 0 0 1-5 0H2V6zm13 6v2.5h4.6L18 12h-3zM6.5 17a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm10 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg><span id="tchipT">Truck</span><i class="tt" id="tchipBar"></i></div>
+
+<div class="center" id="ready" hidden>
+  <div class="lvl" id="readyL">House Pad</div>
+  <p class="goal" id="readyGoal"></p>
+  <div class="disp" id="readyT">Tap to start the job</div>
+  <p id="readyS">Tap to swing lanes<br>Scoop dirt · load the trucks</p>
+  <div class="mlist" id="rMissions"></div>
+</div>
+
+<div class="center" id="revive" hidden>
+  <div class="disp t">Keep going?</div>
+  <p id="rvWhat">Dust off and carry on</p>
+  <div class="rvT" id="rvT">4</div>
+  <div class="vbtns"><button class="btn primary" id="rvYes">Revive · 30 <span class="can"></span></button><button class="btn" id="rvNo">No thanks</button></div>
+</div>
+
+<div class="center" id="help" hidden>
+  <div class="card" role="dialog" aria-label="How to play">
+    <h2 class="disp">How to play</h2>
+    <div class="help">
+      <b>Swinging lanes</b><p>Tap anywhere (or Space) to swing one lane. At the edge the swing turns around, so taps sweep left, right, left. The yellow arrows beside your tracks show where the next tap goes.</p>
+      <b>Scooping</b><p>Drive over dirt piles and the bucket scoops them by itself. Piles in a line build a combo up to x5. The bucket meter is bottom left: with a full bucket, another pile spills, costs 100 points and breaks the combo.</p>
+      <b>Loading trucks</b><p>A haul truck backs up on the left or right haul road. Sit in the lane next to it and you swing over and dump automatically. Six scoops fill a truck: +500 and fuel cans. Trucks only wait so long.</p>
+      <b>Hazards</b><p>Cones, survey stakes, open trenches and the foreman's pickup wreck you. Spray-painted marks are buried utility lines: hitting one ends the job, even with a hard hat.</p>
+      <b>Pickups</b><p>Diesel cans refill the tank (empty means game over). A hard hat takes one hit for you. Coffee is a short speed boost with double points.</p>
+      <b>Jobs and machines</b><p>Load the job's goal of trucks in one run for bronze, two more for silver, four more for gold. Finishing a job opens the next one and unlocks a machine. Spend fuel cans on machines, upgrades and revives.</p>
+    </div>
+    <button class="btn primary" id="helpClose">Got it</button>
+  </div>
+</div>
+
+<div class="center" id="share" hidden>
+  <div class="card" role="dialog" aria-label="Share your run">
+    <img id="shareImg" alt="Your Scoopy score card">
+    <p id="shareMsg"></p>
+    <div class="vbtns"><button class="btn primary" id="shareGo">Share</button><button class="btn" id="shareClose">Done</button></div>
+  </div>
+</div>
+
+<div class="center" id="daily" hidden>
+  <div class="card" role="dialog" aria-label="Daily reward">
+    <h2 class="disp" id="dTitle">Daily reward</h2>
+    <p class="dsub" id="dSub"></p>
+    <div class="days" id="dDays"></div>
+    <button class="btn primary" id="dClaim">Claim</button>
+  </div>
+</div>
+
+<div class="center" id="achPanel" hidden>
+  <div class="card" role="dialog" aria-label="Trophies">
+    <h2 class="disp" id="achTitle">Trophies</h2>
+    <div class="achlist" id="achList"></div>
+    <button class="btn primary" id="achClose">Done</button>
+  </div>
+</div>
+
+<div id="coach" hidden></div>
+<div id="mtoast" hidden></div>
+<div class="center" id="newBest" hidden><div class="disp">New best!</div></div>
+<div id="region" hidden></div>
+<div id="unlockFx" hidden></div>
+
+<div class="center" id="paused" hidden>
+  <div class="disp t">Paused</div>
+  <div class="vbtns"><button class="btn primary" id="resume">Resume</button><button class="btn" id="restart">Restart</button><button class="btn" id="pYard">Yard</button><button class="btn" id="pSettings">Settings</button></div>
+</div>
+
+<div class="center" id="count" hidden>
+  <div class="disp" id="countN">3</div>
+  <p id="countS">Get ready · tap to swing lanes</p>
+</div>
+
+<div class="center" id="settings" hidden>
+  <div class="card" role="dialog" aria-label="Settings">
+    <h2 class="disp">Settings</h2>
+    <div class="srow"><span>Sound<small>All game audio</small></span><div class="seg" data-s="sound"></div></div>
+    <div class="srow"><span>Music</span><div class="seg" data-s="music"></div></div>
+    <div class="srow"><span>Vibration<small>Buzz on scoops, dumps and crashes</small></span><div class="seg" data-s="haptics"></div></div>
+    <div class="srow"><span>Graphics<small>Low saves battery on older phones</small></span><div class="seg" data-s="quality"></div></div>
+    <div class="srow"><span>Camera shake</span><div class="seg" data-s="shake"></div></div>
+    <button class="linkbtn" id="helpBtn">How to play</button>
+    <button class="linkbtn" id="replayTut">Replay the tutorial on next job</button>
+    <button class="btn primary" id="setClose">Done</button>
+    <p class="ver">Scoopy beta v1 · by Torque Spec Studios</p>
+  </div>
+</div>
+
+<div class="center" id="over" hidden>
+  <div class="disp t" id="oTitle">Wrecked</div>
+  <p class="why" id="oWhy"></p>
+  <div class="dist" id="oScore">0<small>pts</small></div>
+  <div class="oach" id="oAch" hidden></div>
+  <div class="medals" id="oMed"></div>
+  <div class="meta"><span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 6h11v4h3.6a2 2 0 0 1 1.7 1l2.4 3.8a2 2 0 0 1 .3 1V18h-2a2.5 2.5 0 0 1-5 0H9a2.5 2.5 0 0 1-5 0H2V6zm13 6v2.5h4.6L18 12h-3zM6.5 17a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm10 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg> <b id="oTrucks">0</b> trucks</span><span><b id="oMeters">0m</b></span><span id="oBestWrap">Best <b>0</b></span><span><span class="can"></span> <b id="oCans">+0</b></span></div>
+  <div class="mlist" id="oMissions"></div>
+  <div class="xpbox"><div class="xprow"><span id="oLv">Operator 1</span><span id="oXPg">+0 XP</span></div><div class="xpbar"><i id="oXPbar"></i></div><div class="lvup" id="oLvUp" hidden></div></div>
+  <p class="tip" id="oTip"></p>
+  <div class="btns"><button class="btn" id="toYard">Yard</button><button class="btn" id="shareBtn" aria-label="Share this run">Share</button><button class="btn primary" id="retry">Retry</button></div>
+</div>
+
+<div id="yard">
+  <div class="g-top">
+    <div><div class="logo disp">Scoo<i>py</i></div><div class="glv" id="gLv"></div><button class="trophy" id="achBtn" type="button"></button><br><div class="studio" aria-label="Torque Spec Studios"><svg class="mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.6 2h2.8l.5 2.6a7.6 7.6 0 0 1 1.9.8l2.2-1.5 2 2-1.5 2.2c.3.6.6 1.2.8 1.9l2.6.5v2.8l-2.6.5a7.6 7.6 0 0 1-.8 1.9l1.5 2.2-2 2-2.2-1.5a7.6 7.6 0 0 1-1.9.8l-.5 2.6h-2.8l-.5-2.6a7.6 7.6 0 0 1-1.9-.8l-2.2 1.5-2-2 1.5-2.2a7.6 7.6 0 0 1-.8-1.9L2 13.4v-2.8l2.6-.5c.2-.7.5-1.3.8-1.9L3.9 6l2-2 2.2 1.5c.6-.3 1.2-.6 1.9-.8L10.6 2zM12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6z"/></svg><span><small>A game by</small>Torque Spec Studios</span></div></div>
+    <div class="pills"><div class="pill"><span class="can"></span><span id="gCans">0</span></div><button class="pill" id="setBtn" aria-label="Settings">⚙</button></div>
+  </div>
+  <div class="sheet" id="sheet">
+    <div class="models" id="models"></div>
+    <div class="car-head">
+      <div><h2 class="disp" id="mName"></h2><div class="ty" id="mType"></div></div>
+      <div class="stats">
+        <div class="stat">Bucket<div class="bar"><i id="bBucket"></i></div></div>
+        <div class="stat">Size<div class="bar"><i id="bSize"></i></div></div>
+        <div class="stat">Score<div class="bar"><i id="bScore"></i></div></div>
+        <div class="perk" id="mPerk"></div>
+      </div>
+    </div>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="opts" id="opts"></div>
+    <div class="drive-wrap"><button class="btn primary" id="drive">Start</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// iOS app only (Capacitor): saves are mirrored to the native Preferences store, which iOS doesn't clear the way it can clear web storage.
+// If web storage comes up empty but a native backup exists, restore it and reload once before the game reads its save.
+(function(){var C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.Preferences;if(!P)return;
+ try{var have=Object.keys(localStorage).filter(function(k){return k.indexOf('sc1_')===0});
+  if(have.length){have.forEach(function(k){P.set({key:k,value:localStorage.getItem(k)}).catch(function(){})});return}
+  if(sessionStorage.getItem('sc1_restored'))return}catch(e){return}
+ P.keys().then(function(r){var ks=r.keys.filter(function(k){return k.indexOf('sc1_')===0});if(!ks.length)return;
+  return Promise.all(ks.map(function(k){return P.get({key:k}).then(function(v){if(v.value!=null)localStorage.setItem(k,v.value)})})).then(function(){sessionStorage.setItem('sc1_restored','1');location.reload()})}).catch(function(){})})();
+</script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const rand=(a,b)=>a+Math.random()*(b-a);
+// saved values are validated on load: a corrupt or out-of-date save falls back to safe defaults instead of breaking the game
+const num=(v,d,min=0)=>typeof v==='number'&&Number.isFinite(v)?Math.max(min,v):d;
+const obj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
+// native plugins when running as the iOS app (Capacitor); all undefined in a browser
+const NATIVE=(p=>({prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,review:p&&p.InAppReview,app:p&&p.App}))(window.Capacitor&&window.Capacitor.Plugins);
+const store={get(k,d){try{const v=localStorage.getItem('sc1_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){const j=JSON.stringify(v);try{localStorage.setItem('sc1_'+k,j)}catch(e){}if(NATIVE.prefs)NATIVE.prefs.set({key:'sc1_'+k,value:j}).catch(()=>{})}};
+
+/* ---------- data ---------- */
+// jobs are the levels. Speeds are m/s (start, top, metres to reach top); gap is metres between spawn rows; the rest are
+// per-row chances. goal is trucks to finish the job (bronze); silver and gold are goal+2 and goal+4 trucks in one run.
+// Each job has its own look: sky stops, fog, sun, and tints multiplied over the dirt and haul-road textures.
+const JOBS=[
+ {id:'house',n:'House Pad',d:'Clear a pad for a new home in the subdivision',goal:3,v0:11,v1:15.5,vr:1500,gap:[17,25],haz:.55,pile:.75,util:.16,trench:.24,foreman:.05,fv:7,unlock:'ex330',need:null,
+  sky:['#2c78d4','#57a2ea','#a8d2f2','#e6dcc4','#d7c39e'],fog:'#dcd0b4',sun:'#fff0d6',si:2.5,hi:.55,ground:'#ffffff',haul:'#ffffff'},
+ {id:'road',n:'Road Cut',d:'Cut a new road through the hill, between rock walls',goal:4,v0:12,v1:16.5,vr:1400,gap:[16,23],haz:.6,pile:.74,util:.17,trench:.3,foreman:.06,fv:8,unlock:'shovel',need:'house',
+  sky:['#3569b0','#6c9ed6','#cdd7d6','#e6c9a0','#c9a27a'],fog:'#dcc3a0',sun:'#ffe4bc',si:2.6,hi:.5,ground:'#ecc6a8',haul:'#f0d8c6'},
+ {id:'lot',n:'Parking Lot',d:'Grade the lot for the new mall, under the light poles',goal:5,v0:12.5,v1:16.8,vr:1400,gap:[16,23],haz:.6,pile:.74,util:.19,trench:.24,foreman:.09,fv:8.5,unlock:'long',need:'road',
+  sky:['#58789e','#8aa3bf','#c6d0d8','#dddbd2','#bdb8ae'],fog:'#cfd0cb',sun:'#f6f4ff',si:2.1,hi:.72,ground:'#cdc6bd',haul:'#d8d8d8'},
+ {id:'freeway',n:'Freeway Interchange',d:'The big one: dig under the overpasses at sunset',goal:6,v0:13,v1:17.3,vr:1300,gap:[15,22],haz:.62,pile:.74,util:.2,trench:.26,foreman:.12,fv:9,unlock:'gold',need:'lot',
+  sky:['#2c2e64','#7a5384','#e08a6a','#f4b67c','#c99b78'],fog:'#dba483',sun:'#ffb47a',si:2.3,hi:.45,ground:'#dcc8b6',haul:'#e6d8cc'}];
+// machines: a bigger bucket, a perk and a look each. Some unlock by finishing a job, others are bought with fuel cans.
+// A bigger machine is also wider, so it squeezes past hazards a little tighter. mult multiplies every point.
+const MACHINES={
+ mini:{n:'Mini-Ex',ty:'Compact excavator',make:'Starter',bucket:3,scale:.82,body:'#ffc21a',trim:'#2a2a2a',cw:'#e8a800',kind:'ex',mult:1,perk:'Nimble starter machine',price:0},
+ wheel:{n:'Road Runner',ty:'Wheeled excavator',make:'Wheels',bucket:3,scale:.9,body:'#ff8a1a',trim:'#262626',cw:'#e06e00',kind:'wheel',mult:1.15,swing:24,perk:'Quickest lane swings · score ×1.15',price:250},
+ ex330:{n:'330 Excavator',ty:'Hydraulic excavator',make:'Job reward',bucket:4,scale:1,body:'#f5a800',trim:'#1f1f1f',cw:'#d98f00',kind:'ex',mult:1.2,perk:'Bucket holds 4 · score ×1.2',need:'house'},
+ swamp:{n:'Marsh Buggy',ty:'Pontoon excavator',make:'Pontoons',bucket:4,scale:.95,body:'#5fae3a',trim:'#22301c',cw:'#3e8a24',kind:'swamp',mult:1.2,perk:'Floats over open trenches',price:650},
+ shovel:{n:'Mining Shovel',ty:'Front shovel',make:'Job reward',bucket:5,scale:1.17,body:'#ebe5d4',trim:'#b8261b',cw:'#b8261b',kind:'shovel',mult:1.35,perk:'Bucket holds 5 · score ×1.35',need:'road'},
+ long:{n:'Long Reach',ty:'Long-front excavator',make:'Job reward',bucket:4,scale:1,body:'#2f6fb3',trim:'#1a1d22',cw:'#235a96',kind:'long',mult:1.4,perk:'Dumps from the middle lane · score ×1.4',need:'lot'},
+ gold:{n:'Goldie',ty:'Golden excavator',make:'Job reward',bucket:5,scale:1.08,body:'#d4a537',trim:'#2a2216',cw:'#b8892a',kind:'gold',mult:1.6,hat:true,perk:'Starts with a hard hat · score ×1.6',need:'freeway'}};
+const MORDER=['mini','wheel','ex330','swamp','shovel','long','gold'];
+// upgrades are per machine, bought with fuel cans (Tuggy's three-row layout)
+const UPG=[
+ {id:'tank',n:'Fuel tank',d:'Diesel lasts longer',lv:['Stock','Big tank','Double tank','Saddle tanks'],cost:[0,40,95,190],k:[1,.86,.74,.64]},
+ {id:'hyd',n:'Hydraulics',d:'Faster dumping, longer truck waits',lv:['Stock','Rebuilt','High flow','Race'],cost:[0,45,105,210],k:[1,1.3,1.6,2]},
+ {id:'teeth',n:'Bucket teeth',d:'More points per scoop',lv:['Stock','Sharp','Rock teeth','Tiger teeth'],cost:[0,50,115,230],k:[1,1.25,1.5,2]}];
+// paint is free, as in Tuggy; index 0 is each machine's factory colour
+const PAINTS=[{n:'Factory',c:null},{n:'Safety yellow',c:'#ffc21a'},{n:'Highway orange',c:'#ff7a1a'},{n:'Fleet white',c:'#ebe7dc'},{n:'Field green',c:'#3f8f3a'},{n:'Crew red',c:'#c8321e'},{n:'Steel blue',c:'#2f6fb3'},{n:'Matte black',c:'#2a2b2e'},{n:'Hot pink',c:'#e0458a'}];
+const MEDALS=['','Bronze','Silver','Gold'],medalFor=(J,tr)=>tr>=J.goal+4?3:tr>=J.goal+2?2:tr>=J.goal?1:0,MEDAL_CANS=[0,25,50,100];
+const T={START_D:20,LANE:2.8,HAUL:5.95,FUEL_MAX:100,FUEL_DRAIN:2.2,DIESEL:50,SHIELD_GRACE:1,COFFEE_T:4,COFFEE_V:1.28,
+ TRUCK_CAP:6,TRUCK_WAIT:8,TRUCK_CD:[3.5,6.5],TRUCK_OFF:.9,DUMP_T:.3,COMBO_T:4,COMBO_MAX:5,
+ SCOOP:25,DUMP:10,FULL:500,OVERFLOW:100,PICK:50,JOB_BONUS:1000,TRUCK_CANS:6,JOB_CANS:25,REVIVE:30};
+const LANE_X=[-T.LANE,0,T.LANE];
+
+let muted=store.get('muted',false)===true,cans=num(store.get('cans',0),0);
+let unlocked=store.get('unlocked',['mini']);unlocked=Array.isArray(unlocked)?unlocked.filter((id,i,a)=>MACHINES[id]&&a.indexOf(id)===i):[];if(!unlocked.includes('mini'))unlocked.unshift('mini');
+let medals=obj(store.get('medals',{})),bests=obj(store.get('bests',{})),perf=obj(store.get('perf',{})),paints=obj(store.get('paints',{}));
+for(const J of JOBS){medals[J.id]=clamp(num(medals[J.id],0)|0,0,3);bests[J.id]=num(bests[J.id],0)}
+let settings=Object.assign({haptics:true,quality:'high',shake:true,music:true},obj(store.get('settings',{})));
+for(const k of['haptics','shake','music'])settings[k]=settings[k]!==false;if(settings.quality!=='low')settings.quality='high';
+let stats=Object.assign({runs:0,trucks:0,scoops:0,coffee:0,hats:0,gold:0,combo5:0,diesel:0,revives:0},obj(store.get('stats',{})));for(const k in stats)stats[k]=num(stats[k],0);
+let achGot=obj(store.get('ach',{}));
+let cfg={mach:MACHINES[store.get('mach','mini')]?store.get('mach','mini'):'mini',job:0};
+const jobOpen=J=>!J.need||medals[J.need]>0;
+cfg.job=clamp(num(store.get('job',0),0)|0,0,JOBS.length-1);if(!jobOpen(JOBS[cfg.job]))cfg.job=0;
+if(!unlocked.includes(cfg.mach))cfg.mach='mini';let viewMach=cfg.mach;
+const job=()=>JOBS[cfg.job];
+const best=()=>Math.max(0,...JOBS.map(J=>bests[J.id]));
+function perfFor(id){const P=Object.assign({},obj(perf[id]));UPG.forEach(u=>{P[u.id]=clamp(num(P[u.id],0)|0,0,u.lv.length-1)});return P}
+// a machine's working numbers with its upgrades applied
+function specFor(id){const M=MACHINES[id],P=perfFor(id),U=k=>UPG.find(u=>u.id===k).k[P[k]];return{M,bucket:M.bucket,drain:U('tank'),dump:U('hyd'),teeth:U('teeth'),mult:M.mult,swing:M.swing||15,P}}
+let spec=specFor(cfg.mach);
+const paintOf=id=>clamp(num(paints[id],0)|0,0,PAINTS.length-1);
+const machineUnlockText=M=>M.need?'Finish '+JOBS.find(j=>j.id===M.need).n:fmt(M.price)+' cans';
+
+/* ---------- renderer & scene ---------- */
+const canvas=$('gl');
+const R=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+const PHONE=Math.min(screen.width,screen.height)<820;R.setPixelRatio(Math.min(window.devicePixelRatio||1,PHONE?1.5:2));
+R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;
+R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(55,1,.5,900);
+const ANISO=R.capabilities.getMaxAnisotropy();
+
+function canvasTex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');draw(g,w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=ANISO;if(rep){t.wrapS=t.wrapT=THREE.RepeatWrapping}return t}
+function speck(g,w,h,n,fn){for(let i=0;i<n;i++){g.fillStyle=fn();const s=Math.random()<.8?1:2;g.fillRect(Math.random()*w,Math.random()*h,s,s)}}
+// soft round sprite, computed pixel by pixel rather than drawn on a canvas: iPhones unpremultiply a canvas's faint edge pixels
+// into coloured static, and a data texture is uploaded exactly as written (same fix as Swervy's smoke)
+function radial(inner,outer){const p=s=>s.match(/[\d.]+/g).map(Number),a=p(inner),b=p(outer),n=128,px=new Uint8Array(n*n*4);
+ for(let y=0;y<n;y++)for(let x=0;x<n;x++){const t=Math.min(1,Math.hypot(x-63.5,y-63.5)/64),i=(y*n+x)*4;for(let k=0;k<3;k++)px[i+k]=a[k]+(b[k]-a[k])*t;px[i+3]=255*(a[3]+(b[3]-a[3])*t)}
+ const tx=new THREE.DataTexture(px,n,n,THREE.RGBAFormat);tx.encoding=THREE.sRGBEncoding;tx.magFilter=THREE.LinearFilter;tx.minFilter=THREE.LinearMipmapLinearFilter;tx.generateMipmaps=true;tx.needsUpdate=true;return tx}
+// colours are written as the sRGB hex you'd pick in a design tool, and converted to the renderer's linear space here
+const lin=c=>new THREE.Color(c).convertSRGBToLinear();
+const std=(c,r=.7,m=0,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:lin(c),roughness:r,metalness:m},o));
+const box=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+function add(parent,geo,mat,x=0,y=0,z=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+
+// each job's sky is redrawn into this one gradient texture (Swervy's time-of-day trick): blue midday, dusty cut, overcast lot, sunset freeway
+scene.background=canvasTex(4,512,()=>{});
+function drawSky(st){const c=scene.background.image,g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,c.height);[0,.3,.47,.54,1].forEach((p,i)=>gr.addColorStop(p,st[i]));g.fillStyle=gr;g.fillRect(0,0,c.width,c.height);scene.background.needsUpdate=true}
+scene.fog=new THREE.Fog(0xdcd0b4,70,330);
+const envTex=canvasTex(512,256,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#3a7fd0');gr.addColorStop(.42,'#a9cdee');gr.addColorStop(.5,'#e7dcc2');gr.addColorStop(.51,'#7a5f40');gr.addColorStop(1,'#3a2c1e');g.fillStyle=gr;g.fillRect(0,0,w,h)});
+envTex.mapping=THREE.EquirectangularReflectionMapping;
+const pmrem=new THREE.PMREMGenerator(R);scene.environment=pmrem.fromEquirectangular(envTex).texture;
+
+// lights: a high, bright midday sun so the hazards cast short, readable shadows
+const hemi=new THREE.HemisphereLight(0xd6eaff,0x7a5c3a,.55);scene.add(hemi);
+const SUNDIR=new THREE.Vector3(-.35,.8,-.45).normalize();
+const sun=new THREE.DirectionalLight(0xfff0d6,2.5);
+sun.castShadow=true;sun.shadow.mapSize.set(PHONE?1024:2048,PHONE?1024:2048);
+Object.assign(sun.shadow.camera,{left:-22,right:22,top:30,bottom:-30,near:1,far:160});
+sun.shadow.bias=-.0004;sun.shadow.normalBias=.03;
+scene.add(sun,sun.target);
+const sunSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:radial('rgba(255,252,235,1)','rgba(255,230,180,0)'),blending:THREE.AdditiveBlending,depthWrite:false,fog:false,transparent:true}));
+sunSprite.scale.set(120,120,1);scene.add(sunSprite);
+
+/* ---------- ground ---------- */
+// the whole world is world-fixed texture on planes that follow the camera in whole texture tiles, so the dirt never swims
+const dirtTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#b58a5c';g.fillRect(0,0,w,h);
+ for(let i=0;i<18;i++){const x=Math.random()*w,y=Math.random()*h,r=g.createRadialGradient(x,y,0,x,y,20+Math.random()*40);r.addColorStop(0,Math.random()<.5?'rgba(150,105,62,.45)':'rgba(214,180,132,.4)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,w,h)}
+ speck(g,w,h,9000,()=>{const l=Math.random();return`rgb(${130+l*80|0},${95+l*65|0},${60+l*45|0})`});
+ for(let i=0;i<70;i++){g.fillStyle=`rgba(${90+Math.random()*60|0},${70+Math.random()*40|0},${50+Math.random()*30|0},.8)`;g.beginPath();g.ellipse(Math.random()*w,Math.random()*h,1+Math.random()*2.5,1+Math.random()*2,Math.random()*3,0,7);g.fill()}},true);
+dirtTex.repeat.set(900/10,900/10);
+const groundMat=new THREE.MeshStandardMaterial({map:dirtTex,roughness:1});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(900,900).rotateX(-Math.PI/2),groundMat);ground.receiveShadow=true;scene.add(ground);
+// the dig lanes: compacted dirt with track prints, darker than the loose dirt around them so the three lanes read at a glance
+const laneTex=canvasTex(512,256,(g,w,h)=>{g.clearRect(0,0,w,h);const L=w/3;
+ for(let k=0;k<3;k++){const x0=k*L+L*.07,lw=L*.86,gr=g.createLinearGradient(x0,0,x0+lw,0);gr.addColorStop(0,'rgba(120,84,50,0)');gr.addColorStop(.12,'rgba(120,84,50,.5)');gr.addColorStop(.88,'rgba(120,84,50,.5)');gr.addColorStop(1,'rgba(120,84,50,0)');g.fillStyle=gr;g.fillRect(x0,0,lw,h);
+  // two track prints per lane, with the grouser bars across them
+  for(const tx of[.2,.68]){const px=x0+lw*tx,pw=lw*.16;g.fillStyle='rgba(88,60,36,.45)';g.fillRect(px,0,pw,h);g.fillStyle='rgba(70,48,28,.5)';for(let y=0;y<h;y+=14)g.fillRect(px,y,pw,5)}}},true);
+laneTex.wrapS=THREE.ClampToEdgeWrapping;laneTex.repeat.set(1,500/10);
+const lanes=new THREE.Mesh(new THREE.PlaneGeometry(T.LANE*3,500).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({map:laneTex,transparent:true,depthWrite:false,roughness:1,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
+lanes.receiveShadow=true;scene.add(lanes);
+// haul roads down both sides: packed gravel with tire ruts, where the trucks pull up
+const haulTex=canvasTex(128,256,(g,w,h)=>{g.fillStyle='#9d8a74';g.fillRect(0,0,w,h);speck(g,w,h,7000,()=>{const l=Math.random();return`rgb(${120+l*70|0},${108+l*60|0},${92+l*55|0})`});
+ g.fillStyle='rgba(70,58,46,.35)';g.fillRect(w*.16,0,w*.18,h);g.fillRect(w*.66,0,w*.18,h);
+ const e=g.createLinearGradient(0,0,w,0);e.addColorStop(0,'rgba(181,138,92,1)');e.addColorStop(.08,'rgba(181,138,92,0)');e.addColorStop(.92,'rgba(181,138,92,0)');e.addColorStop(1,'rgba(181,138,92,1)');g.fillStyle=e;g.fillRect(0,0,w,h)},true);
+haulTex.wrapS=THREE.ClampToEdgeWrapping;haulTex.repeat.set(1,500/8);
+const haulMat=new THREE.MeshStandardMaterial({map:haulTex,roughness:1,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+const hauls=[-1,1].map(s=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(3.4,500).rotateX(-Math.PI/2),haulMat);m.position.x=s*T.HAUL;m.receiveShadow=true;scene.add(m);return m});
+// next-swing chevrons beside the machine: one tap always swings this way, and the arrow says which way that is
+const chevTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#ffc21a';for(const x of[18,58]){g.beginPath();g.moveTo(x,20);g.lineTo(x+36,64);g.lineTo(x,108);g.lineTo(x+16,108);g.lineTo(x+52,64);g.lineTo(x+16,20);g.closePath();g.fill()}});
+const chev=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.1).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:chevTex,transparent:true,opacity:.75,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));
+scene.add(chev);
+
+// distant hills and clouds (Swervy's ridge, flattened to rolling foothills)
+const hills=new THREE.Group();
+{function ridge(r,hMin,hMax,top,seed,hz){const N=240,g=new THREE.CylinderGeometry(r,r,1,N,2,true),p=g.attributes.position,col=new Float32Array(p.count*3),tc=new THREE.Color(top),haze=new THREE.Color(0xdcd0b4),c=new THREE.Color();
+  const H=[[2,.3],[3,.22],[5,.18],[8,.12],[13,.08],[21,.06]],f=a=>{let v=0;H.forEach(([k,w],n)=>v+=w*Math.sin(a*k+seed*(n+1)*2.3));return v};
+  for(let i=0;i<p.count;i++){const a=Math.atan2(p.getZ(i),p.getX(i)),y0=p.getY(i),n=clamp((f(a)+.55)/1.1,0,1),h=hMin+(hMax-hMin)*Math.pow(n,1.6);
+   if(y0>.4){p.setY(i,h);c.copy(tc).lerp(haze,hz)}else if(y0>-.1){p.setY(i,h*.6);c.copy(tc)}else{p.setY(i,-30);c.copy(haze)}col.set([c.r,c.g,c.b],i*3)}
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));return new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false}))}
+ hills.add(ridge(800,30,95,0x8aa0b8,4.1,.35),ridge(560,10,46,0x5f7a4a,1.7,.25))}
+scene.add(hills);
+const clouds=new THREE.Group();
+{const tex=canvasTex(256,128,(g,w,h)=>{for(let i=0;i<14;i++){const x=40+Math.random()*176,y=58+Math.random()*34-Math.abs(x-128)*.12,r=22+Math.random()*30,gr=g.createRadialGradient(x,y,0,x,y,r);
+  gr.addColorStop(0,'rgba(255,255,255,.7)');gr.addColorStop(.6,'rgba(255,255,255,.35)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,w,h)}});
+ // premultiplied upload: iPhones unpremultiply the canvas's faint edge pixels into random colours otherwise
+ tex.premultiplyAlpha=true;tex.needsUpdate=true;
+ for(let i=0;i<12;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,premultipliedAlpha:true,depthWrite:false,fog:false})),a=i/12*6.283+Math.random()*.3,d=700+Math.random()*80,sc=200+Math.random()*180;
+  m.position.set(Math.cos(a)*d,150+Math.random()*120,Math.sin(a)*d);m.scale.set(sc,sc*(.32+Math.random()*.12),1);clouds.add(m)}}
+scene.add(clouds);
+
+// switch the whole site's look to a job: sky, fog, sunlight and the tint over the dirt and haul roads; scenery is rebuilt
+let themeFor='';
+function applyTheme(J){if(themeFor===J.id)return;themeFor=J.id;drawSky(J.sky);scene.fog.color.copy(lin(J.fog));sun.color.copy(lin(J.sun));sun.intensity=J.si;hemi.intensity=J.hi;
+ groundMat.color.copy(lin(J.ground));haulMat.color.copy(lin(J.haul));R.toneMappingExposure=J.id==='freeway'?.98:1.05;
+ for(const[,ch]of chunks)dropChunk(ch);chunks.clear()}
+
+/* ---------- shared geometry and materials ---------- */
+const MT={
+ dirt:std('#9a6a3e',1,0,{flatShading:true}),dirtL:std('#b78452',1,0,{flatShading:true}),dirtD:std('#5a3b22',1,0,{flatShading:true}),
+ cone:std('#ff5a00',.6,0,{emissive:0xe83000,emissiveIntensity:.35}),coneBand:std('#f4f4f0',.4,0,{emissive:0xffffff,emissiveIntensity:.3}),black:std('#1b1b1d',.8),
+ lath:std('#d9b88a',.9),pink:std('#ff2e8e',.6,0,{emissive:0xff1a7a,emissiveIntensity:.45,side:THREE.DoubleSide}),
+ can:std('#ffc21a',.35,.35,{emissive:0x402800}),canDk:std('#2b2b2b',.5,.4),hat:std('#f6f6f2',.3,.05),hatBand:std('#ff7a1a',.5),cup:std('#f4efe6',.5),sleeve:std('#8a5a32',.8),lid:std('#2a1d14',.5),
+ white:std('#f1f1ee',.45,.1),red:std('#c8321e',.5,.15),orange:std('#ef6a1c',.55,.15),steel:std('#5b5f66',.45,.6),dark:std('#1d1f22',.85,.1),
+ glass:std('#1a2a3a',.08,.6,{envMapIntensity:1.2}),tire:std('#161616',.95),hub:std('#9a9ea4',.4,.7),
+ beacon:new THREE.MeshBasicMaterial({color:0xffa31a}),ring:c=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false}),
+ wood:std('#c79a62',.9),woodD:std('#8a6238',.9),fence:std('#151515',.95,0,{side:THREE.DoubleSide}),blue:std('#2a6fd6',.5),green:std('#2f6b3a',.6),leaf:std('#4f7a34',.95,0,{flatShading:true}),leafD:std('#3a5f2a',.95,0,{flatShading:true}),
+ siding:std('#e8e1d2',.8),roof:std('#5a5550',.85),orangeFence:std('#ff6a10',.7,0,{side:THREE.DoubleSide,transparent:true,opacity:.85})};
+const G={
+ pile:new THREE.DodecahedronGeometry(1,1),clod:new THREE.DodecahedronGeometry(.3,0),
+ tcone:new THREE.ConeGeometry(.32,.9,12).translate(0,.45,0),tconeBand:new THREE.CylinderGeometry(.2,.25,.18,12).translate(0,.45,0),tconeBase:new THREE.BoxGeometry(.66,.06,.66).translate(0,.03,0),
+ lath:new THREE.BoxGeometry(.06,1.3,.03).translate(0,.65,0),tape:new THREE.PlaneGeometry(.06,.36).translate(.03,1.1,0),
+ canBody:new THREE.BoxGeometry(.5,.62,.26),canCap:new THREE.CylinderGeometry(.06,.06,.12,10),canHandle:new THREE.BoxGeometry(.3,.07,.08),
+ hatDome:new THREE.SphereGeometry(.34,18,10,0,Math.PI*2,0,Math.PI/2),hatBrim:new THREE.CylinderGeometry(.46,.46,.04,20),hatRib:new THREE.BoxGeometry(.07,.05,.62),
+ cup:new THREE.CylinderGeometry(.22,.16,.52,16),sleeve:new THREE.CylinderGeometry(.215,.19,.2,16),lid:new THREE.CylinderGeometry(.235,.235,.06,16),
+ ring:new THREE.RingGeometry(.7,.95,32).rotateX(-Math.PI/2),flag:new THREE.PlaneGeometry(.28,.2).translate(.14,.6,0),wire:new THREE.CylinderGeometry(.012,.012,.7,4).translate(0,.35,0),
+ wheel:new THREE.CylinderGeometry(.55,.55,.42,16).rotateZ(Math.PI/2),hubG:new THREE.CylinderGeometry(.22,.22,.44,10).rotateZ(Math.PI/2)};
+
+/* ---------- excavator ---------- */
+// the tread texture runs along the track; its offset scrolls with speed so the tracks visibly roll
+const treadSide=canvasTex(128,32,(g,w,h)=>{g.fillStyle='#262626';g.fillRect(0,0,w,h);g.fillStyle='#484848';for(let x=0;x<w;x+=16)g.fillRect(x,0,7,h);g.fillStyle='rgba(0,0,0,.35)';g.fillRect(0,0,w,3);g.fillRect(0,h-3,w,3)},true);
+const treadTop=canvasTex(32,128,(g,w,h)=>{g.fillStyle='#262626';g.fillRect(0,0,w,h);g.fillStyle='#4a4a4a';for(let y=0;y<h;y+=16)g.fillRect(0,y,w,7)},true);
+treadSide.repeat.set(4,1);treadTop.repeat.set(1,4);
+const treadSideM=std('#ffffff',.85,.2,{map:treadSide}),treadTopM=std('#ffffff',.85,.2,{map:treadTop});
+// arm poses [boom, stick, bucket] in radians: carry while driving, dip for a scoop, and dump over a truck.
+// The Long Reach has its own poses (a longer arm), including a far dump that reaches the truck from the middle lane.
+const POSE={carry:[.55,-1.9,-.35],dip:[.2,-1.45,.9],dump:[1.2,-2.3,-1.9]};
+const POSE_LONG={carry:[.55,-1.95,-.35],dip:[.3,-1.5,.9],dump:[1.2,-2.3,-1.9],far:[.75,-1.3,-1.9]};
+let mach=null;
+function buildMachine(id){const M=MACHINES[id],root=new THREE.Group(),pc=PAINTS[paintOf(id)].c,gold=M.kind==='gold'&&!pc,
+ body=gold?std(M.body,.22,.85):std(pc||M.body,.45,.15),trim=std(M.trim,.6,.2),cw=gold?std(M.cw,.25,.8):std(pc?pc:M.cw,.5,.2),shovel=M.kind==='shovel',long=M.kind==='long';
+ const tilt=new THREE.Group();root.add(tilt);
+ // undercarriage: tracks (or wheels, or pontoons), the frame and the swing ring
+ const under=new THREE.Group();tilt.add(under);const wheels=[];
+ if(M.kind==='wheel'){add(under,box(1.5,.5,3.2),trim,0,.85,0);add(under,box(2.1,.25,.5),trim,0,.55,-1.75);add(under,box(1.9,.5,.12),MT.steel,0,.5,-2.05);
+  for(const z of[-1.15,1.15])for(const s of[-1,1]){const w=new THREE.Group();w.position.set(s*.92,.58,z);under.add(w);add(w,new THREE.CylinderGeometry(.58,.58,.5,18).rotateZ(Math.PI/2),MT.tire);add(w,new THREE.CylinderGeometry(.3,.3,.52,10).rotateZ(Math.PI/2),MT.hub);add(w,box(.53,.12,1.0),MT.tire);wheels.push(w)}}
+ else{const tw=M.kind==='swamp'?1.0:.62,tx=M.kind==='swamp'?1.08:.82,th=M.kind==='swamp'?.95:.78,tl=M.kind==='swamp'?3.9:3.3;
+  for(const s of[-1,1]){add(under,box(tw,th,tl),[treadSideM,treadSideM,treadTopM,MT.dark,MT.dark,MT.dark],s*tx,th/2,0);
+   if(M.kind==='swamp'){add(under,box(tw*.9,th*.8,.6).translate(0,0,-.2),body,s*tx,th*.55,-tl/2-.1);add(under,box(tw*.9,th*.8,.6),body,s*tx,th*.55,tl/2+.1)}
+   else{for(const z of[-1.65,1.65]){add(under,new THREE.CylinderGeometry(.39,.39,.62,16).rotateZ(Math.PI/2),MT.dark,s*.82,.39,z);add(under,new THREE.CylinderGeometry(.21,.21,.64,10).rotateZ(Math.PI/2),trim,s*.82,.39,z)}
+    for(const z of[-.8,0,.8])add(under,new THREE.CylinderGeometry(.13,.13,.64,8).rotateZ(Math.PI/2),MT.steel,s*.82,.2,z)}}
+  add(under,box(1.05,.42,2.5),trim,0,.6,0)}
+ add(under,new THREE.CylinderGeometry(.78,.78,.18,22),MT.steel,0,.9,0);
+ // upper house: swings on the ring to dump into the trucks
+ const house=new THREE.Group();house.position.y=1;tilt.add(house);
+ add(house,box(2.15,.3,2.75),body,0,.15,.12);
+ add(house,box(2.05,.72,1.2),body,.04,.66,.86);
+ add(house,box(2.2,.86,.52),cw,0,.6,1.42);add(house,box(2.22,.12,.54),trim,0,.3,1.42);
+ // rear warning chevrons on the counterweight
+ {const ch=canvasTex(128,32,(g,w,h)=>{for(let x=-32;x<w+32;x+=24){g.fillStyle='#1d1d1d';g.beginPath();g.moveTo(x,h);g.lineTo(x+12,h);g.lineTo(x+24,0);g.lineTo(x+12,0);g.fill()}});const pl=add(house,new THREE.PlaneGeometry(2.0,.3),new THREE.MeshStandardMaterial({map:ch,transparent:true,roughness:.6}),0,.62,1.685);pl.castShadow=false}
+ add(house,box(.97,1.32,1.2),body,-.56,.96,-.42);
+ add(house,box(.99,.7,1.08),MT.glass,-.56,1.2,-.48);
+ add(house,box(1.04,.07,1.28),trim,-.56,1.65,-.42);
+ add(house,new THREE.CylinderGeometry(.06,.07,.55,8),MT.dark,.62,1.25,.75);
+ const bc=add(house,new THREE.CylinderGeometry(.08,.1,.14,10),MT.beacon,-.3,1.76,-.2);bc.castShadow=false;
+ // handrail along the right deck
+ add(house,box(.04,.04,1.6),MT.steel,1.02,1.1,.55);for(const z of[-.2,.55,1.3])add(house,box(.04,.5,.04),MT.steel,1.02,.85,z);
+ if(shovel){add(house,box(2.3,.25,.5),trim,0,1.12,1.42);add(house,box(.5,.35,.9),body,.55,1.2,.4)}
+ if(M.kind==='swamp')add(house,box(1.0,.08,1.3),MT.white,-.56,1.72,-.42);
+ // boom, stick and bucket, each a pivot group so the arm can scoop and dump
+ const BL=long?4.2:3.0,SL=long?3.0:2.0,bt=long?.26:.34;
+ const boom=new THREE.Group();boom.position.set(.34,.5,-1.0);house.add(boom);
+ add(boom,box(bt,bt*1.5,BL).translate(0,0,-BL/2),body);
+ add(boom,new THREE.CylinderGeometry(.09,.09,BL*.57,8).rotateX(Math.PI/2).translate(0,-.38,-BL*.37),MT.steel);
+ const stick=new THREE.Group();stick.position.set(0,0,-BL);boom.add(stick);
+ add(stick,box(long?.2:.27,long?.28:.36,SL).translate(0,0,-SL/2),body);
+ add(stick,new THREE.CylinderGeometry(.07,.07,SL*.65,8).rotateX(Math.PI/2).translate(0,.28,-SL*.35),MT.steel);
+ const bkt=new THREE.Group();bkt.position.set(0,0,-SL);stick.add(bkt);
+ const bw=shovel?1.15:long?.78:.92;
+ add(bkt,box(bw,.08,.72).translate(0,-.36,-.3),trim);add(bkt,box(bw,.72,.08).translate(0,0,.04),trim);
+ for(const s of[-1,1])add(bkt,box(.07,.72,.72).translate(s*(bw/2-.03),0,-.3),trim);
+ for(let i=0;i<4;i++)add(bkt,box(.1,.07,.18).translate(-bw*.36+i*bw*.24,-.36,-.72),MT.steel);
+ const load=add(bkt,new THREE.DodecahedronGeometry(.36,1),MT.dirt,0,-.08,-.28);load.scale.set(bw*1.15,.75,1);load.visible=false;
+ root.scale.setScalar(M.scale);
+ root.traverse(o=>{if(o.isMesh){o.castShadow=true}});
+ // how far ahead the bucket reaches, and the half-width that hits things, in metres
+ return{root,tilt,house,boom,stick,bkt,load,beacon:bc,wheels,M,pose:long?POSE_LONG:POSE,reach:(long?5.2:4.1)*M.scale,half:(M.kind==='swamp'?1.38:1.08)*M.scale}}
+function rebuildMachine(id){if(mach){scene.remove(mach.root);mach.root.traverse(o=>{if(o.isMesh&&o.geometry&&!Object.values(G).includes(o.geometry))o.geometry.dispose()})}mach=buildMachine(id);mach.paint=paintOf(id);scene.add(mach.root)}
+function setPose(m,p){m.boom.rotation.x=p[0];m.stick.rotation.x=p[1];m.bkt.rotation.x=p[2]}
+const lerpP=(a,b,f)=>[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f];
+
+/* ---------- trucks ---------- */
+function buildTruck(){const g=new THREE.Group();
+ add(g,box(2.1,.45,6.6),MT.dark,0,.95,0);
+ const cab=add(g,box(2.35,1.65,1.75),MT.white,0,2.0,-2.45);add(g,box(2.37,.7,1.2),MT.glass,0,2.4,-2.6);add(g,box(2.3,.85,.9),MT.white,0,1.45,-3.35);
+ add(g,box(2.0,.3,.08),MT.steel,0,1.25,-3.82);
+ for(const s of[-1,1]){const l=add(g,box(.3,.18,.06),new THREE.MeshBasicMaterial({color:0xfff6dc}),s*.85,1.55,-3.81);l.castShadow=false}
+ const bed=new THREE.Group();bed.position.set(0,1.2,.95);g.add(bed);
+ add(bed,box(2.4,.12,4.3),MT.orange,0,0,0);for(const s of[-1,1])add(bed,box(.1,1.2,4.3),MT.orange,s*1.15,.6,0);
+ add(bed,box(2.4,1.5,.12),MT.orange,0,.75,-2.15);add(bed,box(2.4,1.2,.12),MT.orange,0,.6,2.15);
+ // the load inside the bed rises as buckets are dumped in, topped with a heap once it's full
+ const fill=add(bed,box(2.2,1,4.1),MT.dirt,0,.06,0);fill.scale.y=.01;fill.visible=false;
+ const heap=add(bed,new THREE.SphereGeometry(1,14,8,0,Math.PI*2,0,Math.PI/2),MT.dirt,0,1.1,0);heap.scale.set(1.05,.01,1.9);heap.visible=false;
+ const wheels=[];for(const z of[-2.5,.6,1.9])for(const s of[-1,1]){const w=new THREE.Group();w.position.set(s*1.05,.55,z);g.add(w);add(w,G.wheel,MT.tire);add(w,G.hubG,MT.hub);wheels.push(w)}
+ return{root:g,fill,heap,wheels}}
+function buildPickup(){const g=new THREE.Group(),rot=new THREE.Group();rot.rotation.y=Math.PI;g.add(rot);
+ add(rot,box(1.9,.7,4.9),MT.white,0,.85,0);add(rot,box(1.85,.75,2.1),MT.white,0,1.55,-.25);add(rot,box(1.87,.5,1.9),MT.glass,0,1.62,-.3);
+ add(rot,box(1.95,.15,.2),MT.steel,0,.55,-2.45);
+ for(const s of[-1,1]){const l=add(rot,box(.35,.16,.06),new THREE.MeshBasicMaterial({color:0xfffbe6}),s*.65,1.0,-2.46);l.castShadow=false}
+ // the foreman's amber light bar flashes so the pickup reads from far up the site
+ const bar=add(rot,box(1.2,.12,.25),MT.beacon,0,1.98,-.6);bar.castShadow=false;
+ for(const z of[-1.6,1.6])for(const s of[-1,1]){const w=new THREE.Group();w.position.set(s*.92,.42,z);rot.add(w);add(w,new THREE.CylinderGeometry(.42,.42,.32,14).rotateZ(Math.PI/2),MT.tire)}
+ return{root:g,bar}}
+
+/* ---------- site objects ---------- */
+function makePile(){const g=new THREE.Group(),s=rand(.95,1.15);const m=add(g,G.pile,Math.random()<.5?MT.dirt:MT.dirtL,0,.15,0);m.scale.set(1.05*s,.62*s,.95*s);m.rotation.y=Math.random()*6;
+ for(let i=0;i<3;i++){const c=add(g,G.clod,MT.dirt,rand(-.9,.9),.08,rand(-.8,.8));c.scale.setScalar(rand(.5,1))}return g}
+function makeCones(){const g=new THREE.Group();for(const x of[-.85,0,.85]){const c=new THREE.Group();c.position.x=x;c.rotation.y=Math.random();g.add(c);add(c,G.tcone,MT.cone);add(c,G.tconeBand,MT.coneBand);add(c,G.tconeBase,MT.black)}return g}
+// survey stakes: a row of lath with hot-pink flagging tape and a string line between them
+function makeStakes(){const g=new THREE.Group();for(const x of[-.95,-.32,.32,.95]){const s=new THREE.Group();s.position.set(x,0,rand(-.12,.12));s.rotation.set(rand(-.06,.06),rand(0,6),rand(-.06,.06));g.add(s);add(s,G.lath,MT.lath);const t=add(s,G.tape,MT.pink);t.castShadow=false}
+ const ln=add(g,box(1.9,.02,.02),MT.pink,0,.95,0);ln.castShadow=false;return g}
+// an open trench: a dark pit with a lit far wall (canvas shading fakes the depth), spoil piled along one edge
+const trenchTex=canvasTex(64,256,(g,w,h)=>{g.fillStyle='#24170d';g.fillRect(0,0,w,h);const a=g.createLinearGradient(0,0,0,h*.25);a.addColorStop(0,'#7a5634');a.addColorStop(1,'rgba(36,23,13,0)');g.fillStyle=a;g.fillRect(0,0,w,h*.25);
+ const b=g.createLinearGradient(0,0,w,0);b.addColorStop(0,'rgba(0,0,0,.5)');b.addColorStop(.2,'rgba(0,0,0,0)');b.addColorStop(.8,'rgba(0,0,0,0)');b.addColorStop(1,'rgba(0,0,0,.5)');g.fillStyle=b;g.fillRect(0,0,w,h)});
+const trenchMat=new THREE.MeshStandardMaterial({map:trenchTex,roughness:1,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+function makeTrench(L){const g=new THREE.Group();const p=new THREE.Mesh(new THREE.PlaneGeometry(2.3,L).rotateX(-Math.PI/2),trenchMat);p.position.y=.02;p.receiveShadow=true;g.add(p);
+ for(const s of[-1,1])add(g,box(.16,.14,L+.2),MT.dirtL,s*1.22,.05,0);
+ const side=Math.random()<.5?-1:1;for(let z=-L/2+.5;z<L/2;z+=1.3){const m=add(g,G.pile,MT.dirtL,side*1.25,.12,z);m.scale.set(.42,.32,.7)}
+ return g}
+// buried utility line: spray-painted locate marks across the lane (APWA colours) and little marker flags on each side
+const UTIL=[{n:'GAS',c:'#ffd400'},{n:'ELEC',c:'#ff2a1f'},{n:'WATER',c:'#2a7bff'},{n:'COMM',c:'#ff8a00'}];
+const utilTex=UTIL.map(u=>{const t=canvasTex(256,320,(g,w,h)=>{g.clearRect(0,0,w,h);g.strokeStyle=u.c;g.fillStyle=u.c;g.lineCap='round';g.lineWidth=14;
+ // overspray halo then the hard paint, so it looks sprayed rather than printed
+ for(const[lw,al]of[[30,.18],[14,1]]){g.globalAlpha=al;g.lineWidth=lw;for(const x of[56,200]){for(let y=24;y<h-20;y+=58){g.beginPath();g.moveTo(x,y);g.lineTo(x,y+34);g.stroke()}}}
+ g.globalAlpha=1;g.font='800 64px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.textAlign='center';g.textBaseline='middle';g.save();g.translate(128,h/2);g.rotate(-Math.PI/2);g.fillText(u.n,0,0);g.restore();
+ g.beginPath();g.moveTo(128,24);g.lineTo(108,62);g.lineTo(148,62);g.closePath();g.fill();g.beginPath();g.moveTo(128,h-24);g.lineTo(108,h-62);g.lineTo(148,h-62);g.closePath();g.fill()});return t});
+const utilMats=utilTex.map((t,i)=>new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));
+const flagMats=UTIL.map(u=>std(u.c,.6,0,{side:THREE.DoubleSide,emissive:lin(u.c),emissiveIntensity:.35}));
+function makeUtil(){const k=Math.random()*UTIL.length|0,g=new THREE.Group();const d=new THREE.Mesh(new THREE.PlaneGeometry(2.4,3.0).rotateX(-Math.PI/2),utilMats[k]);d.position.y=.03;g.add(d);
+ for(const s of[-1,1])for(const z of[-1.1,1.1]){add(g,G.wire,MT.steel,s*1.3,0,z);const f=add(g,G.flag,flagMats[k],s*1.3,0,z);f.castShadow=false}return g}
+function makeRing(c){const r=new THREE.Mesh(G.ring,MT.ring(c));r.position.y=.04;return r}
+function makeDiesel(){const g=new THREE.Group(),b=new THREE.Group();b.position.y=1;g.add(b);add(b,G.canBody,MT.can);add(b,G.canCap,MT.canDk,.14,.37,0);add(b,G.canHandle,MT.canDk,-.06,.36,0);g.add(makeRing(0xffc21a));g.userData.b=b;return g}
+function makeHat(){const g=new THREE.Group(),b=new THREE.Group();b.position.y=1;g.add(b);add(b,G.hatDome,MT.hat);add(b,G.hatBrim,MT.hat);add(b,G.hatRib,MT.hatBand,0,.33,0);g.add(makeRing(0x6fd8ff));g.userData.b=b;return g}
+function makeCoffee(){const g=new THREE.Group(),b=new THREE.Group();b.position.y=1;g.add(b);add(b,G.cup,MT.cup);add(b,G.sleeve,MT.sleeve);add(b,G.lid,MT.lid,0,.28,0);g.add(makeRing(0xff9a3a));g.userData.b=b;return g}
+
+/* ---------- scenery ---------- */
+// the job site's edges come in 40 m chunks, built ahead and dropped behind: dirt windrows, silt fence, then House Pad props
+// (porta-potty, light towers, lumber, a site trailer, framed and finished houses) and trees in the distance
+const CHUNK=40,chunks=new Map();
+const SG={windrow:new THREE.DodecahedronGeometry(1,1),post:box(.08,1,.08).translate(0,.5,0),fabric:new THREE.PlaneGeometry(CHUNK,.7).rotateY(Math.PI/2).translate(0,.4,0),
+ stud:box(.08,2.6,.14).translate(0,1.3,0),plate:box(.08,.08,1),porta:box(1.1,2.2,1.1).translate(0,1.1,0),portaRoof:box(1.2,.12,1.2),mast:new THREE.CylinderGeometry(.08,.1,6,6).translate(0,3,0),lamp:box(1.2,.5,.3),
+ lumber:box(1.2,.12,4.2),trailer:box(2.5,2.6,8).translate(0,1.6,0),trunk:new THREE.CylinderGeometry(.14,.22,1.3,6).translate(0,.65,0),crown:new THREE.IcosahedronGeometry(1.4,0),
+ houseBody:box(7,3,6).translate(0,1.5,0),roofP:new THREE.CylinderGeometry(1,1,1,3).rotateZ(Math.PI/2),dumpster:box(1.8,1.3,3.6).translate(0,.65,0)};
+// extra materials for the later jobs
+const rockTex=canvasTex(128,256,(g,w,h)=>{const C=['#b5764a','#c98e5e','#9c6440','#d8a874','#a86c42','#8a5636'];let y=0;while(y<h){const t=6+Math.random()*26;g.fillStyle=C[Math.random()*C.length|0];g.fillRect(0,y,w,t);y+=t}
+ speck(g,w,h,3000,()=>`rgba(${Math.random()<.5?'40,24,12':'240,210,170'},.25)`);for(let i=0;i<30;i++){g.strokeStyle='rgba(60,36,20,.45)';g.lineWidth=1.5;g.beginPath();let x=Math.random()*w,yy=Math.random()*h;g.moveTo(x,yy);for(let k=0;k<4;k++){x+=rand(-8,8);yy+=rand(4,14);g.lineTo(x,yy)}g.stroke()}},true);
+const asphaltTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#4a4b4e';g.fillRect(0,0,w,h);speck(g,w,h,5000,()=>{const l=58+Math.random()*50|0;return`rgb(${l},${l},${l+2})`})},true);asphaltTex.repeat.set(3,3);
+const signTex=t=>canvasTex(256,96,(g,w,h)=>{g.fillStyle='#1d6b3a';g.fillRect(0,0,w,h);g.strokeStyle='#f4f4f0';g.lineWidth=5;g.strokeRect(6,6,w-12,h-12);g.fillStyle='#f4f4f0';g.font='700 40px "Barlow",system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(t,w/2,h/2+2)});
+const XM={rock:std('#ffffff',1,0,{map:rockTex}),rockTop:std('#8a6a3a',1),asphalt:std('#ffffff',.95,0,{map:asphaltTex}),concrete:std('#c9c4ba',.85),curb:std('#e8e4da',.8),pine:std('#2f5a34',.95,0,{flatShading:true}),
+ cars:['#c8321e','#2f6fb3','#e8e6e0','#2a2b2e','#8a8f96','#3f8f3a','#d9a52a'].map(c=>std(c,.35,.4)),glassD:std('#1a2430',.1,.5),steelBeam:std('#7d8794',.5,.6),
+ signs:['SCOOPY JCT','EXIT 4 ▸','I-90 WEST','NORTH ▴'].map(t=>new THREE.MeshStandardMaterial({map:signTex(t),roughness:.5,emissive:0x0c2a16,emissiveIntensity:.4}))};
+const XG={bench:box(1,1,CHUNK),boulder:new THREE.DodecahedronGeometry(1,0),pineC:new THREE.ConeGeometry(1.4,3.6,7).translate(0,2.6,0),slab:new THREE.PlaneGeometry(1,CHUNK).rotateX(-Math.PI/2),
+ pole:new THREE.CylinderGeometry(.09,.12,9,6).translate(0,4.5,0),head:box(1.6,.22,.5),carB:box(1.8,.7,4.2).translate(0,.55,0),carT:box(1.6,.55,2.2).translate(0,1.15,.1),
+ column:box(.4,8,.4).translate(0,4,0),beam:box(.3,.5,1),jersey:box(.6,.85,CHUNK).translate(0,.42,0),pier:new THREE.CylinderGeometry(.9,1.1,17,10).translate(0,8.5,0),deck:box(1,1.3,11),gantry:box(.25,.25,1)};
+function buildChunk(ci){const grp=new THREE.Group(),z0=-ci*CHUNK,J=job();scene.add(grp);
+ const m=(geo,mat,x,y,z,ry=0,sx=1,sy=1,sz=1,cast=true)=>{const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.rotation.y=ry;o.scale.set(sx,sy,sz);o.castShadow=cast;o.receiveShadow=true;grp.add(o);return o};
+ const tree=(tx,tz,k,pine)=>{m(SG.trunk,MT.woodD,tx,0,tz,0,k,k,k);if(pine)m(XG.pineC,XM.pine,tx,0,tz,Math.random()*6,k,k,k);else m(SG.crown,Math.random()<.5?MT.leaf:MT.leafD,tx,1.3*k+1.1*k,tz,Math.random()*6,k,k*1.2,k)};
+ for(const s of[-1,1]){
+  // windrows along the outside of the haul roads (every job)
+  for(let z=0;z<CHUNK;z+=6.5)m(SG.windrow,Math.random()<.5?MT.dirt:MT.dirtL,s*rand(9.4,9.9),.1,z0-z-rand(0,2),Math.random()*6,rand(1.2,1.7),rand(.55,.85),rand(2.4,3.4));
+  if(J.id==='road'){
+   // the cut: three rock benches stepping up from the road, with boulders at the toe and pines along the top
+   for(const[x0,x1,h]of[[11,17,3.2],[17,24,7.4],[24,34,12.5]]){m(XG.bench,XM.rock,s*(x0+x1)/2,h/2,z0-CHUNK/2,0,x1-x0,h,1);m(XG.slab,XM.rockTop,s*(x0+x1)/2,h+.02,z0-CHUNK/2,0,x1-x0-.2,1,1,false)}
+   for(let i=0;i<3;i++){const k=rand(.5,1.2);m(XG.boulder,MT.dirtD,s*rand(11.2,12.5),k*.6,z0-rand(0,CHUNK),Math.random()*6,k,k*.8,k)}
+   for(let i=0;i<4;i++)tree(s*rand(26,40),z0-rand(0,CHUNK),rand(1.1,1.8),true);
+   if(Math.random()<.25){const z=z0-rand(5,35);m(SG.mast,MT.steel,s*12.6,3.2,z);m(SG.lamp,MT.white,s*12.6,9.2,z)}
+   continue}
+  if(J.id==='lot'){
+   // the mall lot: fresh asphalt and curbs past the haul road, light poles, parked cars, and the store's steel frame behind
+   m(XG.slab,XM.asphalt,s*24,.015,z0-CHUNK/2,0,26,1,1,false);m(XG.bench,XM.curb,s*11.2,.08,z0-CHUNK/2,0,.3,.16,1,false);
+   for(let z=4;z<CHUNK;z+=20){m(XG.pole,MT.steel,s*12.4,0,z0-z);m(XG.head,MT.white,s*12.4-s*.6,9,z0-z)}
+   for(let z=2;z<CHUNK;z+=rand(3,7)){if(Math.random()<.45)continue;const x=s*rand(15.5,16.5),c=XM.cars[Math.random()*XM.cars.length|0],ry=Math.PI/2+rand(-.06,.06);m(XG.carB,c,x,0,z0-z,ry);m(XG.carT,XM.glassD,x,0,z0-z,ry)}
+   for(let z=3;z<CHUNK;z+=rand(4,8)){if(Math.random()<.5)continue;const x=s*rand(21,23),c=XM.cars[Math.random()*XM.cars.length|0],ry=Math.PI/2+rand(-.06,.06);m(XG.carB,c,x,0,z0-z,ry);m(XG.carT,XM.glassD,x,0,z0-z,ry)}
+   for(let z=0;z<CHUNK;z+=8){m(XG.column,XM.steelBeam,s*38,0,z0-z);m(XG.column,XM.steelBeam,s*50,0,z0-z);m(XG.beam,XM.steelBeam,s*44,8,z0-z,Math.PI/2,1,1,12.4)}
+   m(XG.bench,XM.steelBeam,s*38,8,z0-CHUNK/2,0,.3,.5,1);if(ci%3===0)m(XG.bench,XM.concrete,s*38.2,2.5,z0-CHUNK/2,0,.25,5,1);
+   continue}
+  if(J.id==='freeway'){
+   // the interchange: jersey barriers, tall concrete piers carrying flyover decks high above, and green sign gantries
+   m(XG.jersey,XM.concrete,s*11.2,0,z0-CHUNK/2);
+   for(let i=0;i<2;i++)m(XG.pier,XM.concrete,s*rand(16,30),0,z0-rand(0,CHUNK));
+   for(let i=0;i<2;i++)tree(s*rand(36,60),z0-rand(0,CHUNK),rand(1,1.6),false);
+   continue}
+  // House Pad: silt fence, site props, house frames and finished homes
+  m(SG.fabric,MT.fence,s*11.6,0,z0-CHUNK/2,0,1,1,1,false);for(let z=0;z<CHUNK;z+=4)m(SG.post,MT.woodD,s*11.6,0,z0-z);
+  const r=Math.random();
+  if(r<.18){m(SG.porta,MT.blue,s*12.5,0,z0-rand(5,35),rand(-.3,.3));}
+  else if(r<.34){const z=z0-rand(5,35);m(SG.mast,MT.steel,s*12.2,0,z);m(SG.lamp,MT.white,s*12.2,6,z,0,1,1,1)}
+  else if(r<.48){const z=z0-rand(6,32);for(let i=0;i<4;i++)m(SG.lumber,MT.wood,s*13,.06+i*.13,z,rand(-.05,.05),1,1,1)}
+  else if(r<.58){m(SG.trailer,MT.white,s*14,0,z0-rand(8,30));}
+  else if(r<.68){m(SG.dumpster,MT.green,s*12.6,0,z0-rand(5,35),rand(-.2,.2))}
+  if(Math.random()<.3){const f=new THREE.Mesh(new THREE.PlaneGeometry(rand(8,16),1.1).rotateY(Math.PI/2).translate(0,.55,0),MT.orangeFence);f.position.set(s*12.4,0,z0-rand(10,30));grp.add(f)}
+  if(Math.random()<.5){const hx=s*rand(19,24),hz=z0-rand(10,30),W=7,D=6;
+   for(let x=-W/2;x<=W/2;x+=1){m(SG.stud,MT.wood,hx+x,0,hz-D/2,0,1,1,1,false);m(SG.stud,MT.wood,hx+x,0,hz+D/2,0,1,1,1,false)}
+   for(let z=-D/2+1;z<D/2;z+=1){m(SG.stud,MT.wood,hx-W/2,0,hz+z,0,1,1,1,false);m(SG.stud,MT.wood,hx+W/2,0,hz+z,0,1,1,1,false)}
+   m(SG.plate,MT.wood,hx,2.62,hz-D/2,Math.PI/2,1,1,W);m(SG.plate,MT.wood,hx,2.62,hz+D/2,Math.PI/2,1,1,W);m(SG.plate,MT.wood,hx-W/2,2.62,hz,0,1,1,D);m(SG.plate,MT.wood,hx+W/2,2.62,hz,0,1,1,D)}
+  if(Math.random()<.6){const hx=s*rand(32,40),hz=z0-rand(8,32);m(SG.houseBody,MT.siding,hx,0,hz);m(SG.roofP,MT.roof,hx,3.95,hz,0,1.6,1,4.6)}
+  for(let i=0;i<3;i++)tree(s*rand(28,70),z0-rand(0,CHUNK),rand(.9,1.6),false)}
+ // freeway flyovers span the whole site high above the camera, every third chunk; sign gantries in between
+ if(J.id==='freeway'){if(ci%3===0){const z=z0-20;m(XG.deck,XM.concrete,0,17.6,z,0,90,1,1);for(const x of[-13,13,-28,28])m(XG.pier,XM.concrete,x,0,z)}
+  else if(ci%3===1){const z=z0-20;for(const x of[-11.6,11.6])m(XG.column,XM.steelBeam,x,0,z,0,.7,1.05,.7);m(XG.gantry,XM.steelBeam,0,8.3,z,Math.PI/2,1,1,23.4);
+   const sg=new THREE.Mesh(new THREE.PlaneGeometry(5,1.9),XM.signs[ci%4]);sg.position.set(rand(-5,5),7.1,z+.15);sg.rotation.y=Math.PI;grp.add(sg);const sb=sg.clone();sb.rotation.y=0;sb.position.z=z-.15;grp.add(sb)}}
+ return{grp}}
+function dropChunk(ch){scene.remove(ch.grp)}
+function updateChunks(d){const a=Math.floor((d-40)/CHUNK),b=Math.floor((d+300)/CHUNK);for(const[ci,ch]of chunks)if(ci<a||ci>b){dropChunk(ch);chunks.delete(ci)}for(let ci=a;ci<=b;ci++)if(!chunks.has(ci))chunks.set(ci,buildChunk(ci))}
+
+/* ---------- particles ---------- */
+// dust kicked up by the tracks, scoops and dumps; dirt clods thrown when scooping and falling into the truck
+const dustTex=radial('rgba(226,204,168,.9)','rgba(226,204,168,0)'),clodTex=radial('rgba(118,78,44,1)','rgba(118,78,44,0)'),sparkTex=radial('rgba(255,230,170,1)','rgba(255,140,40,0)');
+const dust=[],clods=[];
+for(let i=0;i<70;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:dustTex,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);dust.push({s,life:0,v:new THREE.Vector3()})}
+for(let i=0;i<90;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:clodTex,transparent:true,depthWrite:false}));s.visible=false;scene.add(s);clods.push({s,life:0,v:new THREE.Vector3()})}
+let duI=0,clI=0;
+function puff(x,y,z,sz=1,vy=.8){const p=dust[duI++%dust.length];p.life=1;p.sz=sz;p.s.visible=true;p.s.position.set(x+rand(-.3,.3),y,z+rand(-.3,.3));p.s.scale.setScalar(sz);p.v.set(rand(-.4,.4),vy,rand(-.4,.4))}
+function burst(x,y,z,n,spd,col,vz=0){for(let i=0;i<n;i++){const p=clods[clI++%clods.length];p.life=.7+Math.random()*.4;p.s.visible=true;p.s.position.set(x,y,z);p.s.material.color.set(col||'#ffffff');p.s.material.map=col&&col[0]==='!'?sparkTex:clodTex;
+ p.v.set((Math.random()-.5)*spd,Math.random()*spd*.7,(Math.random()-.5)*spd+vz);p.s.scale.setScalar(rand(.18,.34))}}
+function pour(x,y,z,n,tx){for(let i=0;i<n;i++){const p=clods[clI++%clods.length];p.life=.6+Math.random()*.3;p.s.visible=true;p.s.position.set(x+rand(-.3,.3),y,z+rand(-.3,.3));p.s.material.color.set('#ffffff');p.s.material.map=clodTex;p.v.set(tx+rand(-.4,.4),rand(-1,.5),rand(-.6,.6));p.s.scale.setScalar(rand(.2,.36))}}
+
+/* ---------- audio ---------- */
+// sound hooks: every effect is played through sfx(name). The synth placeholders below are used until a recorded file is listed
+// here (e.g. scoop:'sounds/scoop.m4a'); the engine file, if given, loops with its pitch following the speed.
+const SOUND_FILES={engine:'',scoop:'',dump:'',crash:'',strike:'',overflow:'',diesel:'',hat:'',coffee:'',horn:'',beep:'',swing:'',full:''};
+let AC=null,master,fxBus,musicBus,noiseBuf,ENG=null,engFile=null;const BUF={};
+function audioInit(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();
+ const comp=AC.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=4;comp.attack.value=.005;comp.release.value=.2;
+ master=AC.createGain();master.gain.value=muted?0:1;master.connect(comp);comp.connect(AC.destination);
+ fxBus=AC.createGain();fxBus.connect(master);musicBus=AC.createGain();musicBus.gain.value=0;musicBus.connect(master);
+ noiseBuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+ buildEngine();musicStart();loadSounds()}catch(e){AC=null}}
+['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,audioInit,{once:true,passive:true}));
+function loadSounds(){for(const k in SOUND_FILES){const u=SOUND_FILES[k];if(!u)continue;fetch(u).then(r=>r.arrayBuffer()).then(a=>new Promise((ok,no)=>AC.decodeAudioData(a,ok,no))).then(b=>{BUF[k]=b;if(k==='engine')useEngineFile(b)}).catch(()=>{})}}
+function playBuf(k,vol=1,rate=1){const s=AC.createBufferSource(),g=AC.createGain();s.buffer=BUF[k];s.playbackRate.value=rate;g.gain.value=vol;s.connect(g);g.connect(fxBus);s.start()}
+function sfx(name,arg){if(!AC)return;if(BUF[name]&&name!=='engine'){playBuf(name);return}const f=SYNTH[name];if(f)f(AC.currentTime,arg)}
+function env(node,t,peak,a,d){node.gain.setValueAtTime(0,t);node.gain.linearRampToValueAtTime(peak,t+a);node.gain.exponentialRampToValueAtTime(.0001,t+a+d)}
+function tone(type,f0,f1,t,dur,peak,dest=fxBus){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);if(f1!==f0)o.frequency.exponentialRampToValueAtTime(f1,t+dur);env(g,t,peak,.005,dur);o.connect(g);g.connect(dest);o.start(t);o.stop(t+dur+.05)}
+function noise(t,type,f0,f1,q,dur,peak,off=0){const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=noiseBuf;f.type=type;f.Q.value=q;f.frequency.setValueAtTime(f0,t);if(f1!==f0)f.frequency.exponentialRampToValueAtTime(f1,t+dur);env(g,t,peak,.004,dur);s.connect(f);f.connect(g);g.connect(fxBus);s.start(t,off||Math.random()*.8);s.stop(t+dur+.05)}
+const chime=notes=>{if(!AC)return;const t=AC.currentTime;notes.forEach((fr,i)=>tone('triangle',fr,fr,t+i*.08,.3,.16))};
+// placeholder synth sounds, one per hook
+const SYNTH={
+ scoop:(t,step=1)=>{tone('sine',120,48,t,.18,.55);noise(t,'bandpass',900,380,1.2,.28,.45);tone('triangle',330*(1+.1*(step-1)),330*(1+.1*(step-1)),t+.05,.12,.08)},
+ dump:t=>{noise(t,'lowpass',2600,300,.8,.55,.45);for(let i=0;i<5;i++)noise(t+.04+i*.07,'bandpass',600+Math.random()*900,500,3,.06,.25)},
+ full:t=>{chime([523,659,784,1047])},
+ crash:t=>{noise(t,'lowpass',2500,120,.7,.9,.75);tone('sine',90,30,t,.5,.6)},
+ strike:t=>{noise(t,'highpass',3000,6000,.7,.9,.35);for(let i=0;i<6;i++)tone('sawtooth',60+Math.random()*120,40,t+i*.05,.08,.18);SYNTH.crash(t+.05)},
+ overflow:t=>{tone('square',196,150,t,.18,.12);tone('square',147,110,t+.16,.26,.12);noise(t,'lowpass',700,200,1,.3,.4)},
+ diesel:t=>{for(let i=0;i<3;i++)tone('sine',180+i*40,120+i*30,t+i*.09,.1,.25)},
+ hat:t=>{tone('triangle',1760,1760,t,.4,.16);tone('triangle',2637,2637,t+.02,.3,.08)},
+ coffee:t=>{noise(t,'bandpass',500,2600,2,.35,.3);chime([659,880,1175])},
+ horn:t=>{for(const f of[233,294]){const o=AC.createOscillator(),g=AC.createGain(),lp=AC.createBiquadFilter();o.type='sawtooth';o.frequency.value=f;lp.type='lowpass';lp.frequency.value=1400;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.11,t+.02);g.gain.setValueAtTime(.11,t+.42);g.gain.linearRampToValueAtTime(0,t+.5);o.connect(lp);lp.connect(g);g.connect(fxBus);o.start(t);o.stop(t+.55)}},
+ // a truck's reverse beeper as it pulls up
+ beep:t=>{for(let i=0;i<3;i++)tone('square',1050,1050,t+i*.42,.22,.07)},
+ swing:t=>{noise(t,'bandpass',300,900,2.5,.16,.18)},
+ pickup:t=>chime([880,1320])};
+/* engine: a diesel rumble. Two detuned saws and a sub through a low-pass, with an amplitude wobble at the firing rate for the
+   chug and a little filtered noise for injector clatter. Revs follow speed and rise while the arm works. */
+function buildEngine(){if(!AC||ENG)return;const o1=AC.createOscillator(),o2=AC.createOscillator(),sub=AC.createOscillator(),pre=AC.createGain(),lp=AC.createBiquadFilter(),am=AC.createGain(),lfo=AC.createOscillator(),lfoG=AC.createGain(),g=AC.createGain(),nz=AC.createBufferSource(),nf=AC.createBiquadFilter(),ng=AC.createGain();
+ o1.type=o2.type='sawtooth';sub.type='square';lp.type='lowpass';lp.Q.value=1.4;pre.gain.value=.25;am.gain.value=.7;lfo.type='square';lfoG.gain.value=.3;g.gain.value=0;
+ o1.connect(pre);o2.connect(pre);sub.connect(pre);pre.connect(lp);lp.connect(am);am.connect(g);g.connect(fxBus);lfo.connect(lfoG);lfoG.connect(am.gain);
+ nz.buffer=noiseBuf;nz.loop=true;nf.type='bandpass';nf.frequency.value=2200;nf.Q.value=1.5;ng.gain.value=0;nz.connect(nf);nf.connect(ng);ng.connect(am);
+ o1.start();o2.start();sub.start();lfo.start();nz.start();ENG={o1,o2,sub,lp,lfo,g,ng}}
+function useEngineFile(b){const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;s.loop=true;g.gain.value=0;s.connect(g);g.connect(fxBus);s.start();engFile={s,g};if(ENG)ENG.g.gain.value=0}
+let engF=40;
+function engineTick(dt,at){if(!ENG)return;let f=38,vol=0;
+ if(state==='play'){f=44+C.v*1.5+(C.scoopT>0||C.dumping?7:0);vol=.16}else if(state==='crash'){f=Math.max(20,engF-dt*30);vol=Math.max(0,.16-crashT*.12)}
+ else if(state==='ready'||state==='paused'||state==='yard'){f=36;vol=.08}
+ engF+=(f-engF)*Math.min(1,dt*4);
+ if(engFile){engFile.s.playbackRate.setTargetAtTime(engF/50,at,.05);engFile.g.gain.setTargetAtTime(vol*2,at,.1);return}
+ ENG.o1.frequency.setTargetAtTime(engF,at,.03);ENG.o2.frequency.setTargetAtTime(engF*1.012,at,.03);ENG.sub.frequency.setTargetAtTime(engF/2,at,.03);ENG.lfo.frequency.setTargetAtTime(engF/4,at,.03);
+ ENG.lp.frequency.setTargetAtTime(220+engF*5,at,.05);ENG.ng.gain.setTargetAtTime(state==='play'?.05:.02,at,.1);ENG.g.gain.setTargetAtTime(vol,at,.12)}
+/* music: an original upbeat loop in G (G-C-D-C), scheduled ahead on the audio clock like Swervy's.
+   The yard and results get pads and a soft pluck; the start line adds bass; working adds drums. */
+const BPM=104,S16=60/BPM/4,CHORDS=[[55,59,62],[48,52,55],[50,54,57],[48,52,55]],mtof=m=>440*Math.pow(2,(m-69)/12);
+let mStep=0,mNext=0;
+function musicStart(){mNext=AC.currentTime+.1;setInterval(musicSched,25)}
+function musicSched(){if(!AC||AC.state!=='running')return;if(mNext<AC.currentTime)mNext=AC.currentTime+.05;while(mNext<AC.currentTime+.12){playStep(mStep,mNext);mNext+=S16;mStep++}}
+function voice(type,freq,t,dur,peak,cut){const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type=type;o.frequency.value=freq;f.type='lowpass';f.frequency.value=cut;env(g,t,peak,.004,dur);o.connect(f);f.connect(g);g.connect(musicBus);o.start(t);o.stop(t+dur+.05)}
+function hit(t,hp,peak,d){const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=noiseBuf;f.type='highpass';f.frequency.value=hp;env(g,t,peak,.002,d);s.connect(f);f.connect(g);g.connect(musicBus);s.start(t,Math.random()*.8);s.stop(t+d+.05)}
+function playStep(s,t){const b=s%16,ch=CHORDS[(s>>4)%4],work=state==='play'||state==='paused',start=state==='ready',calm=state==='crash'||state==='over';
+ if(b===0){const dur=S16*16;for(const m of ch){const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='triangle';o.frequency.value=mtof(m);f.type='lowpass';f.frequency.value=1800;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.035,t+.4);g.gain.setValueAtTime(.035,t+dur-.3);g.gain.linearRampToValueAtTime(0,t+dur+.1);o.connect(f);f.connect(g);g.connect(musicBus);o.start(t);o.stop(t+dur+.15)}}
+ if(!calm&&[0,3,6,8,10,11,14].includes(b))voice('square',mtof(ch[[0,1,2,1,0,2,1,0][b%8]]+12),t,.12,work?.04:.03,2200);
+ if((work||start)&&b%4!==3)voice('sawtooth',mtof(ch[0]-24+(b%8===6?7:0)),t,.16,.12,480);
+ if(work){if(b%4===0){const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(42,t+.12);env(g,t,.5,.002,.28);o.connect(g);g.connect(musicBus);o.start(t);o.stop(t+.33)}
+  if(b===4||b===12)hit(t,1500,.2,.14);if(b%2===0)hit(t,7000,b%4===2?.06:.03,.04)}}
+document.addEventListener('visibilitychange',()=>{if(!AC)return;document.hidden?AC.suspend():AC.resume()});
+// iPhone Safari only lets audio start on a finger-up, tap or key press, so every such gesture resumes the context and plays
+// one silent sample, the older iOS unlock; once it runs, this costs one state check per tap
+function audioUnlock(){audioInit();if(!AC||AC.state==='running')return;AC.resume();try{const b=AC.createBufferSource();b.buffer=AC.createBuffer(1,1,22050);b.connect(AC.destination);b.start(0)}catch(e){}}
+for(const ev of['pointerup','touchend','click','keydown'])window.addEventListener(ev,audioUnlock,{capture:true,passive:true});
+function setMute(m){muted=m;store.set('muted',m);$('mute').style.opacity=m?.45:1;$('mute').setAttribute('aria-pressed',!m);if(AC)master.gain.value=m?0:1}
+$('mute').addEventListener('click',e=>{e.stopPropagation();audioInit();setMute(!muted)});setMute(muted);
+function buzz(ms){if(!settings.haptics)return;if(NATIVE.haptics){NATIVE.haptics.impact({style:ms>=50?'HEAVY':ms>=25?'MEDIUM':'LIGHT'}).catch(()=>{});return}try{const ua=navigator.userActivation;if(navigator.vibrate&&(!ua||ua.hasBeenActive))navigator.vibrate(ms)}catch(e){}}
+
+/* ---------- game state ---------- */
+let state='yard',C=null,bonus=0,crashT=0,shake=0,orbA=.6,counting=0,coachT=0,hudT=0,tut=false,tutS=0,runBest=0,beatBest=false,cause='',doneD=0;
+let OBJS=[],ROWS=[],nextRow=0,safeLane=1,truck=null,truckCD=0,foreman=null,lowWarned=false,trucksSeen=0,runCans=0,reviveUsed=false,reviveT=0,runMed=0;
+const lookT=new THREE.Vector3(),desired=new THREE.Vector3(),lookD=new THREE.Vector3();
+function resetWorld(){applyTheme(job());for(const o of OBJS)scene.remove(o.m);OBJS=[];ROWS=[];if(truck)scene.remove(truck.m.root);truck=null;foreman=null;
+ C={d:T.START_D,x:0,lane:1,dir:-1,v:job().v0,fuel:T.FUEL_MAX,load:0,cap:spec.bucket,combo:0,comboT:0,shield:!!spec.M.hat,coffeeT:0,invT:0,trucks:0,scoops:0,t:0,diesel:0,coffee:0,maxCombo:0,
+  scoopT:0,dumping:0,dumpSide:1,dumpT:0,swingA:0,yaw:0,tip:0,roll:0,y:0,tread:0,dustT:0};
+ bonus=0;nextRow=T.START_D+38;safeLane=1;truckCD=5;lowWarned=false;doneD=0;runCans=0;reviveUsed=false;runMed=0;
+ dust.forEach(p=>{p.life=0;p.s.visible=false});clods.forEach(p=>{p.life=0;p.s.visible=false});
+ if(mach){mach.root.position.set(0,0,-C.d);mach.root.rotation.set(0,0,0);mach.tilt.rotation.set(0,0,0);mach.tilt.position.y=0;mach.house.rotation.y=0;setPose(mach,mach.pose.carry);mach.load.visible=false}
+ updateChunks(C.d)}
+const mult=()=>Math.min(T.COMBO_MAX,Math.max(1,C.combo)),coffeeX=()=>C.coffeeT>0?2:1;
+// every point is multiplied by the machine's score multiplier, as Swervy's cars do
+function score(){return Math.max(0,Math.floor((C.d-T.START_D+bonus)*spec.mult))}
+
+function show(id,on){$(id).hidden=!on}
+function applyView(){const w=innerWidth,h=innerHeight;if(state==='yard'){if(w>=860&&w>=h)cam.setViewOffset(w,h,w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*.26,w,h)}else cam.clearViewOffset()}
+function hideRunUI(){show('combo',0);document.querySelectorAll('.pop').forEach(e=>e.remove());show('mtoast',0);show('region',0);show('unlockFx',0);show('toBest',0);show('paused',0);show('count',0);show('pauseBtn',0);show('coach',0);show('tchip',0);show('newBest',0);show('revive',0);counting=0;coachT=0}
+function goYard(){state='yard';viewMach=cfg.mach;spec=specFor(viewMach);rebuildMachine(viewMach);resetWorld();hideRunUI();show('hud',0);show('bhud',0);show('ready',0);show('over',0);show('yard',1);renderYard();applyView();checkDaily()}
+function goReady(snap){viewMach=cfg.mach;spec=specFor(cfg.mach);if(mach.M!==MACHINES[cfg.mach]||mach.paint!==paintOf(cfg.mach))rebuildMachine(cfg.mach);
+ tut=!store.get('tutDone',false);tutS=0;state='ready';resetWorld();hideRunUI();show('yard',0);show('over',0);show('hud',1);show('bhud',1);show('ready',1);
+ const J=job();$('readyL').textContent=`Job ${cfg.job+1} · ${J.n}`;$('readyGoal').innerHTML=`Load <b>${J.goal} trucks</b> to finish the job · ${MEDALS[medals[J.id]]?'best medal '+MEDALS[medals[J.id]].toLowerCase():'no medal yet'}`;
+ refreshMissions();renderMissions('rMissions');show('rMissions',!tut);applyView();updateHud();
+ if(snap){cam.position.set(0,12,-C.d+12);lookT.set(0,0,-C.d-6)}}
+function startRun(){state='play';show('ready',0);show('pauseBtn',1);runBest=bests[job().id];beatBest=false;cause='';if(tut)coach('Tap to <b>swing lanes</b>')}
+
+/* ---------- spawning ---------- */
+// rows of site objects are spawned ~190 m ahead. Hazard rows always leave one lane open, and that open lane moves at most
+// one lane from one hazard row to the next, so there is always a path you can reach in time
+function addObj(m,t,d,lane,half,depth,extra){m.position.set(LANE_X[lane],0,-d);scene.add(m);const o=Object.assign({m,t,d,lane,x:LANE_X[lane],half,depth,done:false},extra);OBJS.push(o);return o}
+function placeHazard(d,lane,J,ramp,row){const r=Math.random(),u=J.util*(.6+.6*ramp),tr=J.trench;let o;
+ if(r<u)o=addObj(makeUtil(),'util',d,lane,1.05,1.4);
+ else if(r<u+tr){const L=rand(4.5,6.5);o=addObj(makeTrench(L),'trench',d+L/2,lane,1.05,L/2)}
+ else if(r<u+tr+(1-u-tr)/2)o=addObj(makeStakes(),'stakes',d,lane,1.0,.25);
+ else o=addObj(makeCones(),'cones',d,lane,1.05,.35);
+ row.objs.push(o)}
+function spawnRow(d){const J=job(),dist=d-T.START_D,warm=dist<110||(tut&&dist<240),ramp=Math.min(1,dist/1500),row={d,blocked:[],objs:[]};ROWS.push(row);
+ if(!warm&&Math.random()<J.haz*(.75+.35*ramp)){
+  safeLane=clamp(safeLane+(Math.random()*3|0)-1,0,2);
+  // while the foreman's pickup is on site its lane is taken, so the open lane is never that one and only one other lane is blocked
+  if(foreman&&safeLane===foreman.lane)safeLane=foreman.lane===1?(Math.random()<.5?0:2):1;
+  const two=!foreman&&Math.random()<.3+.3*ramp,cand=[0,1,2].filter(l=>l!==safeLane&&(!foreman||l!==foreman.lane)).sort(()=>Math.random()-.5);
+  row.blocked=cand.slice(0,two?2:1);for(const l of row.blocked)placeHazard(d,l,J,ramp,row)}
+ const free=[0,1,2].filter(l=>!row.blocked.includes(l));
+ // dirt comes singly or in lines of three down one lane, which build a combo; with a full bucket a pile only costs you
+ let pileLane=-1;if(Math.random()<J.pile){pileLane=free[Math.random()*free.length|0];const n=Math.random()<.45?3:1;for(let k=0;k<n;k++)row.objs.push(addObj(makePile(),'pile',d+k*5,pileLane,.95,.8))}
+ // pickups: diesel turns up more often the lower the tank; hard hats and coffee are rarer treats
+ // rows are spawned ~190 m out, so the chance follows the fuel you'll have when you get there, and a can is guaranteed if that's low
+ const pl=free.filter(l=>l!==pileLane);if(pl.length){const lane=pl[Math.random()*pl.length|0],f=(C.fuel-T.FUEL_DRAIN*(d-C.d)/Math.max(8,C.v))/T.FUEL_MAX,r=Math.random(),dz=d+rand(-2,2);
+  // one can on the way at a time, unless the tank will be nearly dry by then
+  const pend=OBJS.some(o=>o.t==='diesel'&&!o.done)&&f>=.2,pd=f<.45&&!pend?1:f<.65?.3:f<.85?.08:0;
+  if(r<pd&&!pend)row.objs.push(addObj(makeDiesel(),'diesel',dz,lane,.8,.6));
+  else if(r<pd+.035&&!C.shield&&dist>150)row.objs.push(addObj(makeHat(),'hat',dz,lane,.8,.6));
+  else if(r<pd+.075&&dist>200)row.objs.push(addObj(makeCoffee(),'coffee',dz,lane,.8,.6))}
+ // the foreman's pickup drives down a lane toward you
+ if(!warm&&!foreman&&dist>260&&Math.random()<J.foreman)spawnForeman(d)}
+function spawnForeman(d){const lane=Math.random()*3|0,P=buildPickup();foreman=addObj(P.root,'foreman',d+20,lane,1.0,2.5,{v:7,bar:P.bar,honked:false});
+ // rows already spawned ahead that would leave no way past the pickup lose one of their blocking hazards
+ for(const row of ROWS){if(row.d<C.d+10)continue;const cover=new Set([...row.blocked,lane]);if(cover.size<3)continue;const l=row.blocked.find(b=>b!==lane);row.blocked=row.blocked.filter(b=>b!==l);
+  for(const o of row.objs)if(o.lane===l&&o.t!=='pile'&&!o.done){o.done=true;scene.remove(o.m)}}}
+function genRows(){const J=job();while(nextRow<C.d+190){spawnRow(nextRow);nextRow+=rand(J.gap[0],J.gap[1])}}
+
+/* ---------- the core loop: scoop, haul, dump ---------- */
+function scoop(o){o.done=true;
+ if(C.load>=C.cap){// a full bucket can't take more: the pile spills, the combo is lost and it costs points
+  o.m.scale.y=.25;o.m.children.forEach(c=>c.position.x*=1.6);C.combo=0;C.comboT=0;bonus-=T.OVERFLOW;shake=Math.max(shake,settings.shake?.35:0);
+  puff(o.x,.6,-o.d,1.6);puff(o.x,.6,-o.d,1.3);sfx('overflow');buzz(35);popText(`Bucket full! <b>−${T.OVERFLOW}</b>`,true);
+  if(!truck)truckCD=Math.min(truckCD,.5);coach('Bucket full · <b>dump it in a truck</b>',true);coachT=2.2;return}
+ o.m.visible=false;C.load++;C.scoops++;C.combo=C.comboT>0?C.combo+1:1;C.comboT=T.COMBO_T;C.scoopT=.001;
+ const pts=Math.round(T.SCOOP*mult()*coffeeX()*spec.teeth);bonus+=pts;burst(o.x,.8,-o.d,14,5,'#ffffff',-2);
+ if(C.combo>C.maxCombo){C.maxCombo=C.combo;missionEvent('combo',mult(),true);if(C.combo===T.COMBO_MAX){stats.combo5++}}missionEvent('scoops1',C.scoops,true);puff(o.x,.4,-o.d,1.4);puff(o.x+.5,.4,-o.d,1.1);
+ sfx('scoop',Math.min(5,C.combo));buzz(12);if(C.combo>1)popText(`<b>x${mult()}</b> combo · +${pts}`);
+ if(tut&&tutS<=1){tutS=2;coach('Nice! Scoop until the <b>bucket</b> is full');coachT=2.6}
+ if(C.load>=C.cap&&!truck)truckCD=Math.min(truckCD,1.2)}
+function spawnTruck(){const near=C.lane===1?(Math.random()<.5?-1:1):C.lane===0?-1:1,M=buildTruck();
+ truck={side:near,d:C.d-26,st:'arrive',t:0,fill:0,v:0,m:M,x:near*T.HAUL};M.root.position.set(truck.x,0,-truck.d);scene.add(M.root);trucksSeen++;
+ const sd=near<0?'left':'right';if(tut||trucksSeen<=2){coach(`Truck pulling up on the <b>${sd}</b> · swing next to it`);coachT=3}}
+function dumpUnit(){C.load--;truck.fill++;const pts=T.DUMP*coffeeX();bonus+=pts;sfx('dump');buzz(18);
+ const p=new THREE.Vector3(0,-.2,-.3);mach.bkt.localToWorld(p);pour(p.x,p.y,p.z,14,(truck.x-p.x)*.6);puff(p.x,p.y-.5,p.z,1.2,.4);
+ if(tut&&tutS<3){tutS=3;coach('Fill the truck for a <b>big bonus</b>');coachT=2.4}
+ if(truck.fill>=T.TRUCK_CAP)truckFull()}
+function truckFull(){C.trucks++;stats.trucks++;runCans+=T.TRUCK_CANS;missionEvent('trucks1',C.trucks,true);missionEvent('trucksT');const pts=T.FULL*coffeeX();bonus+=pts;truck.st='leave';truck.v=C.v;sfx('horn');sfx('full');buzz(40);
+ popText(`Truck loaded! <b>+${fmt(pts)}</b>`);burst(truck.x,3.5,-truck.d+.9,30,7,'!#ffd27a');
+ const J=job(),m=medalFor(J,C.trucks);if(C.trucks===J.goal)jobComplete();
+ else if(m>runMed){toast(`${MEDALS[m]} medal! · ${J.n}`);chime([523,659,784,1047,1319])}
+ runMed=Math.max(runMed,m)}
+function jobComplete(){const J=job();bonus+=T.JOB_BONUS;doneD=C.d;runCans+=T.JOB_CANS;missionEvent('job');
+ const el=$('region');el.innerHTML=`<small>Job complete · bronze</small><div class="disp">${J.n}</div><em>+${fmt(T.JOB_BONUS)} pts · +${T.JOB_CANS} <span class="can"></span> · overtime</em>`;show('region',0);void el.offsetWidth;show('region',1);clearTimeout(jobComplete.t);jobComplete.t=setTimeout(()=>show('region',0),3200);
+ chime([392,523,659,784,1047]);buzz(50);
+ // the machine this job unlocks, and the next job, are saved straight away so a crash right after can't lose them
+ if(!medals[J.id]){medals[J.id]=1;store.set('medals',medals)}
+ const u=J.unlock;if(u&&!unlocked.includes(u)){unlocked.push(u);store.set('unlocked',unlocked);setTimeout(()=>{if(state!=='play')return;const f=$('unlockFx');f.innerHTML=`<small>New machine unlocked</small><div class="disp">${MACHINES[u].n}</div><em>${MACHINES[u].perk}</em>`;show('unlockFx',0);void f.offsetWidth;show('unlockFx',1);setTimeout(()=>show('unlockFx',0),3000);chime([523,784,1047,1319])},3300)}}
+const truckWait=()=>T.TRUCK_WAIT+(spec.dump-1)*3;
+function truckTick(dt){
+ if(!truck){truckCD-=dt;if(truckCD<=0&&C.load>=Math.min(2,C.cap))spawnTruck();return}
+ const K=truck;K.t+=dt;
+ if(K.st==='arrive'){K.d+=(C.v+10)*dt;if(K.d>=C.d+T.TRUCK_OFF){K.d=C.d+T.TRUCK_OFF;K.st='wait';K.t=0;sfx('beep')}}
+ else if(K.st==='wait'){K.d=C.d+T.TRUCK_OFF;
+  // dumping happens by itself while you sit in the lane next to the truck with dirt in the bucket
+  // the Long Reach can also dump from the middle lane
+  const edge=K.side<0?0:2,far=spec.M.kind==='long'&&C.lane===1,beside=(C.lane===edge||far)&&Math.abs(C.x-LANE_X[C.lane])<.5;
+  if(beside&&C.load>0){if(!C.dumping){C.dumping=K.side;C.dumpSide=K.side;C.dumpT=0}C.dumpFar=far;C.dumpT+=dt;if(C.swingA>.8&&C.dumpT>=T.DUMP_T/spec.dump){C.dumpT=0;dumpUnit()}}
+  else C.dumping=0;
+  if(K.st==='wait'&&K.t>truckWait()&&!C.dumping){K.st='leave';K.v=C.v;if(K.fill>0)popText('Truck left half full',true);else popText('Missed the truck',true)}}
+ else{C.dumping=0;K.v+=dt*7;K.d+=K.v*dt;if(K.d>C.d+230){scene.remove(K.m.root);truck=null;truckCD=rand(T.TRUCK_CD[0],T.TRUCK_CD[1])}}
+ if(K.st==='leave'&&C.dumping)C.dumping=0}
+function truckVisual(dt){if(!truck)return;const K=truck,M=K.m;M.root.position.set(K.x,0,-K.d);const f=K.fill/T.TRUCK_CAP;
+ M.fill.visible=f>0;M.fill.scale.y=Math.max(.01,Math.min(1,f*1.1));M.fill.position.y=.06+M.fill.scale.y*.5;M.heap.visible=f>=.8;M.heap.scale.y=f>=.8?(f-.6)*1.6:.01;M.heap.position.y=1.1;
+ const sp=K.st==='arrive'?C.v+10:K.st==='wait'?C.v:K.v;for(const w of M.wheels)w.rotation.x-=sp*dt/.55}
+
+/* ---------- hits ---------- */
+const CAUSE={cones:['Wrecked','You plowed through the cones.'],stakes:['Wrecked','You took out the survey stakes. The surveyor is not happy.'],trench:['In the trench!','You drove into an open trench.'],
+ util:['Line strike!','Spray paint marks a buried line. Never dig there.'],foreman:['Wrecked','You hit the foreman\'s pickup!'],fuel:['Out of diesel','The tank ran dry. Grab diesel cans to keep going.']};
+function hitHazard(o){if(o.t==='util'){crash('util',o);return}
+ // the Marsh Buggy's pontoons float it straight over an open trench
+ if(o.t==='trench'&&spec.M.kind==='swamp'){o.done=true;popText('Floated <b>over the trench</b>');sfx('swing');buzz(15);return}
+ if(C.invT>0)return;
+ if(C.shield){C.shield=false;C.invT=T.SHIELD_GRACE;o.done=true;smash(o);popText('Hard hat <b>saved you!</b>');sfx('hat');buzz(40);stats.hats++;return}
+ crash(o.t,o)}
+function smash(o){if(o.t!=='trench')o.m.visible=false;burst(o.x,.6,-o.d,22,8,o.t==='cones'?'#ff7a2a':'#e6c9a0');puff(o.x,.5,-o.d,1.5)}
+function pickup(o){o.done=true;o.m.visible=false;const pts=T.PICK*coffeeX();bonus+=pts;burst(o.x,1,-o.d,16,6,'!#ffd27a');
+ if(o.t==='diesel'){C.fuel=Math.min(T.FUEL_MAX,C.fuel+T.DIESEL);sfx('diesel');popText('Diesel <b>+fuel</b> · +1 <span class="can"></span>');lowWarned=C.fuel<25;runCans++;C.diesel++;stats.diesel++;missionEvent('diesel',C.diesel,true)}
+ else if(o.t==='hat'){C.shield=true;sfx('hat');popText('Hard hat <b>· one free hit</b>')}
+ else{C.coffeeT=T.COFFEE_T;sfx('coffee');popText('Coffee! <b>x2 points</b>');stats.coffee++;missionEvent('coffee')}
+ buzz(15)}
+function crash(c,o){state='crash';cause=c;crashT=0;hideRunUI();
+ shake=settings.shake?(matchMedia('(prefers-reduced-motion: reduce)').matches?.2:1):0;
+ if(c==='fuel'){sfx('swing');return}
+ if(c==='util'){sfx('strike');burst(C.x,1,-C.d-3,30,9,'!#ffe28a');burst(C.x,1,-C.d-3,20,6,'#ffffff')}else sfx('crash');
+ if(o&&(o.t==='cones'||o.t==='stakes'))smash(o);
+ burst(C.x,1,-C.d-2,26,9,'#ffffff');puff(C.x,.6,-C.d-2,2);puff(C.x+.6,.6,-C.d-1,1.7);buzz(70)}
+function popText(html,bad){document.querySelectorAll('.pop').forEach(e=>e.remove());const el=document.createElement('div');el.className='pop'+(bad?' bad':'');el.innerHTML=html;document.body.appendChild(el);setTimeout(()=>el.remove(),1200)}
+function celebrateBest(){beatBest=true;show('newBest',0);void $('newBest').offsetWidth;show('newBest',1);setTimeout(()=>show('newBest',0),1700);burst(C.x,2,-C.d-4,40,10,'!#ffc21a');chime([523,659,784,1047]);buzz(40)}
+
+/* ---------- tick ---------- */
+function tick(dt){const J=job(),dist=C.d-T.START_D;
+ let v=J.v0+(J.v1-J.v0)*Math.min(1,dist/J.vr);if(doneD)v+=Math.min(4,(C.d-doneD)*.002);if(C.coffeeT>0){C.coffeeT-=dt;v*=T.COFFEE_V}
+ C.v+=(v-C.v)*Math.min(1,dt*2.5);const pd=C.d;C.d+=C.v*dt;C.t+=dt;if(C.coffeeT>0)bonus+=C.d-pd;
+ C.x+=(LANE_X[C.lane]-C.x)*Math.min(1,dt*spec.swing);
+ C.fuel-=T.FUEL_DRAIN*spec.drain*dt*(C.coffeeT>0?1.15:1);
+ if(C.fuel<25&&!lowWarned){lowWarned=true;coach('Low fuel! Grab a <b>diesel can</b>',true);coachT=2.4}
+ if(C.fuel<=0){C.fuel=0;crash('fuel');return}
+ C.comboT-=dt;if(C.comboT<=0)C.combo=0;if(C.invT>0)C.invT-=dt;
+ genRows();truckTick(dt);C.swingA+=((C.dumping?1:0)-C.swingA)*Math.min(1,dt*7);
+ // anything between the back of the tracks and the bucket's reach, overlapping the machine sideways, is hit (or scooped)
+ const front=C.d+mach.reach,back=C.d-1.9*mach.M.scale,mh=mach.half;
+ for(const o of OBJS){if(o.done)continue;
+  if(o.t==='foreman'){o.d-=J.fv*dt;o.m.position.z=-o.d;if(!o.honked&&o.d-C.d<70){o.honked=true;sfx('horn');if(!store.get('foremanTip',false)){store.set('foremanTip',true);coach('The foreman\'s pickup! <b>Get out of its lane</b>',true);coachT=2.6}}}
+  if(o.d-o.depth>front||o.d+o.depth<back)continue;
+  if(Math.abs(o.x-C.x)>=o.half+mh)continue;
+  if(o.t==='pile')scoop(o);else if(o.t==='diesel'||o.t==='hat'||o.t==='coffee')pickup(o);else{hitHazard(o);if(state!=='play')return}}
+ // tidy up everything left behind
+ if(OBJS.length&&OBJS[0].d<C.d-30||OBJS.some(o=>o.t==='foreman'&&o.d<C.d-30)){OBJS=OBJS.filter(o=>{const keep=o.d>=C.d-30;if(!keep){scene.remove(o.m);if(o===foreman)foreman=null}return keep});ROWS=ROWS.filter(r=>r.d>=C.d-30)}
+ if(foreman&&foreman.d<C.d-30)foreman=null;
+ if(tut)tutTick(dt);else if(coachT>0){coachT-=dt;if(coachT<=0)show('coach',0)}
+ if(!beatBest&&runBest>=200&&score()>runBest)celebrateBest();
+ if((C.t%1)<dt)missionEvent('dist',Math.floor(dist),true)}
+function tutTick(dt){if(coachT>0){coachT-=dt;if(coachT<=0&&tutS>=2)show('coach',0);return}
+ if(tutS===1)coach('Drive over <b>dirt piles</b> to scoop');
+ if(C.trucks>=1||C.d-T.START_D>700){tut=false;store.set('tutDone',true);coach('You\'ve got it. <b>Good luck!</b>');coachT=2.5}}
+
+/* ---------- revive ---------- */
+// after the crash plays out, a run past 150 m can be continued once for fuel cans (4 s to decide), as in Swervy and Tuggy.
+// A line strike can't be revived: the spray paint is the one rule that always ends the job.
+function canRevive(){return!reviveUsed&&!tut&&cause!=='util'&&C.d-T.START_D>150&&cans>=T.REVIVE}
+function offerRevive(){state='revive';show('hud',0);show('bhud',0);reviveT=4;$('rvT').textContent=4;$('rvWhat').textContent=cause==='fuel'?'Top up the tank and carry on':'Dust off and carry on';$('rvYes').innerHTML=`Revive · ${T.REVIVE} <span class="can"></span>`;show('revive',1)}
+function acceptRevive(){if(state!=='revive'||cans<T.REVIVE)return;audioInit();cans-=T.REVIVE;store.set('cans',cans);reviveUsed=true;stats.revives++;show('revive',0);
+ // clear the hazards around the machine and give a short grace so the restart itself can't crash
+ for(const o of OBJS)if(!o.done&&o.t!=='pile'&&o.t!=='diesel'&&o.t!=='hat'&&o.t!=='coffee'&&Math.abs(o.d-C.d)<30){o.done=true;o.m.visible=false}
+ if(cause==='fuel')C.fuel=T.FUEL_MAX*.6;C.tip=0;C.roll=0;C.y=0;C.invT=2;C.x=LANE_X[C.lane];
+ chime([392,523,784]);buzz(30);show('hud',1);show('bhud',1);state='paused';counting=2.4;$('countN').textContent='3';show('count',1)}
+$('rvYes').addEventListener('click',acceptRevive);$('rvNo').addEventListener('click',()=>{if(state==='revive')finishRun()});
+
+/* ---------- results ---------- */
+function maybeAskReview(){const R=NATIVE.review;if(!R||stats.runs<8)return;if(Date.now()-num(store.get('reviewAsked',0),0)<120*864e5)return;
+ store.set('reviewAsked',Date.now());setTimeout(()=>R.requestReview().catch(()=>{}),1500)}
+let lastRun=null;
+function finishRun(){show('hud',0);show('bhud',0);hideRunUI();const J=job(),sc=score(),dist=Math.max(0,Math.floor(C.d-T.START_D)),prevBest=bests[J.id],nb=sc>prevBest&&sc>0;
+ if(nb){bests[J.id]=sc;store.set('bests',bests)}
+ // medals: the best one per job is kept, and each medal pays fuel cans the first time it's won
+ const m=medalFor(J,C.trucks),pm=medals[J.id];let medalCans=0;if(m>pm){for(let k=pm+1;k<=m;k++)medalCans+=MEDAL_CANS[k];medals[J.id]=m;store.set('medals',medals)}
+ if(m===3)stats.gold++;
+ // a medal won in the run counts for the job even when a revive was declined
+ stats.runs++;stats.scoops+=C.scoops;cans+=runCans+medalCans;store.set('cans',cans);store.set('stats',stats);
+ missionEvent('runs');if(m)missionEvent('medal',m,true);
+ lastRun={sc,dist,trucks:C.trucks,best:nb,job:J.n,jobI:cfg.job,mach:spec.M.n,medal:m};
+ const[ti,why]=CAUSE[cause]||CAUSE.cones;$('oTitle').textContent=ti;$('oWhy').textContent=why;
+ $('oScore').innerHTML=fmt(sc)+'<small>pts</small>';$('oTrucks').textContent=C.trucks;$('oMeters').textContent=fmt(dist)+'m';
+ $('oCans').textContent='+'+(runCans+medalCans);
+ $('oBestWrap').innerHTML=nb?'<b>New best!</b>':'Best <b>'+fmt(bests[J.id])+'</b>';$('oTip').innerHTML=pickTip();$('shareBtn').textContent=nb?'Share best!':'Share';
+ $('oMed').innerHTML=[1,2,3].map(k=>`<div class="medal m${k} ${m>=k?'on':''}"><i></i><b>${MEDALS[k]}</b>${J.goal+(k-1)*2} trucks</div>`).join('');
+ state='over';show('over',1);afterRun(dist,nb);const got=checkAch();$('oAch').hidden=!got.length;$('oAch').innerHTML=got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
+ if(nb&&prevBest>0)maybeAskReview()}
+const TIPS=['Lines of three piles build a <b>combo</b>. Keep scooping to keep it going.','A full truck pays <b>+500</b>. Stay beside it until it pulls away.',
+ 'With a full bucket, <b>skip the piles</b>: each extra one costs you 100.','<b>Spray paint</b> marks a buried line. Even a hard hat can\'t save you there.',
+ 'The yellow arrows by your tracks show which way the <b>next tap</b> swings.','<b>Coffee</b> doubles every point for a few seconds.',
+ '<b>Hydraulics</b> upgrades dump faster and make trucks wait longer.','The <b>Marsh Buggy</b> floats straight over open trenches.'];
+function pickTip(){const J=job();if(!medals[J.id]){const left=J.goal-C.trucks;return C.trucks>0?`<b>${left}</b> more truck${left>1?'s':''} to finish ${J.n} and unlock the <b>${MACHINES[J.unlock].n}</b>.`:TIPS[1]}
+ const nx=JOBS[cfg.job+1];if(nx&&medals[J.id]===1&&Math.random()<.4)return`<b>${nx.n}</b> is open. Pick it in the Yard.`;
+ const buy=MORDER.find(id=>!unlocked.includes(id)&&MACHINES[id].price&&cans>=MACHINES[id].price);if(buy)return`You can buy the <b>${MACHINES[buy].n}</b> in the Yard!`;
+ const P=perfFor(cfg.mach),up=UPG.find(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1]);if(up&&Math.random()<.6)return`You can afford a <b>${up.n.toLowerCase()}</b> upgrade in the Yard.`;
+ return TIPS[Math.random()*TIPS.length|0]}
+
+/* ---------- operator XP, missions, daily reward, trophies (Tuggy's systems) ---------- */
+// every run earns XP; levels need 100 + 60 × level, and each level-up pays 20 + 5 × the new level in fuel cans
+let xp=num(store.get('xp',0),0),level=Math.max(1,num(store.get('level',1),1)|0),xpTok=0;
+const xpNeed=l=>100+60*l;
+const MPOOL={
+ scoops1:{t:n=>`Scoop ${n} piles in one run`,n:[10,15,20,28,36],one:1},
+ trucks1:{t:n=>n>1?`Load ${n} trucks in one run`:'Load a truck',n:[1,2,3,4,5],one:1},
+ trucksT:{t:n=>`Load ${n} trucks in total`,n:[3,6,10,15,22]},
+ runs:{t:n=>`Finish ${n} runs`,n:[2,3,4,5,6]},
+ combo:{t:n=>`Reach a x${n} combo`,n:[3,3,4,5,5],one:1},
+ diesel:{t:n=>`Grab ${n} diesel cans in one run`,n:[2,3,4,5,6],one:1},
+ coffee:{t:n=>n>1?`Drink ${n} coffees`:'Drink a coffee',n:[1,2,2,3,4]},
+ medal:{t:n=>`Win a ${MEDALS[n].toLowerCase()} medal or better`,n:[1,1,2,2,3],one:1},
+ dist:{t:n=>`Dig ${fmt(n)} m in one run`,n:[400,700,1000,1500,2200],one:1},
+ job:{t:n=>n>1?`Finish ${n} jobs`:'Finish a job',n:[1,1,2,2,3]}};
+const MREW=[[15,40],[20,55],[25,70],[32,90],[42,120]];
+let missions=(v=>Array.isArray(v)?v.filter(m=>m&&MPOOL[m.id]&&typeof m.n==='number'):[])(store.get('missions',null));
+function tier(){return Math.min(4,Math.floor((level-1)/3))}
+function newMission(skip){const ids=Object.keys(MPOOL).filter(id=>!skip.includes(id)),id=ids[Math.random()*ids.length|0],t=tier();return{id,n:MPOOL[id].n[t],rw:MREW[t][0],xp:MREW[t][1],p:0,done:false}}
+function refreshMissions(){missions=missions.filter(m=>!m.done);while(missions.length<3)missions.push(newMission(missions.map(m=>m.id)));
+ // one-run missions start over each run
+ missions.forEach(m=>{if(MPOOL[m.id].one)m.p=0});store.set('missions',missions)}
+let runMXP=0;
+function missionEvent(id,v=1,set){if(tut||!missions.length)return;let ch=false;for(const m of missions){if(m.done||m.id!==id)continue;const p=set?Math.max(m.p,v):m.p+v;if(p===m.p)continue;m.p=p;ch=true;
+  if(m.p>=m.n){m.p=m.n;m.done=true;cans+=m.rw;store.set('cans',cans);runMXP+=m.xp;if(state!=='over')toast(`✓ ${MPOOL[m.id].t(m.n)} · +${m.rw} <span class="can"></span>`);chime([659,880,1175]);buzz(25)}}
+ if(ch&&id!=='dist'&&id!=='scoops1')store.set('missions',missions)}
+function renderMissions(id){$(id).innerHTML=`<span>Missions</span>`+missions.map(m=>`<div class="mrow ${m.done?'done':''}"><span class="ck">${m.done?'✓':''}</span><span>${MPOOL[m.id].t(m.n)}</span><span class="mp">${m.done?'+'+m.rw+' <span class="can"></span>':m.id==='medal'||m.id==='combo'?'+'+m.rw+' <span class="can"></span>':fmt(Math.floor(m.p))+'/'+fmt(m.n)}</span></div>`).join('')}
+function renderLevel(){$('gLv').innerHTML=`Operator ${level}<span class="xpbar"><i style="width:${xp/xpNeed(level)*100}%"></i></span>`}
+// XP for a run, then the results bar fills (resetting on a level-up)
+function afterRun(dist,nb){store.set('missions',missions);const g=Math.round(dist/25)+C.trucks*10+C.scoops+(nb?30:0)+runMXP;runMXP=0;
+ const tok=++xpTok,l0=level,x0=xp;xp+=g;let pay=0;while(xp>=xpNeed(level)){xp-=xpNeed(level);level++;pay+=20+5*level}
+ if(pay){cans+=pay;store.set('cans',cans)}store.set('xp',xp);store.set('level',level);
+ $('oXPg').textContent=`+${g} XP`;$('oLv').textContent=`Operator ${l0}`;$('oLvUp').hidden=true;const bar=$('oXPbar');bar.style.transition='none';bar.style.width=x0/xpNeed(l0)*100+'%';void bar.offsetWidth;bar.style.transition='';
+ renderMissions('oMissions');
+ setTimeout(()=>{if(tok!==xpTok)return;if(pay){bar.style.width='100%';setTimeout(()=>{if(tok!==xpTok)return;bar.style.transition='none';bar.style.width='0%';void bar.offsetWidth;bar.style.transition='';bar.style.width=xp/xpNeed(level)*100+'%';
+   $('oLv').textContent=`Operator ${level}`;$('oLvUp').innerHTML=`Level up! <b>+${pay}</b> <span class="can"></span>`;$('oLvUp').hidden=false;chime([523,659,784,1047]);buzz(40)},950)}else bar.style.width=xp/xpNeed(level)*100+'%'},250)}
+// daily reward: a 7-day ladder; missing a day starts it over. It begins once the first run is done.
+const DAILY=[20,30,40,60,80,100,200],dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+let daily=Object.assign({last:'',streak:0},obj(store.get('daily',{})));daily.streak=num(daily.streak,0);if(typeof daily.last!=='string')daily.last='';
+function checkDaily(){if(!stats.runs)return;const now=new Date(),today=dayKey(now);if(daily.last===today)return;
+ const y=new Date(now);y.setDate(y.getDate()-1);const streak=daily.last===dayKey(y)?daily.streak+1:1,idx=(streak-1)%7,amt=DAILY[idx];
+ $('dTitle').textContent=streak>1?`Day ${streak} streak!`:'Daily reward';
+ $('dSub').textContent=streak>1?`You've clocked in ${streak} days in a row. Come back tomorrow for +${DAILY[(idx+1)%7]}.`:`Come back tomorrow for +${DAILY[1]}. Miss a day and the streak resets.`;
+ $('dDays').innerHTML=DAILY.map((a,i)=>`<div class="day ${i<idx?'got':''} ${i===idx?'today':''} ${i===6?'big':''}"><span>Day ${i+1}</span><b>${a}</b><span class="can"></span></div>`).join('');
+ $('dClaim').innerHTML=`Claim +${amt} <span class="can"></span>`;
+ $('dClaim').onclick=()=>{audioInit();daily={last:today,streak};store.set('daily',daily);cans+=amt;store.set('cans',cans);show('daily',0);chime([523,659,784,1047,1319]);buzz(40);if(state==='yard')renderYard()};
+ show('daily',1)}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state==='yard')checkDaily()});
+// trophies: lifetime goals, each paying fuel cans once. IDs are stable so they can map to Game Center achievements.
+const TROPHY='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3h12v3h3v3a5 5 0 0 1-5 5h-.4A5 5 0 0 1 13 16.9V19h3v2H8v-2h3v-2.1A5 5 0 0 1 8.4 14H8a5 5 0 0 1-5-5V6h3V3zm0 5H5v1a3 3 0 0 0 1.4 2.5A6 6 0 0 1 6 9V8zm12 0v1a6 6 0 0 1-.4 2.5A3 3 0 0 0 19 9V8h-1z"/></svg>';
+const ACH=[
+ ['first_run','Clocked In','Finish your first run',10,()=>stats.runs,1],
+ ['house','Pad Ready','Finish House Pad',30,()=>medals.house?1:0,1],
+ ['road','Through the Hill','Finish Road Cut',50,()=>medals.road?1:0,1],
+ ['lot','Paved Paradise','Finish Parking Lot',80,()=>medals.lot?1:0,1],
+ ['freeway','Interchange Boss','Finish Freeway Interchange',150,()=>medals.freeway?1:0,1],
+ ['gold','Gold Standard','Win a gold medal',60,()=>stats.gold,1],
+ ['gold_all','Golden Crew','Win gold on every job',300,()=>JOBS.filter(J=>medals[J.id]>=3).length,4],
+ ['trucks_25','Hauler','Load 25 trucks',30,()=>stats.trucks,25],
+ ['trucks_100','Fleet Filler','Load 100 trucks',100,()=>stats.trucks,100],
+ ['scoops_500','Dirt Mover','Scoop 500 piles',50,()=>stats.scoops,500],
+ ['combo5','Combo King','Reach a x5 combo',30,()=>stats.combo5,1],
+ ['hard_head','Hard Head','Get saved by a hard hat',15,()=>stats.hats,1],
+ ['coffee_25','Caffeinated','Drink 25 coffees',25,()=>stats.coffee,25],
+ ['full_yard','Full Yard','Own every machine',150,()=>unlocked.length,MORDER.length],
+ ['streak_7','Weekly Operator','Play 7 days in a row',100,()=>daily.streak,7],
+ ['level_10','Foreman Material','Reach operator level 10',100,()=>level,10]];
+function checkAch(){const got=[];for(const[id,name,,rw,val,n]of ACH){if(achGot[id]||val()<n)continue;achGot[id]=1;cans+=rw;got.push([name,rw])}
+ if(got.length){store.set('ach',achGot);store.set('cans',cans);if(state!=='over')got.forEach(([n,r])=>toast(`${TROPHY} ${n} · +${r} <span class="can"></span>`))}return got}
+function renderAch(){const n=ACH.filter(a=>achGot[a[0]]).length;$('achBtn').innerHTML=`${TROPHY} ${n}/${ACH.length}`;$('achBtn').setAttribute('aria-label',`Trophies, ${n} of ${ACH.length} earned`);$('achTitle').textContent=`Trophies ${n}/${ACH.length}`;
+ $('achList').innerHTML=ACH.map(([id,name,desc,rw,val,t])=>{const g=!!achGot[id],v=Math.min(t,val());return`<div class="ach ${g?'got':''}">${TROPHY}<span><b>${name}</b><small>${desc}</small>${g?'':`<span class="xpbar"><i style="width:${v/t*100}%"></i></span>`}</span><span class="rw">${g?'Done':`+${rw} <span class="can"></span>`}</span></div>`}).join('')}
+$('achBtn').addEventListener('click',()=>{renderAch();show('achPanel',1)});$('achClose').addEventListener('click',()=>show('achPanel',0));
+
+/* ---------- share card ---------- */
+// a 1080x1350 branded card; the native share sheet sends the image where supported, otherwise the text is copied
+let shareFile=null;
+function drawCard(){const r=lastRun,J=JOBS[r.jobI],W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+ const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,J.sky[0]);bg.addColorStop(.38,J.sky[2]);bg.addColorStop(.5,J.sky[3]);bg.addColorStop(.51,'#b58a5c');bg.addColorStop(1,'#7a5434');g.fillStyle=bg;g.fillRect(0,0,W,H);
+ g.fillStyle='rgba(95,122,74,.85)';g.beginPath();g.moveTo(0,690);for(let x=0;x<=W;x+=60)g.lineTo(x,660-Math.abs(Math.sin(x*.006)*60)-Math.sin(x*.017)*20);g.lineTo(W,700);g.lineTo(0,700);g.fill();
+ // three dig lanes running up the card, with dirt piles and a truck
+ g.fillStyle='rgba(120,84,50,.45)';for(const k of[-1,0,1]){g.beginPath();g.moveTo(W/2+k*70-30,690);g.lineTo(W/2+k*70+30,690);g.lineTo(W/2+k*330+120,H);g.lineTo(W/2+k*330-120,H);g.fill()}
+ g.fillStyle='#8a5a30';for(const[x,y,sz]of[[470,820,46],[610,760,30],[300,1010,70]]){g.beginPath();g.ellipse(x,y,sz*1.4,sz*.7,0,Math.PI,0);g.fill()}
+ g.textAlign='center';g.fillStyle='#f7f1e3';const disp='800 italic 132px "Saira Condensed","Arial Narrow",Impact,sans-serif';
+ g.font=disp;const w1=g.measureText('SCOO').width,w2=g.measureText('PY').width,x0=W/2-(w1+w2)/2;g.textAlign='left';g.shadowColor='rgba(0,0,0,.35)';g.shadowBlur=20;g.fillText('SCOO',x0,190);g.fillStyle='#ffc21a';g.fillText('PY',x0+w1,190);g.textAlign='center';
+ g.font='800 34px "Barlow",system-ui,sans-serif';g.fillStyle='#f7f1e3';g.fillText(J.n.toUpperCase()+' · '+r.mach.toUpperCase(),W/2,250);
+ g.font='800 italic 210px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.shadowBlur=30;g.fillText(fmt(r.sc),W/2,450);g.shadowBlur=0;
+ g.font='700 46px "Barlow",system-ui,sans-serif';g.fillText(`pts · ${r.trucks} truck${r.trucks===1?'':'s'} loaded`,W/2,520);
+ let y0=566;if(r.medal){const col=['','#c47a3e','#c9ced4','#ffc21a'][r.medal],t=MEDALS[r.medal].toUpperCase()+' MEDAL';g.font='800 40px "Barlow",system-ui,sans-serif';const tw=g.measureText(t).width+90;g.fillStyle='rgba(20,16,12,.72)';g.beginPath();if(g.roundRect)g.roundRect(W/2-tw/2,y0,tw,70,35);else g.rect(W/2-tw/2,y0,tw,70);g.fill();g.fillStyle=col;g.beginPath();g.arc(W/2-tw/2+38,y0+35,18,0,7);g.fill();g.fillStyle='#f7f1e3';g.fillText(t,W/2+18,y0+49);y0+=90}
+ if(r.best){g.fillStyle='#ffc21a';g.beginPath();if(g.roundRect)g.roundRect(W/2-170,y0,340,70,35);else g.rect(W/2-170,y0,340,70);g.fill();g.fillStyle='#1d1508';g.font='800 40px "Barlow",system-ui,sans-serif';g.fillText('NEW BEST',W/2,y0+48)}
+ g.fillStyle='rgba(20,16,12,.8)';g.fillRect(0,H-190,W,190);g.fillStyle='#ffc21a';g.font='800 italic 92px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillText('CAN YOU BEAT IT?',W/2,H-82);
+ g.fillStyle='rgba(247,241,227,.6)';g.font='700 26px "Barlow",system-ui,sans-serif';g.fillText('B Y   T O R Q U E   S P E C   S T U D I O S',W/2,H-30);
+ return c}
+function shareText(){return`I loaded ${lastRun.trucks} truck${lastRun.trucks===1?'':'s'} on ${lastRun.job} and scored ${fmt(lastRun.sc)} pts in Scoopy. Can you beat it? https://torquespecstudios.com/scoopy-beta/`}
+function openShare(){if(!lastRun)return;const c=drawCard();$('shareImg').src=c.toDataURL('image/png');$('shareMsg').textContent='';shareFile=null;c.toBlob(b=>{try{shareFile=new File([b],'scoopy-run.png',{type:'image/png'})}catch(e){}},'image/png');show('share',1)}
+$('shareBtn').addEventListener('click',openShare);
+$('shareGo').addEventListener('click',async()=>{const text=shareText();
+ if(NATIVE.share){NATIVE.share.share({title:'Scoopy',text}).catch(()=>{});return}
+ try{if(shareFile&&navigator.canShare&&navigator.canShare({files:[shareFile]})){await navigator.share({files:[shareFile],text,title:'Scoopy'});return}if(navigator.share){await navigator.share({text,title:'Scoopy'});return}}catch(e){if(e&&e.name==='AbortError')return}
+ try{await navigator.clipboard.writeText(text);$('shareMsg').textContent='Challenge copied. Long-press the card to save it.'}catch(e){$('shareMsg').textContent='Long-press the card to save it.'}});
+$('shareClose').addEventListener('click',()=>show('share',0));
+function toast(html){const t=$('mtoast');t.hidden=true;void t.offsetWidth;t.innerHTML=html;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2400)}
+function coach(html,warn){const c=$('coach');if(c.innerHTML!==html)c.innerHTML=html;c.classList.toggle('warn',!!warn);c.hidden=false}
+
+/* ---------- HUD ---------- */
+let pipsFor=0;
+function updateHud(){if(!C)return;$('score').innerHTML=fmt(score())+'<small>pts</small>';const J=job();
+ $('sub').textContent=fmt(Math.max(0,C.d-T.START_D))+' m · '+(doneD?'Overtime':J.n);
+ $('trucksN').textContent=doneD?C.trucks:C.trucks+'/'+J.goal;
+ $('combo').hidden=!(state==='play'&&C.combo>1);if(C.combo>1){$('comboN').textContent='x'+mult();$('comboBar').style.width=Math.max(0,C.comboT/T.COMBO_T*56)+'px'}
+ show('hatPill',state==='play'&&C.shield);show('cofPill',state==='play'&&C.coffeeT>0);if(C.coffeeT>0)$('cofN').textContent='x2 · '+Math.ceil(C.coffeeT)+'s';
+ if(pipsFor!==C.cap){pipsFor=C.cap;$('bPips').innerHTML='<i></i>'.repeat(C.cap)}
+ [...$('bPips').children].forEach((p,i)=>p.classList.toggle('on',i<C.load));$('bucketN').textContent=C.load>=C.cap?'Full':C.load+'/'+C.cap;$('bucketM').classList.toggle('full',C.load>=C.cap&&state==='play');
+ const f=Math.max(0,C.fuel/T.FUEL_MAX);$('fuelBar').style.width=(f*100).toFixed(1)+'%';$('fuelN').textContent=Math.ceil(f*100)+'%';$('fuelM').classList.toggle('low',f<.25);
+ const tb=$('toBest'),left=Math.ceil(runBest-score());tb.hidden=!(state==='play'&&runBest>=200);
+ if(!tb.hidden){tb.classList.toggle('beat',beatBest);tb.innerHTML=beatBest?'New best!':'<b>'+fmt(left)+'</b> pts to beat your best'}
+ const tc=$('tchip'),K=truck,on=state==='play'&&K&&K.st!=='leave';tc.hidden=!on;
+ if(on){tc.className=(K.side<0?'l':'r')+(K.st==='wait'?' go':'');$('tchipT').textContent=(K.side<0?'◀ ':'')+'Truck '+K.fill+'/'+T.TRUCK_CAP+(K.side>0?' ▶':'');$('tchipBar').style.width=K.st==='wait'?Math.max(0,100-K.t/truckWait()*100)+'%':'0%'}
+ $('runCans').textContent=runCans}
+
+/* ---------- input ---------- */
+// one tap swings the machine one lane; at the edge the swing direction flips, so taps sweep left, right, left across the site
+function press(){audioInit();if(state==='ready'){startRun();return}if(state!=='play')return;
+ let n=C.lane+C.dir;if(n<0||n>2){C.dir=-C.dir;n=C.lane+C.dir}C.lane=n;if(C.lane===0||C.lane===2)C.dir=C.lane===0?1:-1;
+ sfx('swing');buzz(8);if(tut&&tutS===0){tutS=1}}
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();if(state==='yard'){drag={x:e.clientX};return}press()});
+let drag=null;
+window.addEventListener('pointermove',e=>{if(drag){orbA-=(e.clientX-drag.x)*.008;drag.x=e.clientX}});
+const up=()=>{drag=null};window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+// leaving the app mid-run pauses it rather than letting the machine drive into a trench
+function pause(){if(state!=='play'&&!(state==='paused'&&counting>0))return;state='paused';counting=0;show('count',0);show('pauseBtn',0);show('coach',0);show('paused',1)}
+function resume(){show('paused',0);show('count',1);counting=2.4;$('countN').textContent='3'}
+window.addEventListener('blur',()=>{drag=null;pause()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
+window.addEventListener('keydown',e=>{
+ if(e.code==='Escape'||e.code==='KeyP'){if(!$('settings').hidden){show('settings',0);return}if(state==='play')pause();else if(state==='paused'&&!counting)resume();return}
+ if(e.code!=='Space'&&e.code!=='ArrowLeft'&&e.code!=='ArrowRight')return;
+ if(state==='over'){if(e.code==='Space'){e.preventDefault();if(!e.repeat)$('retry').click()}return}
+ if(state==='yard'&&e.code==='Space'){e.preventDefault();if(!e.repeat)$('drive').click();return}
+ if(state!=='ready'&&state!=='play')return;e.preventDefault();if(!e.repeat)press()});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.sheet'))e.preventDefault()},{passive:false});
+$('pauseBtn').addEventListener('click',e=>{e.stopPropagation();pause()});
+$('resume').addEventListener('click',resume);
+$('restart').addEventListener('click',()=>{show('paused',0);goReady(true)});
+$('pYard').addEventListener('click',()=>{show('paused',0);goYard()});
+$('retry').addEventListener('click',()=>{audioInit();goReady(true)});
+$('toYard').addEventListener('click',goYard);
+
+/* ---------- settings ---------- */
+const SET_OPTS={sound:[['On',true],['Off',false]],music:[['On',true],['Off',false]],haptics:[['On',true],['Off',false]],quality:[['High','high'],['Low','low']],shake:[['On',true],['Off',false]]};
+// dynamic resolution (from Swervy): while working, if frames run slower than ~50fps the render scale steps down (to 60% at most),
+// and back up once there's headroom. A rock-steady ~30fps means the phone is capping frames (Low Power Mode), so it's left alone
+let basePR=1,renderScale=1,frameEMA=16.7,slowT=0,fastT=0;const recent=[];
+function setRenderScale(sc){renderScale=clamp(sc,.6,1);R.setPixelRatio(basePR*renderScale);resize()}
+function perfTick(rawMs,dt){if(state!=='play'||rawMs>250)return;frameEMA+=(rawMs-frameEMA)*.1;recent.push(rawMs);if(recent.length>30)recent.shift();
+ const capped=recent.length===30&&Math.max(...recent)-Math.min(...recent)<4&&frameEMA>28;
+ if(frameEMA>20&&!capped){slowT+=dt;fastT=0;if(slowT>1.5&&renderScale>.6){slowT=0;setRenderScale(renderScale-.15)}}
+ else if(frameEMA<13.5){fastT+=dt;slowT=0;if(fastT>5&&renderScale<1){fastT=0;setRenderScale(renderScale+.1)}}else{slowT=0;fastT=0}}
+function applyQuality(){const low=settings.quality==='low',ms=low||PHONE?1024:2048;basePR=low?1:Math.min(window.devicePixelRatio||1,PHONE?1.5:2);R.setPixelRatio(basePR*renderScale);
+ if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}scene.fog.far=low?220:330;resize()}
+function renderSettings(){document.querySelectorAll('#settings .seg').forEach(el=>{const k=el.dataset.s,cur=k==='sound'?!muted:settings[k];
+ el.innerHTML=SET_OPTS[k].map(([n,v])=>`<button class="${v===cur?'on':''}" aria-pressed="${v===cur}">${n}</button>`).join('');
+ el.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{const v=SET_OPTS[k][i][1];if(k==='sound'){audioInit();setMute(!v)}else{settings[k]=v;store.set('settings',settings);if(k==='quality')applyQuality();if(k==='haptics'&&v)buzz(30)}renderSettings()})})}
+function openSettings(){renderSettings();$('replayTut').textContent=store.get('tutDone',false)?'Replay the tutorial on next job':'Tutorial will play on your next job';show('settings',1)}
+$('setBtn').addEventListener('click',openSettings);$('pSettings').addEventListener('click',openSettings);
+$('setClose').addEventListener('click',()=>show('settings',0));
+$('replayTut').addEventListener('click',()=>{store.set('tutDone',false);$('replayTut').textContent='Tutorial will play on your next job'});
+// Android back button: close the open panel, pause a run, resume from pause, leave the start or results screen for the yard,
+// and from the yard send the app to the background. It never quits mid-run (the system default would)
+if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{
+ if(!$('settings').hidden){show('settings',0);return}
+ if(state==='play'||(state==='paused'&&counting>0)){pause();return}
+ if(state==='paused'){resume();return}
+ if(state==='ready'||state==='over'){goYard();return}
+ if(state==='yard')NATIVE.app.minimizeApp()});
+
+/* ---------- yard (title screen, the family's garage) ---------- */
+// machine cards on top; under them the machine's stats and three tabs: Jobs (with medals), Upgrades and Paint
+const TABS=[{id:'jobs',n:'Jobs'},{id:'upg',n:'Upgrades'},{id:'paint',n:'Paint'}];let tab='jobs';
+const CANI='<span class="can"></span>';
+function renderYard(){checkAch();renderAch();renderLevel();const V=MACHINES[viewMach],own=unlocked.includes(viewMach),sp=specFor(viewMach);
+ $('gCans').textContent=fmt(cans);
+ $('models').innerHTML=MORDER.map(id=>{const M=MACHINES[id],o=unlocked.includes(id),ready=!o&&M.price&&cans>=M.price;return`<button class="mcard ${id===viewMach?'on':''} ${o?'':'lk'} ${ready?'ready':''}" data-id="${id}" type="button"><span class="mk">${o?'Bucket '+M.bucket:M.make}</span><span class="mn">${M.n}</span><span class="mt">${o?M.ty:M.price?CANI+fmt(M.price):'Finish '+JOBS.find(j=>j.id===M.need).n}</span></button>`}).join('');
+ $('models').querySelectorAll('.mcard').forEach(b=>b.onclick=()=>{audioInit();viewMach=b.dataset.id;if(unlocked.includes(viewMach)){cfg.mach=viewMach;store.set('mach',cfg.mach)}spec=specFor(viewMach);rebuildMachine(viewMach);resetWorld();renderYard();sfx('swing')});
+ $('mName').textContent=V.n;$('mType').textContent=V.ty;$('bBucket').style.width=V.bucket/5*100+'%';$('bSize').style.width=(V.scale-.6)/.6*100+'%';$('bScore').style.width=(V.mult-.8)/.8*100+'%';$('mPerk').textContent=V.perk;
+ $('tabs').innerHTML=TABS.map(t=>`<button class="tab ${t.id===tab?'on':''}" role="tab" data-t="${t.id}" type="button">${t.n}</button>`).join('');
+ $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;renderYard()});
+ const O=$('opts');
+ if(tab==='jobs'){const med=m=>[1,2,3].map(k=>`<i class="${m>=k?'m'+k:''}"></i>`).join('');
+  O.innerHTML=JOBS.map((J,i)=>{if(!jobOpen(J))return`<div class="lv soon"><span class="ln">${J.n}</span><span class="ls">Job ${i+1} · finish ${JOBS.find(x=>x.id===J.need).n} to unlock</span><span class="lm"></span></div>`;
+   return`<button class="lv ${i===cfg.job?'on':''}" data-i="${i}" type="button"><span class="ln">${J.n}</span><span class="ls">Job ${i+1} · load ${J.goal} trucks · ${bests[J.id]?'best '+fmt(bests[J.id]):'no score yet'}</span><span class="lm">${med(medals[J.id])}</span></button>`}).join('')
+   +`<p class="note">${job().d}. Bronze for ${job().goal} trucks in one run, silver for ${job().goal+2}, gold for ${job().goal+4}.</p>`;
+  O.querySelectorAll('button.lv').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(i===cfg.job)return;cfg.job=i;store.set('job',i);resetWorld();renderYard();sfx('swing')})}
+ else if(tab==='upg'){const P=perfFor(viewMach);O.innerHTML=UPG.map(u=>{const lv=P[u.id],max=lv>=u.lv.length-1,c=max?0:u.cost[lv+1];
+   return`<div class="part" data-u="${u.id}"><div class="pinfo"><b>${u.n} · ${u.lv[lv]}</b><span>${u.d}</span><div class="pips">${u.lv.slice(1).map((_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')}</div></div>${max?'<span class="perk">Maxed</span>':`<button class="buy" data-u="${u.id}" type="button" ${!own||cans<c?'disabled':''}>${CANI}${fmt(c)}</button>`}</div>`}).join('')+(own?'':'<p class="note">Unlock this machine to upgrade it.</p>');
+  O.querySelectorAll('.buy').forEach(b=>b.onclick=()=>{const u=UPG.find(x=>x.id===b.dataset.u),P2=perfFor(viewMach),c=u.cost[P2[u.id]+1];if(cans<c)return;cans-=c;P2[u.id]++;perf[viewMach]=P2;store.set('perf',perf);store.set('cans',cans);spec=specFor(viewMach);chime([523,784,1047]);buzz(20);renderYard();const el=O.querySelector(`.part[data-u="${u.id}"]`);if(el)el.classList.add('just')})}
+ else{const pi=paintOf(viewMach);O.innerHTML=`<div class="opt"><span>Paint <em>${PAINTS[pi].n}</em></span><div class="row">${PAINTS.map((p,i)=>`<button class="sw ${i===pi?'on':''}" style="background:${p.c||V.body}" data-i="${i}" type="button" aria-label="${p.n}"></button>`).join('')}</div></div><p class="note">Paint is free. Factory is each machine's own colour.</p>`;
+  O.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{paints[viewMach]=+b.dataset.i;store.set('paints',paints);rebuildMachine(viewMach);resetWorld();renderYard()})}
+ const d=$('drive');d.classList.remove('lkd');
+ if(own){d.innerHTML='Start · '+job().n;d.disabled=false}
+ else if(V.price){d.innerHTML=`Unlock · ${fmt(V.price)} ${CANI}`;d.disabled=cans<V.price}
+ else{d.innerHTML='Finish '+JOBS.find(j=>j.id===V.need).n+' to unlock';d.disabled=true;d.classList.add('lkd')}}
+$('drive').addEventListener('click',()=>{audioInit();const V=MACHINES[viewMach];
+ if(!unlocked.includes(viewMach)){if(!V.price||cans<V.price)return;cans-=V.price;unlocked.push(viewMach);store.set('unlocked',unlocked);store.set('cans',cans);cfg.mach=viewMach;store.set('mach',viewMach);chime([392,523,659,784,1047]);buzz(40);
+  const f=$('unlockFx');f.innerHTML=`<small>New machine</small><div class="disp">${V.n}</div><em>${V.perk}</em>`;show('unlockFx',0);void f.offsetWidth;show('unlockFx',1);setTimeout(()=>show('unlockFx',0),3000);renderYard();return}
+ cfg.mach=viewMach;store.set('mach',cfg.mach);goReady(false)});
+$('helpBtn').addEventListener('click',()=>show('help',1));$('helpClose').addEventListener('click',()=>show('help',0));
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
+ const rawMs=now-last,dt=Math.min(.05,rawMs/1000);last=now;perfTick(rawMs,dt);const t=now/1000;
+ if(state==='play'&&!manual)tick(dt);
+ else if(state==='crash'){crashT+=dt;
+  // a crash lurches the machine to a stop (a trench tips it nose-first into the pit); running dry just rolls to a halt
+  const decel=cause==='fuel'?6:24;C.v=Math.max(0,C.v-decel*dt);C.d+=C.v*dt;
+  if(cause==='trench'){C.tip+=(.32-C.tip)*Math.min(1,dt*6);C.y+=(-.55-C.y)*Math.min(1,dt*6)}else if(cause!=='fuel'){C.tip+=((crashT<.25?.12:0)-C.tip)*Math.min(1,dt*10);C.roll+=((crashT<.3?.08:0)-C.roll)*Math.min(1,dt*8)}
+  if(Math.random()<.3&&cause!=='fuel')puff(C.x+rand(-1,1),.5,-C.d-rand(0,3),1.2);
+  if(crashT>(cause==='fuel'?1.9:1.5)){if(canRevive())offerRevive();else finishRun()}}
+ else if(state==='revive'){reviveT-=dt;$('rvT').textContent=Math.max(1,Math.ceil(reviveT));if(reviveT<=0)finishRun()}
+ else if(state==='paused'&&counting>0){counting-=dt;if(counting<=0){counting=0;show('count',0);show('pauseBtn',1);state='play'}else $('countN').textContent=Math.ceil(counting/.8)}
+ updateChunks(C.d);
+ // machine: lane swing yaws the tracks toward the new lane; scoops dip and curl the arm; dumping swings the house over the truck
+ if(mach){const working=state==='play'||state==='crash'||state==='paused'||state==='ready'||state==='over';
+  C.yaw+=(clamp((C.x-LANE_X[C.lane])*.14,-.3,.3)-C.yaw)*Math.min(1,dt*10);
+  mach.root.position.set(C.x,C.y,-C.d);mach.root.rotation.y=state==='yard'?0:C.yaw;mach.tilt.rotation.x=-C.tip;mach.tilt.rotation.z=C.roll;
+  if(C.scoopT>0){C.scoopT+=dt;if(C.scoopT>.42)C.scoopT=0}
+  const sp=C.scoopT>0?(C.scoopT<.16?C.scoopT/.16:1-(C.scoopT-.16)/.26):0;
+  const PS=mach.pose;let p=lerpP(PS.carry,PS.dip,sp);p=lerpP(p,C.dumpFar&&PS.far?PS.far:PS.dump,C.swingA*(C.dumping?Math.min(1,.4+C.dumpT/(T.DUMP_T/spec.dump)*.6):1));
+  if(state==='yard')p=lerpP(PS.carry,PS.dip,(Math.sin(t*1.2)*.5+.5)*.35);
+  setPose(mach,p);mach.house.rotation.y=-C.dumpSide*C.swingA*Math.PI/2;
+  mach.load.visible=C.load>0;if(C.load>0){const k=.55+.45*C.load/C.cap;mach.load.scale.set(k*1.06,k*.75,k)}
+  const mv=state==='play'||state==='crash'?C.v:0;C.tread+=mv*dt;treadSide.offset.x=-C.tread/3.3*4%1;treadTop.offset.y=C.tread/3.3*4%1;for(const w of mach.wheels)w.rotation.x=-C.tread/(.58*mach.M.scale);
+  mach.beacon.material.color.setHSL(.09,1,Math.sin(t*9)>0?.6:.35);
+  // dust off the back of the tracks
+  if(mv>1){C.dustT-=dt;if(C.dustT<=0){C.dustT=.07;const s=mach.M.scale;for(const sd of[-1,1])puff(C.x+sd*.82*s,.25,-C.d+1.9*s,.7*s,.5)}}}
+ truckVisual(dt);
+ // pickups bob and spin; the foreman's light bar flashes
+ for(const o of OBJS){if(o.done)continue;const b=o.m.userData.b;if(b){b.position.y=1+Math.sin(t*2.5+o.d)*.12;b.rotation.y=t*1.6+o.d}if(o.bar)o.bar.material.color.setHSL(.09,1,Math.sin(t*14)>0?.62:.25)}
+ // next-swing chevrons
+ {const nl=C.lane+C.dir,show_=state==='play'||state==='ready';chev.visible=show_&&nl>=0&&nl<=2&&C.swingA<.2;if(chev.visible){const s=mach.M.scale;chev.position.set(C.x+C.dir*1.6*s,.03,-C.d+.6);chev.rotation.y=C.dir>0?0:Math.PI;chev.material.opacity=.45+.3*Math.sin(t*6)}}
+ // particles
+ for(const p of dust){if(p.life<=0)continue;p.life-=dt*.9;p.s.position.addScaledVector(p.v,dt);p.s.scale.setScalar(p.sz*(.8+(1-p.life)*2.6));p.s.material.opacity=Math.max(0,p.life)*.42;if(p.life<=0)p.s.visible=false}
+ for(const p of clods){if(p.life<=0)continue;p.life-=dt;p.v.y-=14*dt;p.s.position.addScaledVector(p.v,dt);if(p.s.position.y<.05){p.s.position.y=.05;p.v.y*=-.3;p.v.x*=.6;p.v.z*=.6}p.s.material.opacity=Math.min(1,p.life*2);if(p.life<=0)p.s.visible=false}
+ // camera
+ if(state==='yard'){if(!drag)orbA+=dt*.2;const s=mach.M.scale,rr=(cam.aspect<1?14:11)*s;cam.fov=cam.aspect<1?50:38;cam.position.set(C.x+Math.sin(orbA)*rr,3.6*s+1.2,-C.d+Math.cos(orbA)*rr);cam.lookAt(C.x,1.5*s,-C.d)}
+ else{
+  // chase cam, high and behind: far enough back that all three lanes (and a truck alongside) fit on a phone held upright
+  const tanH=Math.tan(55*Math.PI/360)*cam.aspect,dist=clamp(4.4/tanH,10.5,19),cx=C.x*.55,k=state==='ready'?Math.min(1,dt*3):Math.min(1,dt*8);
+  if(state==='crash'||state==='over'||state==='revive'){lookD.set(C.x,.6,-C.d-2);lookT.lerp(lookD,Math.min(1,dt*3))}
+  else{desired.set(cx,dist*.7,-C.d+dist*.71);cam.position.lerp(desired,k);lookD.set(cx,0,-C.d-6);lookT.lerp(lookD,Math.min(1,dt*8))}
+  cam.lookAt(lookT);
+  if(shake>.01){cam.position.x+=(Math.random()-.5)*shake*.5;cam.position.y+=(Math.random()-.5)*shake*.5;shake*=Math.pow(.05,dt)}
+  cam.fov+=((state==='play'?55+(C.coffeeT>0?7:0):55)-cam.fov)*Math.min(1,dt*3)}
+ cam.updateProjectionMatrix();
+ // the world follows the camera in whole texture tiles
+ const cz=cam.position.z;ground.position.set(Math.round(cam.position.x/10)*10,0,Math.round(cz/10)*10);
+ lanes.position.z=Math.round((cz-200)/10)*10;hauls.forEach(h=>h.position.z=Math.round((cz-200)/8)*8);
+ const st=new THREE.Vector3(C.x,0,-C.d-8);sun.target.position.copy(st);sun.position.copy(st).addScaledVector(SUNDIR,80);
+ hills.position.set(cam.position.x,0,cz);clouds.position.set(cam.position.x,0,cz);clouds.rotation.y+=dt*.003;sunSprite.position.copy(cam.position).addScaledVector(SUNDIR,600);
+ // audio
+ if(AC){const at=AC.currentTime;engineTick(dt,at);musicBus.gain.setTargetAtTime(settings.music?(state==='paused'?.22:.5):0,at,.3)}
+ if(state==='play'&&(hudT+=dt)>.05){hudT=0;updateHud()}
+ R.render(scene,cam);if(!booted)bootDone();requestAnimationFrame(frame)}
+// the first rendered frame means the shaders are compiled: fade out the loading screen
+let booted=false,manual=false;function bootDone(){booted=true;const b=$('boot');b.classList.add('gone');setTimeout(()=>b.remove(),400);console.log('[scoopy] first frame '+Math.round(performance.now())+' ms')}
+function resize(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);cam.aspect=w/h;applyView();cam.updateProjectionMatrix()}
+window.addEventListener('resize',resize);
+try{new ResizeObserver(()=>resize()).observe(document.documentElement)}catch(e){}
+if(window.visualViewport)visualViewport.addEventListener('resize',resize);
+
+rebuildMachine(cfg.mach);resetWorld();applyQuality();goYard();
+requestAnimationFrame(frame);
+// test hook for automated checks; harmless in production
+window.__scoopy={get state(){return state},get C(){return C},get OBJS(){return OBJS},get truck(){return truck},press,cfg,spawnTruck,spawnForeman,tick,finishRun,set manual(v){manual=v},get bonus(){return bonus},get unlocked(){return unlocked},get cause(){return cause},
+ get cans(){return cans},set cans(v){cans=v;store.set('cans',v)},get medals(){return medals},get spec(){return spec},get level(){return level},get missions(){return missions},get runCans(){return runCans},
+ setJob:i=>{cfg.job=i;store.set('job',i)},snapCam:()=>{const tanH=Math.tan(55*Math.PI/360)*cam.aspect,dist=clamp(4.4/tanH,10.5,19);cam.position.set(C.x*.55,dist*.7,-C.d+dist*.71);lookT.set(C.x*.55,0,-C.d-6)},setMach:id=>{cfg.mach=viewMach=id;if(!unlocked.includes(id))unlocked.push(id);spec=specFor(id);rebuildMachine(id)},goYard,goReady,
+
+ put:(t,lane,dz)=>addObj({cones:makeCones,stakes:makeStakes,trench:()=>makeTrench(5),util:makeUtil,pile:makePile,diesel:makeDiesel,hat:makeHat,coffee:makeCoffee}[t](),t,C.d+dz,lane,1,.5)};
+})();
+</script>
+</body></html>
