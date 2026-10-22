@@ -71,6 +71,17 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 /* pause, countdown, settings, tutorial coach */
 #paused,#settings{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.88));pointer-events:auto}
 #settings,#daily,#share,#achPanel,#shop,#coll{z-index:10}
+#pick{position:fixed;left:0;right:0;bottom:0;z-index:9;pointer-events:auto;padding:28px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(rgba(10,12,16,0),rgba(10,12,16,.9) 22%)}
+.pickcard{display:flex;flex-direction:column;gap:12px;max-width:520px;margin:0 auto}
+.pickcard h2{margin:0;font-size:34px;line-height:1}
+.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pk{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px;border-radius:14px;background:var(--glass);border:1px solid var(--hair);text-align:left;min-height:44px}
+.pk.on{border-color:var(--amber);background:rgba(242,179,61,.14)}
+.pk .mk{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+.pk b{font-size:19px;line-height:1}
+.pk small{font-size:11px;font-weight:700;color:var(--mute)}
+.pk em{font-style:normal;font-size:11px;line-height:1.25;color:var(--ink);margin-top:4px}
+#pickGo{width:100%}
 #coll{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.9));pointer-events:auto}
 #coll .card{max-height:calc(100% - 32px);overflow-y:auto}
 .trophy.mine{color:var(--ink)}
@@ -428,6 +439,16 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <img id="shareImg" alt="Your Swervy score card">
     <p id="shareMsg"></p>
     <div class="vbtns"><button class="btn primary" id="shareGo">Share</button><button class="btn" id="shareClose">Done</button></div>
+  </div>
+</div>
+
+<!-- first launch: the player picks a starter car on the turntable before the first drive -->
+<div id="pick" hidden>
+  <div class="pickcard" role="dialog" aria-label="Pick your first car">
+    <h2 class="disp">Pick your first car</h2>
+    <p class="dsub">It's yours to keep. Collect fuel cans on the road to unlock the rest.</p>
+    <div class="picks" id="pickList"></div>
+    <button class="btn primary" id="pickGo">Drive</button>
   </div>
 </div>
 
@@ -1452,7 +1473,7 @@ function score(d){return Math.floor(((d??C.d)-START_D)*spec.mult+bonus)}
 function show(id,on){$(id).hidden=!on}
 // photo mode: {tod: backdrop time of day, zoom: camera distance factor, pitch: camera height factor, eng: engine view was open}
 let photo=null;const phPtr=new Map();
-function applyView(){const w=innerWidth,h=innerHeight;if(state==='garage'&&!photo){if(w>=860&&w>=h)cam.setViewOffset(w,h,w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*.28,w,h)}else cam.clearViewOffset()}
+function applyView(){const w=innerWidth,h=innerHeight;if(state==='garage'&&!photo){if(w>=860&&w>=h)cam.setViewOffset(w,h,w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*($('pick').hidden?.28:.14),w,h)}else cam.clearViewOffset()}
 function hideRunUI(){xpAnim++;toastQ=[];show('revive',0);show('share',0);show('combo',0);document.querySelectorAll('.pop').forEach(e=>e.remove());show('mtoast',0);show('region',0);show('toBest',0);show('paused',0);show('count',0);show('pauseBtn',0);show('coach',0);counting=0;coachT=0}
 function goGarage(){checkDaily();state='garage';resetWorld();placeBestFlag(true);hideRunUI();show('hud',0);show('ready',0);show('over',0);show('garage',1);renderGarage();applyView();setEngineView(tab==='engine')}
 function goReady(snap){setEngineView(false);if(pv){cfg[pv.k]=pv.prev;pv=null;rebuildCar()}if(!unlocked.includes(cfg.model)){selectModel(lastDriven);rebuildCar()}
@@ -1915,6 +1936,15 @@ function saveBuild(i){if(pv)cancelPreview(false);(builds[cfg.model]=builds[cfg.m
 function loadBuild(i){const b=(builds[cfg.model]||[])[i];if(!b)return;if(pv)cancelPreview(false);const cur=cfg;cfg=Object.assign({model:cur.model},lookFor(cur.model),b);
  for(const k in LISTS)if(!LISTS[k][cfg[k]])cfg[k]=0;for(const k in PRICE)if(!isOwned(cfg.model,k,cfg[k]))cfg[k]=cur[k];if(typeof cfg.plate!=='string'||!cfg.plate)cfg.plate='SWERVY';
  saveCfg();buildAct[cfg.model]=i;rebuildCar();renderGarage();buzz(15);toast(`Build ${i+1} loaded`)}
+// first launch: three starter cars to choose from; the pick spins onto the turntable, and driving it makes it the player's
+const STARTERS=['coupe','rally','sedan'];
+function openPick(){show('garage',0);show('pick',1);renderPick();applyView()}
+function renderPick(){$('pickList').innerHTML=STARTERS.map(id=>{const M=MODELS[id];
+  return`<button class="pk ${cfg.model===id?'on':''}" data-id="${id}" aria-pressed="${cfg.model===id}"><span class="mk">${M.make}</span><b class="disp">${M.name}</b><small>${M.type}</small><em>${M.perk}</em></button>`}).join('');
+ $('pickList').querySelectorAll('.pk').forEach(b=>b.onclick=()=>{audioInit();if(cfg.model!==b.dataset.id){selectModel(b.dataset.id);rebuildCar();unlockSpin=RM.matches?0:1.2;buzz(15)}renderPick()});
+ $('pickGo').textContent=`Drive the ${MODELS[cfg.model].name}`}
+$('pickGo').addEventListener('click',()=>{audioInit();const id=cfg.model;if(!unlocked.includes(id)){unlocked.push(id);store.set('unlocked',unlocked)}
+ store.set('starterPicked',true);chime([523,659,784]);show('pick',0);show('garage',1);goReady(true)});
 function cancelPreview(render=true){if(!pv)return;cfg[pv.k]=pv.prev;pv=null;rebuildCar();if(render)renderGarage()}
 function buyLook(){const k=pv.k,i=cfg[k],p=costOf(k,i),nm=LISTS[k][i].n;if(cans<p)return;cans-=p;store.set('cans',cans);owned.add(k+':'+i);store.set('owned',[...owned]);pv=null;saveCfg();
  sfxCan();chime([523,659,784,1047]);buzz(30);toast(`${nm} unlocked · yours on every car`);renderGarage()}
@@ -2119,8 +2149,8 @@ try{new ResizeObserver(()=>resize()).observe(document.documentElement)}catch(e){
 if(window.visualViewport)visualViewport.addEventListener('resize',resize);
 
 rebuildCar();resetWorld();applyQuality();controlText();goGarage();
-// first launch: straight onto the road with the tutorial; the garage comes after the first run
-if(!store.get('tutDone',false)&&!best&&!bestDist)goReady(true);
+// first launch: the garage opens with the starter-car pick; driving it starts the tutorial
+if(!store.get('starterPicked',false)&&!store.get('tutDone',false)&&!best&&!bestDist)openPick();
 requestAnimationFrame(frame);
 })();
 </script>
