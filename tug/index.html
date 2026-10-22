@@ -455,7 +455,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v37 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v38 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -566,7 +566,7 @@ const LEVELS=[
  {id:'mill',n:'Mill Creek Run',sub:'Stretch 1',len:1500,seed:11,rapids:[[380,540],[1030,1170]],bridges:[780],traffic:[260,640,900,1310],par:{tug:165,bigmo:180,hercules:185,jetski:83,airboat:100,pilot:110,speed:92,crew:98,fire:120,atb:165,crane:175,push:185,ferry:160,stern:170}},
  // Copper Rapids: narrower and faster, three long white-water sections with rock gardens, a steel rail bridge, autumn woods
  {id:'copper',n:'Copper Rapids',sub:'Stretch 2',len:1800,seed:23,w0:44,wr:31,cur:5,clear:13,dense:true,rail:true,rapids:[[180,420],[700,1010],[1330,1560]],bridges:[1180],traffic:[560,1250],
-  unlock:'mill',par:{tug:190,bigmo:198,hercules:199,jetski:95,airboat:115,pilot:122,speed:104,crew:112,fire:135,atb:185,crane:195,push:205,ferry:180,stern:188},
+  unlock:'mill',par:{tug:190,bigmo:198,hercules:199,jetski:95,airboat:115,pilot:122,speed:104,crew:112,fire:135,atb:185,crane:195,push:196,ferry:180,stern:188},
   theme:{cols:['#6e6a2e','#7d6a34','#6b4630','#b0805a','#4a4038'],leaves:[[.05,.72,.34],[.09,.7,.4],[.13,.6,.36],[.27,.35,.15],[.03,.6,.3]],rock:0x8a5a3c,shoreRocks:420}},
  // Foghollow Bend: dusk and thick fog, one rapids, a road bridge and heavy fishing traffic; running lights, searchlight and horn
  {id:'fog',n:'Foghollow Bend',sub:'Stretch 3',len:1600,seed:37,w0:48,wr:33,cur:4.4,rapids:[[880,1000]],bridges:[520],traffic:[240,600,820,1120,1380],unlock:'copper',env:'fog',
@@ -1830,16 +1830,36 @@ function hcAligned(){if(!HC||HC.att)return false;const m=hcManifold();if(!m)retu
 let CUE=null;
 function bankCue(){const el=$('opCue');document.querySelectorAll('#ops .cue').forEach(b=>{if(b!==el)b.classList.remove('cue')});CUE=null;if(!el||!OPS)return;let c=null;
  if(OPS.kind==='fuel'&&HC&&F)c=hoseCue();else if(OPS.kind==='crane'&&K)c=craneCue();
- el.hidden=!c;if(!c)return;el.innerHTML='Banksman: '+c.t;const b=c.k&&(c.k[0]==='#'?$(c.k.slice(1)):document.querySelector(`#ops [data-hold="${c.k}"]`));if(b)b.classList.add('cue')}
+ el.hidden=!c;if(!c){bankCue.last=null;return}el.innerHTML='Banksman: '+c.t;const b=c.k&&(/^[#\[]/.test(c.k)?document.querySelector('#ops '+c.k):document.querySelector(`#ops [data-hold="${c.k}"]`));if(b){b.classList.add('cue');if(bankCue.last!==c.k){bankCue.last=c.k;try{b.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}}}}
 function hoseCue(){const f=F,h=HC,D=OPS.D,s=D.side;let x,z,y,fin;
  if(!f.hoseOn&&f.bolt<=0&&!f.done){const m=hcManifold();if(!m)return null;CUE={x:m.x,z:m.z,ty:m.y,ok:hcAligned(),dock:true};if(hcAligned())return{k:'#opHose',t:'hose end is on the flange: <b>Bolt up</b>'};x=m.x;z=m.z;y=m.y;fin='onto the flange'}
  else if(f.done&&!f.hoseOn&&f.bolt<=0&&!f.stowed){x=s*5;z=1.5;y=D.deckY+1.3;fin='onto the dock';CUE={x,z,ty:D.deckY+.35,ok:false,dock:true}}
- else return null;
+ else return fuelCue();
  const vx=x-s*2.2,vz=z-1.5,R=Math.hypot(vx,vz),ps=Math.atan2(vz,-s*vx),dp=wrapA(ps-h.psi),dR=R-h.R,dy=h.H.y-y,hor=Math.hypot(h.H.x-x,h.H.z-z);
  if(h.V.length()>.9)return{k:null,t:'let the swing settle'};
  if(hor>.8&&Math.abs(dp)*R>.5){const l=(dp>0)===(s>0);return{k:l?'hcL':'hcR',t:'slew '+(l?'◀':'▶')}}
  if(hor>.8&&Math.abs(dR)>.4)return{k:dR>0?'hcO':'hcI',t:dR>0?'jib <b>Out</b>':'jib <b>In</b>'};
  if(dy>.4)return{k:'hcD',t:'lower ▼ '+fin};if(dy<-.6)return{k:'hcU',t:'raise ▲'};return{k:null,t:'hold it there'}}
+// the rest of the fuel checklist: one step, its button, in order
+function fuelCue(){const f=F,load=f.dir==='load',st=fuelSteps(),cur=st.find(x=>!x.done);if(!cur)return null;
+ const shutV=VALVES.find(([k])=>f.valves[k].t>.5),openV=VALVES.find(([k])=>f.valves[k].t<.5);
+ switch(cur.k){
+  case'gen':return{k:'crank',t:'hold <b>Crank</b> until the generator runs'};
+  case'brk':return{k:'#opBrk',t:'close the main <b>Breaker</b>'};
+  case'dir':return{k:`#opDir button[data-d="${f.dir}"]`,t:`set the pump to <b>${load?'LOAD':'DISCHARGE'}</b>`};
+  case'open':return openV?{k:`[data-v="${openV[0]}"]`,t:`open the <b>${openV[1]}</b> valve`}:{k:null,t:'valves opening…'};
+  case'pump':return{k:'pstart',t:'hold <b>Start</b> to start the pump engine'};
+  case'flow':return{k:'#opThr',t:'slide the pump throttle up <b>slowly</b>'};
+  case'fill':return f.pump.run&&(load?fuelLv>92:fuelLv<12)?{k:'#opThr',t:'nearly there: <b>throttle down</b>'}:{k:null,t:load?'loading… watch the pressure':'pumping out… watch the pressure'};
+  case'stop':return f.thr>.35?{k:'#opThr',t:'<b>throttle down</b> before you stop the pump'}:{k:'#opPStop',t:'<b>Stop</b> the pump'};
+  case'shut':return shutV?{k:`[data-v="${shutV[0]}"]`,t:`close the <b>${shutV[1]}</b> valve`}:{k:null,t:'valves closing…'};
+  case'disc':{// check the real state, not the ticked list: never unbolt with the pump running or a valve open
+   if(f.pump.run)return f.thr>.35?{k:'#opThr',t:'<b>throttle down</b>, then stop the pump'}:{k:'#opPStop',t:'<b>Stop</b> the pump first'};
+   const op=VALVES.find(([k])=>f.valves[k].t>.5||f.valves[k].p>.05);if(op)return f.valves[op[0]].t>.5?{k:`[data-v="${op[0]}"]`,t:`close the <b>${op[1]}</b> valve first`}:{k:null,t:'valves closing…'};
+   return f.hoseOn?{k:'#opHose',t:'<b>Unbolt</b> the hose'}:null}
+  case'secure':return f.brk?{k:'#opBrk',t:'open the <b>Breaker</b>'}:{k:'#opGenStop',t:'<b>Stop</b> the generator'};
+  case'cast':return{k:'#opCast',t:'all secure: <b>Cast off</b>'}}
+ return null}
 function craneCue(){const k=K,H=k.H,ld=k.beams[k.hooked];
  if(k.dredge){const b=k.beams[0],h=k.hop;if(k.placed>=k.need&&!b.full)return stowCue();
   if(b.full){CUE={x:h.x,z:h.z,ty:h.floor,ok:Math.abs(H.x-h.x)<h.hx&&Math.abs(H.z-h.z)<h.hz};if(CUE.ok&&H.y-b.drop-b.hh-h.rim<5)return{k:'#opHook',t:'over the hopper: <b>Open bucket</b>'};if(H.y-b.drop-b.hh<2.6&&!CUE.ok)return{k:'hUp',t:'hoist up ▲ clear of the deck'};return aim(h.x,h.z,h.rim+b.hh+b.drop+1.2)}
