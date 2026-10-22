@@ -471,7 +471,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v30 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v31 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1340,7 +1340,7 @@ function resetWorld(){const p=lanePos(0);T={x:p.x,y:p.y,d:0,a:p.h,v:spec.top*.9,
  runT=0;hull=100;lastHit='';runCans=0;runRings=0;ringCombo=0;maxCombo=0;pts=0;lowT=0;lowRun=0;boostT=0;inGust=false;underRun=0;birdHits=0;result=null;throttle=1;closeRun=0;missionXP=0;curSec=CO.sec[0][0];splitQ=0;show('split',0);missionTick=0;rollT=0;rollCD=0;skimOn=0;reviveUsed=false;ghostRec=[];ghostRecT=0;
  for(const c of CANS){c.got=false;c.m.visible=true}
  for(const r of RINGS){r.got=false;r.miss=false;r.fx=0;r.m.visible=true;r.m.scale.setScalar(1);r.m.material.opacity=1;r.m.material.transparent=false}
- for(const o of OBS){o.near=99;o.passed=false;o.hit=false}for(const b of BRIDGES)b.got=false;for(const H of HANGARS)H.got=false;
+ for(const o of OBS){o.near=99;o.passed=false;o.hit=false;o.hitT=-9}for(const b of BRIDGES)b.got=false;for(const H of HANGARS)H.got=false;
  for(const F of FLOCKS)for(const b of F.birds){b.alive=true;b.m.visible=true}
  for(const f of FIRES){f.out=false;f.m.visible=!!spec.scoop;for(const s of f.fl)s.visible=true}tank=0;firesRun=0;cabin=100;lastVy=0;gpwsT={};for(const th of THERMALS){th.m.visible=!!spec.glider;th.inside=false}
  if(spec.glider)T.y+=8;
@@ -1459,6 +1459,9 @@ function boxTick(){const P=contactPoints();
     // escape toward the side the plane's centre is on (a wingtip can be past the rock's middle)
     const s=Math.sign((T.x-o.x)*o.cs-(T.d-o.d)*o.sn)||1;T.d-=Math.sign(Math.cos(T.a))*(pv+1);T.x+=o.cs*s*2;T.d-=o.sn*s*2;if(fresh){T.v*=.6;T.a+=s*.25;T.bank*=.3;T.wx=s*8}}
    if(!fresh)continue;
+   // something that just hit you (and anything within 25 m of it: a sea stack is several boxes) still knocks you off,
+   // but can't damage you again for 2 s. A big jet scraping round a stack used to take 4-7 hits in a row
+   if(runT-o.hitT<2){T.cool=.55;continue}for(const q of OBS)if(Math.abs(q.d-o.d)<25&&Math.abs(q.x-o.x)<25)q.hitT=runT;
    o.hit=true;hit(1,o.dmg,p.x,p.y,p.d,{plane:'Parked jet!',hangar:'Hangar!',stand:'Work stand!',train:'Train!',bridge:'Bridge!',pier:'Pier!',tower:'Tower!',wire:'Wires!',building:'Building!',ship:'Ship!',crane:'Crane!',stack:'Rocks!'}[o.k]||'Hit!');return}}
  // passing: score close calls and fly-unders
  for(const o of OBS){if(o.passed)continue;const v=(T.x-o.x)*o.sn+(T.d-o.d)*o.cs;if(v<o.sv+2)continue;o.passed=true;
