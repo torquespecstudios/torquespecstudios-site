@@ -333,6 +333,24 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .drive-wrap .btn{font-size:24px;padding:14px 16px}
 #drive{flex:1}
 #rand{flex:0 0 auto;font-size:18px}
+/* short phones (iPhone SE, small Androids): a taller sheet with slimmer car cards, title and buttons so the options get
+   room, and the Deals / My cars pills side by side instead of stacked over the car */
+@media (max-height:740px){
+ .sheet{height:62%;padding-top:10px}
+ .models{gap:6px}
+ .mcard{min-width:96px;padding:6px 10px;gap:1px}
+ .mcard .mn{font-size:16px}
+ .mcard .mk{font-size:9px}
+ .mcard .mt{font-size:11px}
+ .car-head{gap:8px}
+ .car-head h2{font-size:22px}
+ .car-head .ty{font-size:11px;margin-top:2px}
+ .perk{display:none}
+ .drive-wrap{padding-top:4px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}
+ .drive-wrap .btn{font-size:18px;padding:11px 12px;line-height:1.05}
+ #rand{font-size:15px}
+ .g-top .trophy.deals{display:inline-flex;margin-right:6px}
+}
 .hint{text-align:center;color:var(--mute);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:8px 0 0}
 /* tablets: the centred screens (results, pause, settings, rewards) are sized for phones, so scale their contents up */
 @media (min-width:700px) and (min-height:900px){.center>*,#hud>*,#region>*,#unlockFx>*{zoom:1.35}.pop{font-size:38px}#mtoast{font-size:18px;padding:12px 22px;top:calc(env(safe-area-inset-top,0px) + 178px)}}
