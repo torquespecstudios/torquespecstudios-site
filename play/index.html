@@ -70,7 +70,20 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 /* pause, countdown, settings, tutorial coach */
 #paused,#settings{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.88));pointer-events:auto}
-#settings,#daily,#share,#achPanel,#shop{z-index:10}
+#settings,#daily,#share,#achPanel,#shop,#coll{z-index:10}
+#coll{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.9));pointer-events:auto}
+#coll .card{max-height:calc(100% - 32px);overflow-y:auto}
+.trophy.mine{color:var(--ink)}
+.collgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.ccar{position:relative;display:flex;flex-direction:column;gap:2px;padding:6px 6px 8px;border-radius:12px;background:var(--glass-2);border:1px solid var(--hair);text-align:left;min-height:44px}
+.ccar .th{position:relative;display:block;width:100%;aspect-ratio:1.61;border-radius:8px;overflow:hidden;background:#20242b}
+.ccar .th i{position:absolute;inset:0;background:center/cover no-repeat}
+.ccar.lk .th i{opacity:.9}
+.ccar.lk .th::after{content:"?";position:absolute;right:8px;top:4px;font-family:var(--display);font-weight:800;font-size:26px;color:var(--amber);text-shadow:0 2px 8px rgba(0,0,0,.7)}
+.ccar b{font-size:13px;line-height:1.1;padding:0 2px}
+.ccar small{font-size:11px;font-weight:700;color:var(--mute);padding:0 2px}
+.ccar.lk small{color:var(--amber)}
+.ccar.on{border-color:var(--amber)}
 #shop{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.9));pointer-events:auto}
 .trophy.deals{display:flex;width:max-content;color:var(--amber);position:relative}
 .trophy.deals .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#ff4a32;box-shadow:0 0 0 2px #151a20}
@@ -398,6 +411,15 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
   </div>
 </div>
 
+<div class="center" id="coll" hidden>
+  <div class="card" role="dialog" aria-label="My garage">
+    <h2 class="disp">My garage</h2>
+    <p class="dsub" id="collSub"></p>
+    <div class="collgrid" id="collList"></div>
+    <div class="vbtns"><button class="btn primary" id="collShare">Share my garage</button><button class="btn" id="collClose">Close</button></div>
+  </div>
+</div>
+
 <div class="center" id="shop" hidden>
   <div class="card" role="dialog" aria-label="Daily deals">
     <h2 class="disp">Daily deals</h2>
@@ -457,7 +479,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 <div id="garage">
   <div class="g-top">
-    <div><div class="logo disp">Swer<i>vy</i></div><div class="glv" id="gLv"></div><button class="trophy" id="achBtn" type="button"></button><button class="trophy deals" id="shopBtn" type="button" aria-label="Daily deals"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12.6V4a1 1 0 0 1 1-1h8.6a1 1 0 0 1 .7.3l7.4 7.4a1 1 0 0 1 0 1.4l-8.6 8.6a1 1 0 0 1-1.4 0L3.3 13.3a1 1 0 0 1-.3-.7zM7.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg> Deals<i class="dot" id="shopDot"></i></button></div>
+    <div><div class="logo disp">Swer<i>vy</i></div><div class="glv" id="gLv"></div><button class="trophy" id="achBtn" type="button"></button><button class="trophy deals" id="shopBtn" type="button" aria-label="Daily deals"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12.6V4a1 1 0 0 1 1-1h8.6a1 1 0 0 1 .7.3l7.4 7.4a1 1 0 0 1 0 1.4l-8.6 8.6a1 1 0 0 1-1.4 0L3.3 13.3a1 1 0 0 1-.3-.7zM7.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg> Deals<i class="dot" id="shopDot"></i></button><button class="trophy deals mine" id="collBtn" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 11l1.6-4.3A2 2 0 0 1 8.5 5.4h7a2 2 0 0 1 1.9 1.3L19 11h.5A1.5 1.5 0 0 1 21 12.5V16a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1v-3.5A1.5 1.5 0 0 1 4.5 11H5zm2.1 0h9.8l-1.1-3.1a.8.8 0 0 0-.7-.5H8.9a.8.8 0 0 0-.7.5L7.1 11z"/></svg> <span id="collN">My cars</span></button></div>
     <div class="pills"><div class="pill">Best <span id="gBest">0</span></div><div class="pill"><span class="can"></span><span id="gCans">0</span></div><button class="pill" id="setBtn" aria-label="Settings">⚙</button><button class="pill" id="photoBtn" aria-label="Photo mode"><svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M9 4h6l1.6 2.2H20a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.2a2 2 0 0 1 2-2h3.4L9 4zm3 4.6a4.4 4.4 0 1 0 0 8.8 4.4 4.4 0 0 0 0-8.8zm0 2a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8z"/></svg></button></div>
   </div>
   <div class="sheet" id="sheet">
@@ -1666,7 +1688,8 @@ $('toGarage').addEventListener('click',goGarage);
 let lastRun=null,shareFile=null,shareData=null,shareKind='run';
 // set this to the App Store link (https://apps.apple.com/app/id…) once App Store Connect assigns one; every share then carries it
 const APP_STORE_URL='';
-function shareText(){if(shareKind==='car'){const M=MODELS[cfg.model];return`Check out my ${M.name} in Swervy.`+(APP_STORE_URL?' Build yours: '+APP_STORE_URL:'')}
+function shareText(){if(shareKind==='garage')return`My Swervy garage: ${unlocked.length}/${ORDER.length} cars. Can you collect them all?`+(APP_STORE_URL?' '+APP_STORE_URL:'');
+ if(shareKind==='car'){const M=MODELS[cfg.model];return`Check out my ${M.name} in Swervy.`+(APP_STORE_URL?' Build yours: '+APP_STORE_URL:'')}
  const reached=lastRun.region?` and reached ${REGIONS[lastRun.region].n}`:'',link=APP_STORE_URL?' '+APP_STORE_URL:'';
  return(lastRun.race?`I drove ${fmt(lastRun.dist)} m on Swervy race ${lastRun.race}${reached}. Same road for you, can you beat it? ${RACE_URL}${lastRun.race}`:lastRun.daily?`I drove ${fmt(lastRun.dist)} m on today's Swervy Daily Road${reached}. Same road for everyone, can you beat it?`:`I drove ${fmt(lastRun.dist)} m in Swervy${reached} (${fmt(lastRun.sc)} pts). Can you beat it?`)+link}
 function drawCard(){const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
@@ -1690,8 +1713,8 @@ function drawCard(){const W=1080,H=1350,c=document.createElement('canvas');c.wid
  return c}
 // the share sheet takes either card: a run's score card or a photo of the player's car
 function showShareCard(c,kind){shareKind=kind;const url=c.toDataURL('image/png');$('shareImg').src=url;shareData=url.split(',')[1];$('shareMsg').textContent='';shareFile=null;
- $('shareImg').alt=kind==='car'?'Photo of your car':'Your Swervy score card';$('share').firstElementChild.setAttribute('aria-label',kind==='car'?'Share your car':'Share your run');
- c.toBlob(b=>{try{shareFile=new File([b],kind==='car'?'swervy-car.png':'swervy-run.png',{type:'image/png'})}catch(e){}},'image/png');show('share',1)}
+ $('shareImg').alt=kind==='car'?'Photo of your car':kind==='garage'?'Your Swervy garage':'Your Swervy score card';$('share').firstElementChild.setAttribute('aria-label',kind==='car'?'Share your car':kind==='garage'?'Share your garage':'Share your run');
+ c.toBlob(b=>{try{shareFile=new File([b],'swervy-'+kind+'.png',{type:'image/png'})}catch(e){}},'image/png');show('share',1)}
 function openShare(){if(!lastRun)return;showShareCard(drawCard(),'run')}
 // photo mode: the garage menus step aside, the camera stops its slow spin and the player frames the shot themselves
 function openPhoto(){if(state!=='garage'||photo)return;audioInit();photo={tod:0,zoom:1,pitch:.14,eng:!!(car&&car.engineOn)};if(photo.eng)setEngineView(false);
@@ -1721,8 +1744,8 @@ $('shareClose').addEventListener('click',()=>show('share',0));
 $('shareGo').addEventListener('click',async()=>{const text=shareText(),msg=$('shareMsg');
  if(NATIVE.share){try{let files;
   // the native share sheet needs a real file: the card is written to the app's cache first
-  if(NATIVE.fs&&shareData)try{const r=await NATIVE.fs.writeFile({path:shareKind==='car'?'swervy-car.png':'swervy-run.png',data:shareData,directory:'CACHE'});files=[r.uri]}catch(e){}
-  await NATIVE.share.share(Object.assign({title:'Swervy',text,dialogTitle:shareKind==='car'?'Share your car':'Share your run'},files?{files}:{}));msg.textContent='Shared!'}catch(e){}return}
+  if(NATIVE.fs&&shareData)try{const r=await NATIVE.fs.writeFile({path:'swervy-'+shareKind+'.png',data:shareData,directory:'CACHE'});files=[r.uri]}catch(e){}
+  await NATIVE.share.share(Object.assign({title:'Swervy',text,dialogTitle:shareKind==='car'?'Share your car':shareKind==='garage'?'Share your garage':'Share your run'},files?{files}:{}));msg.textContent='Shared!'}catch(e){}return}
  try{if(shareFile&&navigator.canShare&&navigator.canShare({files:[shareFile]})){await navigator.share({files:[shareFile],text});msg.textContent='Shared!';return}
   if(navigator.share){await navigator.share({text});msg.textContent='Shared!';return}}catch(e){if(e&&e.name==='AbortError')return}
  try{await navigator.clipboard.writeText(text);msg.textContent='Challenge copied. Press and hold the card to save the image.'}catch(e){msg.textContent=text}});
@@ -1760,6 +1783,7 @@ if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{
  if(!$('daily').hidden){show('daily',0);return}
  if(!$('share').hidden){show('share',0);return}
  if(!$('shop').hidden){show('shop',0);clearInterval(renderShop.t);return}
+ if(!$('coll').hidden){show('coll',0);return}
  if(photo){closePhoto();return}
  if(state==='play'||(state==='paused'&&counting>0)){pause();return}
  if(state==='paused'){resume();return}
@@ -1803,6 +1827,43 @@ function renderShop(){const ms=new Date().setHours(24,0,0,0)-Date.now(),h=Math.f
   if(pv)cancelPreview(false);tab=optInfo(k).tab;if(car&&car.engineOn)setEngineView(false);pv={k,prev:cfg[k]};cfg[k]=i;rebuildCar();renderGarage();$('opts').scrollTop=0})}
 function openShop(){if(state!=='garage')return;audioInit();store.set('dealsSeen',todayKey());$('shopDot').hidden=true;renderShop();show('shop',1);clearInterval(renderShop.t);renderShop.t=setInterval(renderShop,30000)}
 $('shopBtn').addEventListener('click',openShop);$('shopClose').addEventListener('click',()=>{show('shop',0);clearInterval(renderShop.t)});
+// My garage: a studio snapshot of every car in the player's own build (locked ones as dark mystery shapes with their
+// price), cached by look so reopening is instant. Each snapshot builds that car, renders one frame at a fixed 3/4 angle
+// and copies the middle of the screen; the player's car and camera are put back afterwards.
+const thumbCache={};
+function snapCar(id){const L=lookFor(id),u=unlocked.includes(id),key=id+u+JSON.stringify(L);if(thumbCache[key])return thumbCache[key];
+ cfg=Object.assign({model:id},L);rebuildCar();
+ // a locked car is shot as a black silhouette (its lit materials swapped for flat black) so the shape teases what's coming
+ if(!u){const blk=new THREE.MeshBasicMaterial({color:0x050608});car.root.traverse(o=>{if(o.isMesh&&o.material&&(o.material.isMeshStandardMaterial||o.material.isMeshPhysicalMaterial))o.material=blk})}car.root.position.set(C.x,C.y,-C.d);car.root.rotation.y=-C.a;car.roll.rotation.z=0;
+ cam.clearViewOffset();const hh=Math.tan(cam.fov*Math.PI/360)*Math.min(cam.aspect,1.6),d=Math.min(SHOW_R-1.4,Math.max(cam.aspect<1?8:10.5,(cam.aspect<1?3.2:5)/hh)*.8),a=2.4;
+ cam.position.set(C.x+Math.sin(a)*d,.9+d*.12,-C.d+Math.cos(a)*d);cam.lookAt(C.x,.55,-C.d);cam.updateMatrixWorld();R.render(scene,cam);
+ const src=R.domElement,cw=Math.min(src.width,src.height*1.2),ch=Math.round(cw/1.61),c=document.createElement('canvas');c.width=480;c.height=298;
+ c.getContext('2d').drawImage(src,(src.width-cw)/2,(src.height-ch)/2,cw,ch,0,0,480,298);return thumbCache[key]={c,url:c.toDataURL('image/jpeg',.82)}}
+function renderColl(){const n=unlocked.length,own=[...owned].length;$('collSub').textContent=`${n} of ${ORDER.length} cars · ${own} look${own===1?'':'s'} owned`;
+ const keep=cfg;const th={};for(const id of ORDER)th[id]=snapCar(id);cfg=keep;rebuildCar();applyView();
+ $('collList').innerHTML=ORDER.map(id=>{const M=MODELS[id],u=unlocked.includes(id),L=lookFor(id),lv=L.livery>0?LIVERIES[L.livery].n:PAINTS[L.paint].n;
+  return`<button class="ccar ${u?'':'lk'} ${id===cfg.model?'on':''}" data-id="${id}" aria-label="${M.name}, ${u?lv:'locked, '+fmt(M.price)+' cans'}"><span class="th"><i style="background-image:url(${th[id].url})"></i></span><b>${M.name}</b><small>${u?lv:`<span class="can"></span> ${fmt(M.price)}`}</small></button>`}).join('');
+ $('collList').querySelectorAll('.ccar').forEach(b=>b.onclick=()=>{show('coll',0);if(b.dataset.id!==cfg.model){selectModel(b.dataset.id);rebuildCar()}renderGarage()});
+ renderColl.th=th}
+function openColl(){if(state!=='garage'||photo)return;audioInit();if(pv)cancelPreview(false);$('collList').innerHTML='';$('collSub').textContent='Rolling the cars out…';show('coll',1);
+ // one frame for the panel to appear before the snapshots (a short pause on phones)
+ setTimeout(()=>{renderColl()},40)}
+// the share card: all eight bays in a 2×4 grid under a MY GARAGE header
+function drawGarageCard(){const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),th=renderColl.th||{};
+ let gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#1b2130');gr.addColorStop(1,'#0b0d12');g.fillStyle=gr;g.fillRect(0,0,W,H);
+ g.textAlign='center';g.fillStyle='#f2b33d';g.font='700 30px "Barlow",system-ui,sans-serif';g.letterSpacing='8px';g.fillText('MY SWERVY',W/2,86);g.letterSpacing='0px';
+ g.fillStyle='#f5f0e6';g.font='800 italic 120px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillText('GARAGE',W/2,196);
+ g.fillStyle='#a9a69e';g.font='700 30px "Barlow",system-ui,sans-serif';g.fillText(`${unlocked.length}/${ORDER.length} cars · Level ${level}`,W/2,236);
+ // card bays are cropped wider (2.2:1) so four rows fit
+ const tw=490,thh=Math.round(tw/2.2),gx=(W-2*tw-20)/2,gy=256,rowH=thh+40;
+ ORDER.forEach((id,k)=>{const x=gx+(k%2)*(tw+20),y=gy+Math.floor(k/2)*rowH,u=unlocked.includes(id);g.fillStyle='#20242b';g.fillRect(x,y,tw,thh);
+  if(th[id])g.drawImage(th[id].c,0,40,480,218,x,y,tw,thh);if(!u){g.fillStyle='#f2b33d';g.font='800 64px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.textAlign='right';g.fillText('?',x+tw-16,y+66)}
+  g.fillStyle=u?'#f5f0e6':'#6d6a64';g.font='800 30px "Barlow",system-ui,sans-serif';g.textAlign='left';g.fillText(u?MODELS[id].name:'???',x+4,y+thh+30)});
+ return{c,g}}
+function shareGarage(){const{c,g}=drawGarageCard();
+ g.textAlign='center';g.fillStyle='rgba(245,240,230,.45)';g.font='700 20px "Barlow",system-ui,sans-serif';g.letterSpacing='5px';g.fillText('BY TORQUE SPEC STUDIOS',540,1336);g.letterSpacing='0px';
+ show('coll',0);showShareCard(c,'garage')}
+$('collBtn').addEventListener('click',openColl);$('collClose').addEventListener('click',()=>show('coll',0));$('collShare').addEventListener('click',shareGarage);
 function cancelPreview(render=true){if(!pv)return;cfg[pv.k]=pv.prev;pv=null;rebuildCar();if(render)renderGarage()}
 function buyLook(){const k=pv.k,i=cfg[k],p=costOf(k,i),nm=LISTS[k][i].n;if(cans<p)return;cans-=p;store.set('cans',cans);owned.add(k+':'+i);store.set('owned',[...owned]);pv=null;saveCfg();
  sfxCan();chime([523,659,784,1047]);buzz(30);toast(`${nm} unlocked · yours on every car`);renderGarage()}
@@ -1821,7 +1882,7 @@ let tab='paint',plateT=0;
 function swBg(o){return o.c==='rainbow'?'background:conic-gradient(#ff3b30,#ffd23a,#4dff7a,#3a8dff,#a64dff,#ff3b30)':o.c==='carbon'?'background:repeating-conic-gradient(#3a3d44 0 25%,#141619 0 50%) 0 0/8px 8px':o.c==='body'?'background:'+PAINTS[cfg.paint].c:o.c?'background:'+o.c:''}
 // the garage pills share one row with the logo, so very large totals are shortened (123k, 9.99M); exact numbers stay elsewhere
 function fmtShort(n){n=Math.floor(n);return n<1e4?fmt(n):n<1e5?(Math.floor(n/100)/10).toFixed(1)+'k':n<1e6?Math.floor(n/1e3)+'k':(n/1e6).toFixed(n<1e7?2:1)+'M'}
-function renderGarage(){checkAch();renderAch();$('shopDot').hidden=store.get('dealsSeen','')===todayKey();
+function renderGarage(){checkAch();renderAch();$('collN').textContent=`My cars ${unlocked.length}/${ORDER.length}`;$('shopDot').hidden=store.get('dealsSeen','')===todayKey();
  $('gCans').textContent=fmtShort(cans);$('gBest').textContent=fmtShort(best);$('gLv').innerHTML=`Level ${level}<span class="xpbar"><i style="width:${Math.min(100,xp/xpNeed(level)*100)}%"></i></span>`;
  const ms=$('models').scrollLeft;
  $('models').innerHTML=ORDER.map(id=>{const m=MODELS[id],own=unlocked.includes(id);return`<button class="mcard ${cfg.model===id?'on':''} ${!own&&cans>=m.price?'ready':''}" data-m="${id}"><span class="mk">${m.make}</span><span class="mn">${m.name}</span><span class="mt">${own?m.type:cans>=m.price?'Ready to unlock':`<span class="can"></span>${fmt(m.price)} to unlock`}</span></button>`}).join('');
