@@ -385,7 +385,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
   <div class="disp t">Keep going?</div>
   <p id="rvWhat">Patch the hull and carry on</p>
   <div class="rvT" id="rvT">4</div>
-  <div class="vbtns"><button class="btn primary" id="rvYes">Revive · 30 <span class="can"></span></button><button class="btn" id="rvNo">No thanks</button></div>
+  <div class="vbtns"><button class="btn primary" id="rvYes">Revive · 60 <span class="can"></span></button><button class="btn" id="rvNo">No thanks</button></div>
 </div>
 
 <div class="center" id="help" hidden>
@@ -453,7 +453,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v32 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v33 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -512,42 +512,42 @@ const BOATS={
  tug:{make:'Harbor Works',name:'Old Bess',type:'Tug + barge',price:0,barges:1,cargo:true,top:9.6,acc:2.6,turn:.78,resp:3.2,grip:2.6,mass:1.5,r:1.9,load:.55,dpay:1,
   body:[[2.3,1.75,0,'hull'],[-2.2,1.85,0,'hull']],cam:[34,28,8],gcam:[30,9],stern:4,bow:4.4,bw:.9,eng:[32,2.6],lean:.06,pitch:.015,wake:[2.4,7,.07],perk:'Tows a barge on a line · the barge swings wide',paint:0,build:'tug'},
  // Big Mo: a bigger, harder-pulling tug with two barges in a string; the second rides 3 m behind the first and swings wider still
- bigmo:{make:'Harbor Works',name:'Big Mo',type:'Tug + 2 barges',price:220,barges:2,cargo:true,top:9.3,acc:3,turn:.7,resp:3,grip:2.8,mass:2.2,r:2.2,load:.95,dpay:1.6,
+ bigmo:{make:'Harbor Works',name:'Big Mo',type:'Tug + 2 barges',price:1400,barges:2,cargo:true,top:9.3,acc:3,turn:.7,resp:3,grip:2.8,mass:2.2,r:2.2,load:.95,dpay:1.6,
   body:[[2.6,2,0,'hull'],[-2.5,2.1,0,'hull']],cam:[44,35,6],gcam:[42,13],stern:4.6,bow:5,bw:1,eng:[27,2.3],lean:.05,pitch:.012,wake:[2.8,8,.07],perk:'Tows two barges in a string · cargo pays ×1.6',paint:1,build:'bigmo'},
  // Hercules: the biggest harbour tug, towing three barges in a string
- hercules:{make:'Harbor Works',name:'Hercules',type:'Tug + 3 barges',price:320,barges:3,cargo:true,top:9.2,acc:3.3,turn:.68,resp:2.9,grip:2.9,mass:2.9,r:2.4,load:1.1,dpay:2.2,big:1.25,
+ hercules:{make:'Harbor Works',name:'Hercules',type:'Tug + 3 barges',price:1800,barges:3,cargo:true,top:9.2,acc:3.3,turn:.68,resp:2.9,grip:2.9,mass:2.9,r:2.4,load:1.1,dpay:2.2,big:1.25,
   body:[[2.8,2.2,0,'hull'],[-2.7,2.3,0,'hull']],cam:[50,40,4],gcam:[50,15],stern:5,bow:5.4,bw:1.1,eng:[24,2.1],lean:.05,pitch:.01,wake:[3,9,.07],perk:'Tows three barges · cargo pays ×2.2',paint:5,build:'bigmo'},
  // jet ski: the fastest thing on the river, twitchy and slidey, and its hull takes 30% more damage
- jetski:{make:'Wavecat',name:'Skeeter',type:'Jet ski',price:120,barges:0,top:17.5,acc:5.6,turn:2,resp:7,grip:1.6,mass:.6,r:1,load:0,armor:1.3,
+ jetski:{make:'Wavecat',name:'Skeeter',type:'Jet ski',price:350,barges:0,top:17.5,acc:5.6,turn:2,resp:7,grip:1.6,mass:.6,r:1,load:0,armor:1.3,
   body:[[1.1,.9,0,'hull'],[-1,.9,0,'hull']],cam:[11,6,20],gcam:[9,3.2],stern:1.6,bow:1.6,bw:.5,eng:[90,9],lean:-.28,pitch:.1,wake:[1,4.5,.03],perk:'Fastest boat · twitchy · fragile hull',paint:7,build:'jetski'},
  // airboat: a flat-bottomed skiff pushed by a caged aircraft propeller; it skims over sandbars but slides in every turn
- airboat:{make:'Bayou Works',name:'Swamp Fox',type:'Airboat',price:150,barges:0,top:14,acc:4.2,turn:1.25,resp:4,grip:1.15,mass:.9,r:1.5,load:0,skim:true,
+ airboat:{make:'Bayou Works',name:'Swamp Fox',type:'Airboat',price:450,barges:0,top:14,acc:4.2,turn:1.25,resp:4,grip:1.15,mass:.9,r:1.5,load:0,skim:true,
   body:[[1.6,1.3,0,'hull'],[-1.6,1.3,0,'hull']],cam:[14,7.5,20],gcam:[13,4.2],stern:2.6,bow:2.4,bw:1.2,eng:[70,8],lean:-.08,pitch:.03,wake:[1.6,5.5,.04],perk:'Skims over sandbars · slides in turns',paint:3,build:'airboat'},
- pilot:{make:'Bayline Marine',name:'Pathfinder',type:'Pilot boat',price:25,barges:0,top:12.5,acc:3.6,turn:1.2,resp:4.2,grip:2.4,mass:1,r:1.5,load:0,armor:.65,
+ pilot:{make:'Bayline Marine',name:'Pathfinder',type:'Pilot boat',price:150,barges:0,top:12.5,acc:3.6,turn:1.2,resp:4.2,grip:2.4,mass:1,r:1.5,load:0,armor:.65,
   body:[[2.2,1.45,0,'hull'],[-2,1.5,0,'hull']],cam:[15,8.5,19],gcam:[15,4.6],stern:4,bow:4.2,bw:1.1,eng:[46,5.2],lean:-.1,pitch:.05,wake:[1.8,6,.05],perk:'Tough work hull · takes 35% less damage',paint:5,build:'pilot'},
- speed:{make:'Swiftwater',name:'Dart',type:'Speedboat',price:40,barges:0,top:15.5,acc:4.6,turn:1.5,resp:5,grip:2.1,mass:1,r:1.4,load:0,
+ speed:{make:'Swiftwater',name:'Dart',type:'Speedboat',price:250,barges:0,top:15.5,acc:4.6,turn:1.5,resp:5,grip:2.1,mass:1,r:1.4,load:0,
   body:[[1.7,1.2,0,'hull'],[-1.6,1.25,0,'hull']],cam:[14,8,20],gcam:[13,4.2],stern:3.3,bow:3.2,bw:.9,eng:[62,7.5],lean:-.16,pitch:.07,wake:[1.6,6,.04],perk:'Fast and nimble · no cargo',paint:4,build:'speed'},
  // rigid tows: one long body. Circles down its length (offset ahead, radius, offset to the right, part) catch rocks and banks,
  // so the bow and the stern can each hit things and swing the whole boat
- atb:{make:'Gulfline',name:'Iron Duo',type:'ATB · tug + tank barge',price:120,barges:0,cargo:true,rigid:true,top:7.6,acc:1.5,turn:.5,resp:1.7,grip:3.2,mass:3,r:3.7,load:.8,dpay:1.4,
+ atb:{make:'Gulfline',name:'Iron Duo',type:'ATB · tug + tank barge',price:850,barges:0,cargo:true,rigid:true,top:7.6,acc:1.5,turn:.5,resp:1.7,grip:3.2,mass:3,r:3.7,load:.8,dpay:1.4,
   body:[[13,3.7,0,'cargo'],[7.2,3.7,0,'cargo'],[1.4,3.7,0,'cargo'],[-4.2,3.6,0,'cargo'],[-9.6,2.1,0,'hull'],[-12.6,1.9,0,'hull']],cam:[46,34,10],gcam:[44,11],stern:14.2,bow:16.5,bw:3.4,eng:[28,2.4],lean:.02,pitch:.008,wake:[4,10,.08],perk:'Pushes rigid: no swing, but long and slow to turn · cargo pays ×1.4',paint:1,build:'atb'},
- push:{make:'Ohio Valley',name:'River Queen',type:'Towboat · 2 barges',price:200,barges:0,cargo:true,rigid:true,top:6.8,acc:1.3,turn:.64,resp:2.1,grip:3.6,mass:3.4,r:4.7,load:1,dpay:1.7,
+ push:{make:'Ohio Valley',name:'River Queen',type:'Towboat · 2 barges',price:1200,barges:0,cargo:true,rigid:true,top:6.8,acc:1.3,turn:.64,resp:2.1,grip:3.6,mass:3.4,r:4.7,load:1,dpay:1.7,
   body:[[14.6,2.4,2.35,'cargo'],[14.6,2.4,-2.35,'cargo'],[9.5,2.4,2.35,'cargo'],[9.5,2.4,-2.35,'cargo'],[4.4,2.4,2.35,'cargo'],[4.4,2.4,-2.35,'cargo'],[-.6,2.4,2.35,'cargo'],[-.6,2.4,-2.35,'cargo'],[-6,3.1,0,'hull'],[-11,3.1,0,'hull']],
   cam:[46,34,10],gcam:[52,12],stern:14,bow:17.5,bw:4.6,eng:[26,2.2],lean:.02,pitch:.006,wake:[5,12,.08],perk:'Two barges wide: big loads, tight gaps · cargo pays ×1.7',paint:3,build:'push'},
  // crew boat: a catamaran, so the rapids barely push it around (steady scales the turbulence)
- crew:{make:'Gulfline',name:'Sea Shuttle',type:'Crew boat',price:60,barges:0,top:14,acc:4,turn:1.25,resp:4.5,grip:3.2,mass:1,r:1.7,load:0,steady:.4,
+ crew:{make:'Gulfline',name:'Sea Shuttle',type:'Crew boat',price:500,barges:0,top:14,acc:4,turn:1.25,resp:4.5,grip:3.2,mass:1,r:1.7,load:0,steady:.4,
   body:[[2.4,1.7,0,'hull'],[-2.2,1.7,0,'hull']],cam:[16,9,20],gcam:[16,5],stern:4.2,bow:4.6,bw:1.35,eng:[54,6.2],lean:-.05,pitch:.04,wake:[2,7,.05],perk:'Catamaran: steady in the rapids',paint:1,build:'crew'},
  // car ferry: double-ended, so it crosses bow-first one way and stern-first back; full power astern, and it can turn square across the river
- ferry:{make:'Cedar Point Ferry Co.',name:'Island Belle',type:'Car ferry',price:110,barges:0,top:7.5,acc:2.4,turn:.85,resp:2.6,grip:3.8,mass:2.4,r:3.3,load:0,dbl:true,cross:true,
+ ferry:{make:'Cedar Point Ferry Co.',name:'Island Belle',type:'Car ferry',price:700,barges:0,top:7.5,acc:2.4,turn:.85,resp:2.6,grip:3.8,mass:2.4,r:3.3,load:0,dbl:true,cross:true,
   body:[[4.3,3.3,0,'hull'],[0,3.3,0,'hull'],[-4.3,3.3,0,'hull']],cam:[30,19,16],gcam:[30,9],stern:7.6,bow:7.6,bw:3.4,eng:[36,3.2],lean:.02,pitch:.01,wake:[3.6,9,.07],perk:'Double-ended: full power astern · carries 4 cars',paint:1,build:'ferry'},
  // sternwheeler: an excursion boat with a paddle wheel; slow and smooth, and tour passengers tip well
- stern:{make:'Mill Creek Excursions',name:'River Lark',type:'Sternwheeler',price:100,barges:0,top:6.8,acc:1.8,turn:.75,resp:2.2,grip:3,mass:2,r:3,load:0,steady:.6,
+ stern:{make:'Mill Creek Excursions',name:'River Lark',type:'Sternwheeler',price:750,barges:0,top:6.8,acc:1.8,turn:.75,resp:2.2,grip:3,mass:2,r:3,load:0,steady:.6,
   body:[[6,2.9,0,'hull'],[0,3,0,'hull'],[-6,3,0,'hull'],[-9.5,2.4,0,'hull']],cam:[28,17,18],gcam:[28,9],stern:10.5,bow:9,bw:3.1,eng:[26,2.4],lean:.03,pitch:.01,wake:[3.4,9,.06],perk:'Paddle wheel: steady in the rapids · tour passengers tip well',paint:0,build:'stern'},
  // fireboat: its water cannons shove logs and buoys out of the way ahead
- fire:{make:'Harbor Works',name:'Engine 9',type:'Fireboat',price:90,barges:0,top:11,acc:3,turn:1,resp:3.6,grip:2.8,mass:1.2,r:1.9,load:0,cannon:true,
+ fire:{make:'Harbor Works',name:'Engine 9',type:'Fireboat',price:600,barges:0,top:11,acc:3,turn:1,resp:3.6,grip:2.8,mass:1.2,r:1.9,load:0,cannon:true,
   body:[[2.2,1.7,0,'hull'],[-2.1,1.75,0,'hull']],cam:[18,11,20],gcam:[17,5.5],stern:4,bow:4.3,bw:.9,eng:[38,3.4],lean:.04,pitch:.02,wake:[2.2,7,.06],perk:'Water cannons blast logs and buoys aside',paint:0,build:'fire'},
  // crane barge: rigid like the ATB, plus a load hanging from the crane that swings on turns; swing it too far and the cargo takes damage
- crane:{make:'Ironwood Marine',name:'Big Lift',type:'Crane barge + push tug',price:160,barges:0,cargo:true,rigid:true,crane:true,top:7,acc:1.4,turn:.62,resp:2,grip:3.4,mass:3,r:4,load:.9,dpay:1.5,
+ crane:{make:'Ironwood Marine',name:'Big Lift',type:'Crane barge + push tug',price:1000,barges:0,cargo:true,rigid:true,crane:true,top:7,acc:1.4,turn:.62,resp:2,grip:3.4,mass:3,r:4,load:.9,dpay:1.5,
   body:[[8.5,2.3,1.9,'cargo'],[8.5,2.3,-1.9,'cargo'],[3.3,2.3,1.9,'cargo'],[3.3,2.3,-1.9,'cargo'],[-1.9,2.3,1.9,'cargo'],[-1.9,2.3,-1.9,'cargo'],[-8,1.9,0,'hull'],[-11,1.8,0,'hull']],
   cam:[42,32,10],gcam:[42,12],stern:13,bow:11.5,bw:4,eng:[30,2.4],lean:.02,pitch:.008,wake:[4.5,10,.08],perk:'Swinging crane load: turn smoothly · cargo pays ×1.5',paint:2,build:'crane'}
 };
@@ -555,9 +555,9 @@ const ORDER=['tug','pilot','speed','jetski','airboat','crew','fire','ferry','ste
 // boats planned for later rounds are shown in the garage as "coming soon"
 const SOON=[];
 const UPG=[
- {id:'engine',n:'Engine',d:'Quicker acceleration',lv:['Stock','Rebuilt','Marine diesel','Race'],cost:[0,15,35,70]},
- {id:'hp',n:'Horsepower',d:'Higher top speed, stronger tow',lv:['Stock','+50 hp','+120 hp','+200 hp'],cost:[0,20,45,90]},
- {id:'handling',n:'Handling',d:'Sharper turns',lv:['Stock','Trim tabs','Twin rudders','Race rudders'],cost:[0,15,35,70]}];
+ {id:'engine',n:'Engine',d:'Quicker acceleration',lv:['Stock','Rebuilt','Marine diesel','Race'],cost:[0,45,105,210]},
+ {id:'hp',n:'Horsepower',d:'Higher top speed, stronger tow',lv:['Stock','+50 hp','+120 hp','+200 hp'],cost:[0,60,135,270]},
+ {id:'handling',n:'Handling',d:'Sharper turns',lv:['Stock','Trim tabs','Twin rudders','Race rudders'],cost:[0,45,105,210]}];
 const PAINTS=[{n:'Harbor red',c:'#b8322a'},{n:'Navy',c:'#1f3a6b'},{n:'Forest',c:'#1d5838'},{n:'Sunburst',c:'#f0a012'},{n:'Arctic',c:'#e8ebee'},{n:'Midnight',c:'#15181e'},{n:'Teal',c:'#0f7a84'},{n:'Hot pink',c:'#d43a7a'}];
 // river stretches ("levels"); par is the gold-medal time for each boat
 const LEVELS=[
@@ -1986,9 +1986,9 @@ function finishRun(){if(isJob())return finishJob();const ok=result.kind==='finis
  $('oTip').innerHTML=pickTip(ok,m,pay-runCans);$('toGarage').classList.toggle('nudge',canSpend());
  state='over';clearTimeout(banner.t);show('region',0);toastQ=[];toastBusy=false;show('mtoast',0);show('hud',0);show('over',1);if(m===3&&m>prevM)chime([523,659,784,1047,1319]);afterRun(ok,m,nb)}
 /* ---------- revive ---------- */
-// once per race, a sinking or a lost tow can be undone for 30 cans: the crew patches the hull (back to 40%) or rigs a new line
+// once per race, a sinking or a lost tow can be undone for 60 cans: the crew patches the hull (back to 40%) or rigs a new line
 // to the barge (cargo back to 35%), and the run carries on from where it was after a countdown
-const REVIVE_COST=30;let reviveUsed=false,reviveT=0;
+const REVIVE_COST=60;let reviveUsed=false,reviveT=0;
 function canRevive(){return!isJob()&&!reviveUsed&&(result.kind==='sunk'||result.kind==='lost')&&T.d>150&&cans>=REVIVE_COST}
 function offerRevive(){state='revive';reviveT=4;$('rvT').textContent='4';$('rvWhat').textContent=result.kind==='sunk'?'Patch the hull and carry on':BG.length?'Rig a new tow line to the barge':'Re-secure the cargo and carry on';show('hud',0);show('revive',1)}
 function acceptRevive(){if(state!=='revive'||cans<REVIVE_COST)return;audioInit();cans-=REVIVE_COST;store.set('cans',cans);reviveUsed=true;stats.revives=(stats.revives||0)+1;show('revive',0);
@@ -2003,7 +2003,7 @@ function finishJob(){const J=JOBD(),ok=result.kind==='job',key='job_'+J.id+'_'+s
  lastShare={job:true,where:J.n,time:ok?clock(result.time):stopI+' of '+DOCKS.length+' stops',boat:BOATS[sel].name,cargo:spec.cargo?Math.round(cargo):null,medal:m,fog:false};
  cans+=pay;stats.runs++;if(ok){stats.jobs++;if(J.id==='fuel'){stats.fuelJobs++;if(spill===0)stats.zeroSpill++}if(J.id==='lift')stats.lifts++;if(J.id==='yard')stats.yard++;if(J.id==='salvage')stats.salvage=(stats.salvage||0)+1;if(J.id==='rescue')stats.rescue=(stats.rescue||0)+1;if(J.id==='ferry')stats.ferry=(stats.ferry||0)+1;if(J.id==='dredge')stats.dredge=(stats.dredge||0)+1;if(J.id==='tour')stats.tours=(stats.tours||0)+1;if(J.id==='assist')stats.assists=(stats.assists||0)+1;if(J.id==='search')stats.searches=(stats.searches||0)+1;if(J.id==='logdrive')stats.drives=(stats.drives||0)+1}if(m===3)stats.gold++;
  store.set('cans',cans);store.set('best',bests);store.set('medals',medals);store.set('stats',stats);
- const got=checkAch(),t=$('oT');t.textContent=ok?'Job complete!':result.kind==='sunk'?'Sunk!':result.kind==='quit'?'Job ended early':result.kind==='missed'?'Missed the dock':driveJob()?'Too many logs lost':rescueJob()?'Tow lost':assistJob()?'Ship damaged':tourJob()?'Tour called off':'Cargo lost';t.classList.toggle('bad',!ok);
+ const got=checkAch(),t=$('oT');t.textContent=ok?'Job complete!':result.kind==='sunk'?'Sunk!':result.kind==='quit'?'Job ended early':result.kind==='missed'?(driveJob()?'Drifted past the boom':'Missed the dock'):driveJob()?'Too many logs lost':rescueJob()?'Tow lost':assistJob()?'Ship damaged':tourJob()?'Tour called off':'Cargo lost';t.classList.toggle('bad',!ok);
  $('oTime').innerHTML=ok?clock(result.time)+(nb?'<small>New best!</small>':''):`${stopI}<small>of ${DOCKS.length} stops done</small>`;
  const cond=[['Bronze','Complete the job'],J.logs?['Silver','4 of 5 logs or better']:J.swimmers?['Silver','Hull 60% or better']:J.id==='assist'?['Silver','Ship condition 80%+']:J.sights?['Silver','Comfort 80% or better']:J.ferry?['Silver','Hull 60% or better']:['Silver','No spills · 80% cargo'],['Gold','No slips · under '+clock(J.par)]];
  $('oMed').innerHTML=cond.map(([n,c],i)=>`<div class="medal m${i+1} ${m>i?'on':''}" style="animation-delay:${.15+i*.18}s"><i></i><b>${n}</b>${c}</div>`).join('');
@@ -2359,7 +2359,7 @@ window.__tug={get state(){return state},get SW(){return SW},get T(){return T},ge
  setCans:n=>{cans=n;store.set('cans',n);renderGarage()},unlockAll:()=>{unlocked=ORDER.slice();store.set('unlocked',unlocked);renderGarage()},
  OB:()=>OB.map(o=>({k:o.k,x:o.x,d:o.d,r:o.r,len:o.len,th:o.th})),boats:()=>BOATSX.map(b=>({x:b.x,d:b.d})),sand:()=>SAND.slice(),level:()=>LV,horn:()=>horn(),loadLevel:i=>{loadLevel(i);buildDocks();rebuildBoat();resetWorld()},
  // fast-forward: runs the game at 60 steps a second without drawing, calling cb before each step, until the run ends or secs pass
- get F(){return F},get K(){return K},get OPS(){return OPS},get HC(){return HC},hcManifold:()=>hcManifold(),hcAligned:()=>hcAligned(),get fuelLv(){return fuelLv},get jobLog(){return jobLog},get coal(){return coal},crewFinish:()=>crewFinish(),get CUE(){return CUE},cue:()=>{bankCue();const e=document.getElementById('opCue');return e&&!e.hidden?e.textContent:null},setPR:v=>{prNow=prMax=v;R.setPixelRatio(v);resize()},driveLogs:()=>OB.filter(o=>o.drive).map(o=>({x:o.x,d:o.d,penned:!!o.penned,lost:!!o.lost})),swimmers:()=>SWIM.map(q=>({x:q.x,d:q.d,got:q.got})),get heard(){return heard},get SH(){return SH},shipPos:()=>SH&&shipPos(),get TS(){return TS},job:()=>JOBD(),cur:(x,d)=>{const o={};current(x,d,o);return o},ferryAct:a=>ferryAct(a),get FY(){return FY},get ferryAboard(){return ferryAboard.length},get hornDue(){return hornDue},ships:()=>BOATSX.filter(b=>b.big).map(b=>({x:b.x,d:b.d,honked:b.honked})),setNight:v=>{settings.night=v;loadLevel(lvl);buildDocks();rebuildBoat();resetWorld()},get env(){return ENV},revive:()=>acceptRevive(),get ghost(){return ghost},get ghostD(){return ghostD},share:()=>openShare(),get captain(){return level},get xp(){return xp},get missions(){return missions},get HOLD(){return HOLD},get stopI(){return stopI},berth:()=>berthStatus(),
+ get F(){return F},get K(){return K},get OPS(){return OPS},get HC(){return HC},hcManifold:()=>hcManifold(),hcAligned:()=>hcAligned(),get fuelLv(){return fuelLv},get jobLog(){return jobLog},get coal(){return coal},get sel(){return sel},price:b=>BOATS[b].price,levels:()=>LEVELS,levelOpen:i=>levelOpen(LEVELS[i]),jobs:()=>JOBS,crewFinish:()=>crewFinish(),get CUE(){return CUE},cue:()=>{bankCue();const e=document.getElementById('opCue');return e&&!e.hidden?e.textContent:null},setPR:v=>{prNow=prMax=v;R.setPixelRatio(v);resize()},driveLogs:()=>OB.filter(o=>o.drive).map(o=>({x:o.x,d:o.d,penned:!!o.penned,lost:!!o.lost})),swimmers:()=>SWIM.map(q=>({x:q.x,d:q.d,got:q.got})),get heard(){return heard},get SH(){return SH},shipPos:()=>SH&&shipPos(),get TS(){return TS},job:()=>JOBD(),cur:(x,d)=>{const o={};current(x,d,o);return o},ferryAct:a=>ferryAct(a),get FY(){return FY},get ferryAboard(){return ferryAboard.length},get hornDue(){return hornDue},ships:()=>BOATSX.filter(b=>b.big).map(b=>({x:b.x,d:b.d,honked:b.honked})),setNight:v=>{settings.night=v;loadLevel(lvl);buildDocks();rebuildBoat();resetWorld()},get env(){return ENV},revive:()=>acceptRevive(),get ghost(){return ghost},get ghostD(){return ghostD},share:()=>openShare(),get captain(){return level},get xp(){return xp},get missions(){return missions},get HOLD(){return HOLD},get stopI(){return stopI},berth:()=>berthStatus(),
  setMode:(m,j)=>{mode=m;if(j!=null)jobIdx=j;if(m==='job'&&lvl!==(JOBD().level||0))loadLevel(JOBD().level||0);buildDocks();rebuildBoat();resetWorld();renderGarage()},thr:v=>{botThr=v},hip:()=>toggleHip(),moor:()=>moor(),docks:()=>DOCKS.map(D=>({d:D.d,side:D.side,face:D.face,h:D.h})),
  sim:(secs,cb)=>{const np=NOPAUSE;NOPAUSE=true;for(let i=0;i<secs*60;i++){if(cb)cb();tick(1/60,simClock+=1/60);if(state==='over')break}NOPAUSE=np;return state},simClock:v=>{simClock=v},render:()=>R.render(scene,cam),info:()=>({calls:R.info.render.calls,tris:R.info.render.triangles,geos:R.info.memory.geometries,tex:R.info.memory.textures,pr:R.getPixelRatio()}),nopause:v=>{NOPAUSE=v}};
 
