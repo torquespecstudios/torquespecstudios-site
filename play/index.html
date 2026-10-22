@@ -50,6 +50,23 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #pauseBtn{gap:4px}
 #pauseBtn i{width:4px;height:13px;border-radius:1px;background:currentColor}
 #setBtn{font-size:18px}
+#photoBtn{pointer-events:auto;width:38px;height:38px;justify-content:center;padding:0;color:var(--ink)}
+#photo{position:fixed;inset:0;pointer-events:none;z-index:6}
+/* the part of the screen that ends up on the 1080×1140 photo (the card's picture area), centred; the rest is dimmed */
+#phFrame{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100vh * 1080 / 1140));aspect-ratio:1080/1140;box-shadow:0 0 0 100vmax rgba(8,10,14,.42);outline:1px solid rgba(255,255,255,.35)}
+#photo .ph-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:12px}
+#phClose{pointer-events:auto;width:44px;height:44px;justify-content:center;padding:0;font-size:18px}
+.ph-hint{font-weight:700;font-size:13px;letter-spacing:.06em;color:var(--ink);opacity:.8;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+#photo .ph-bot{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);display:flex;flex-direction:column;align-items:center;gap:18px}
+.ph-tod{pointer-events:auto;display:flex;gap:4px;padding:4px;background:var(--glass);border:1px solid var(--hair);border-radius:999px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.ph-tod button{min-width:76px;min-height:44px;padding:0 14px;border-radius:999px;font-weight:700;font-size:14px;color:var(--mute)}
+.ph-tod button.on{background:var(--amber);color:#1d1508}
+#phSnap{pointer-events:auto;width:78px;height:78px;border-radius:50%;border:4px solid #fff;display:grid;place-items:center;box-shadow:0 6px 24px rgba(0,0,0,.45)}
+#phSnap i{width:60px;height:60px;border-radius:50%;background:#fff;transition:transform .12s}
+#phSnap:active i{transform:scale(.88)}
+#phFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+#phFlash.go{animation:phFl .45s ease-out}
+@keyframes phFl{0%{opacity:.85}100%{opacity:0}}
 
 /* pause, countdown, settings, tutorial coach */
 #paused,#settings{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.88));pointer-events:auto}
@@ -211,7 +228,8 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 @keyframes bootBar{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
 #boot.gone{opacity:0;pointer-events:none}
 @media (prefers-reduced-motion:reduce){#boot .bar::after{animation:none;width:100%}}
-.g-top .pills{display:flex;gap:8px}
+/* on narrow phones with big numbers the camera button wraps to its own row, under Settings */
+.g-top .pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 /* narrow phones (iPhone SE/mini): the logo and pills shrink a little so five- and six-digit totals never push the settings button off screen */
 @media (max-width:400px){.g-top .logo{font-size:32px}.pills{gap:6px}.pills .pill{padding:6px 9px;gap:5px}}
 .sheet{pointer-events:auto;height:56%;background:var(--glass);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);border-top:1px solid var(--hair);border-radius:20px 20px 0 0;overflow:hidden;overscroll-behavior:contain;padding-top:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
@@ -401,10 +419,21 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
   <div class="btns"><button class="btn" id="toGarage">Garage</button><button class="btn" id="shareBtn" aria-label="Share this run">Share</button><button class="btn primary" id="retry">Retry</button></div>
 </div>
 
+<!-- photo mode: the garage menus step aside so the car can be framed, lit and shared -->
+<div id="photo" hidden>
+  <div id="phFrame"></div>
+  <div class="ph-top"><button class="pill" id="phClose" aria-label="Close photo mode">✕</button><span class="ph-hint">Drag to turn · pinch to zoom</span></div>
+  <div class="ph-bot">
+    <div class="ph-tod" id="phTod" role="group" aria-label="Backdrop"><button data-t="0">Day</button><button data-t="0.5">Sunset</button><button data-t="1">Night</button></div>
+    <button id="phSnap" aria-label="Take photo"><i></i></button>
+  </div>
+  <div id="phFlash"></div>
+</div>
+
 <div id="garage">
   <div class="g-top">
     <div><div class="logo disp">Swer<i>vy</i></div><div class="glv" id="gLv"></div><button class="trophy" id="achBtn" type="button"></button></div>
-    <div class="pills"><div class="pill">Best <span id="gBest">0</span></div><div class="pill"><span class="can"></span><span id="gCans">0</span></div><button class="pill" id="setBtn" aria-label="Settings">⚙</button></div>
+    <div class="pills"><div class="pill">Best <span id="gBest">0</span></div><div class="pill"><span class="can"></span><span id="gCans">0</span></div><button class="pill" id="setBtn" aria-label="Settings">⚙</button><button class="pill" id="photoBtn" aria-label="Photo mode"><svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M9 4h6l1.6 2.2H20a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.2a2 2 0 0 1 2-2h3.4L9 4zm3 4.6a4.4 4.4 0 1 0 0 8.8 4.4 4.4 0 0 0 0-8.8zm0 2a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8z"/></svg></button></div>
   </div>
   <div class="sheet" id="sheet">
     <div class="models" id="models"></div>
@@ -443,7 +472,7 @@ const fmt=n=>Math.round(n).toLocaleString('en-US');
 const num=(v,d,min=0)=>typeof v==='number'&&Number.isFinite(v)?Math.max(min,v):d;
 const obj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
 // native plugins when running as the iOS app (Capacitor); all undefined in a browser
-const NATIVE=(p=>({prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,review:p&&p.InAppReview,app:p&&p.App}))(window.Capacitor&&window.Capacitor.Plugins);
+const NATIVE=(p=>({prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,fs:p&&p.Filesystem,review:p&&p.InAppReview,app:p&&p.App}))(window.Capacitor&&window.Capacitor.Plugins);
 const store={get(k,d){try{const v=localStorage.getItem('hp3_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){const j=JSON.stringify(v);try{localStorage.setItem('hp3_'+k,j)}catch(e){}if(NATIVE.prefs)NATIVE.prefs.set({key:'hp3_'+k,value:j}).catch(()=>{})}};
 
 /* ---------- data ---------- */
@@ -1211,7 +1240,9 @@ function resetWorld(){roadRnd=state!=='ready'?Math.random:dailyMode?mulberry(dai
 function score(d){return Math.floor(((d??C.d)-START_D)*spec.mult+bonus)}
 
 function show(id,on){$(id).hidden=!on}
-function applyView(){const w=innerWidth,h=innerHeight;if(state==='garage'){if(w>=860&&w>=h)cam.setViewOffset(w,h,w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*.28,w,h)}else cam.clearViewOffset()}
+// photo mode: {tod: backdrop time of day, zoom: camera distance factor, pitch: camera height factor, eng: engine view was open}
+let photo=null;const phPtr=new Map();
+function applyView(){const w=innerWidth,h=innerHeight;if(state==='garage'&&!photo){if(w>=860&&w>=h)cam.setViewOffset(w,h,w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*.28,w,h)}else cam.clearViewOffset()}
 function hideRunUI(){xpAnim++;toastQ=[];show('revive',0);show('share',0);show('combo',0);document.querySelectorAll('.pop').forEach(e=>e.remove());show('mtoast',0);show('region',0);show('toBest',0);show('paused',0);show('count',0);show('pauseBtn',0);show('coach',0);counting=0;coachT=0}
 function goGarage(){checkDaily();state='garage';resetWorld();placeBestFlag(true);hideRunUI();show('hud',0);show('ready',0);show('over',0);show('garage',1);renderGarage();applyView();setEngineView(tab==='engine')}
 function goReady(snap){setEngineView(false);if(pv){cfg[pv.k]=pv.prev;pv=null;rebuildCar()}if(!unlocked.includes(cfg.model)){selectModel(lastDriven);rebuildCar()}
@@ -1333,7 +1364,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state==='
 /* ---------- achievements ---------- */
 // long-term trophies backed by lifetime stats; each pays cans once. IDs are kept stable so they can map to Game Center achievements.
 const TROPHY='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3h12v3h3v3a5 5 0 0 1-5 5h-.4A5 5 0 0 1 13 16.9V19h3v2H8v-2h3v-2.1A5 5 0 0 1 8.4 14H8a5 5 0 0 1-5-5V6h3V3zm0 5H5v1a3 3 0 0 0 1.4 2.5A6 6 0 0 1 6 9V8zm12 0v1a6 6 0 0 1-.4 2.5A3 3 0 0 0 19 9V8h-1z"/></svg>';
-let stats=Object.assign({runs:0,cans:0,combo3:0,close:0,boosts:0,revives:0,regions:0},obj(store.get('stats',{}))),achGot=obj(store.get('ach',{}));for(const k in stats)stats[k]=num(stats[k],0);
+let stats=Object.assign({runs:0,cans:0,combo3:0,close:0,boosts:0,revives:0,regions:0,photos:0},obj(store.get('stats',{}))),achGot=obj(store.get('ach',{}));for(const k in stats)stats[k]=num(stats[k],0);
 const runDist=()=>Math.max(bestDist,state==='play'?Math.floor(C.d-START_D):0);
 const ACH=[
  ['first_drive','First Drive','Finish your first run',10,()=>stats.runs,1],
@@ -1349,7 +1380,8 @@ const ACH=[
  ['cars_all','Full Garage','Own all 8 cars',200,()=>unlocked.length,8],
  ['streak_7','Weekly Driver','Play 7 days in a row',100,()=>daily.streak,7],
  ['level_10','Pro Driver','Reach driver level 10',100,()=>level,10],
- ['second_wind','Second Wind','Use a revive',10,()=>stats.revives,1]];
+ ['second_wind','Second Wind','Use a revive',10,()=>stats.revives,1],
+ ['photo','Showroom Shot','Take a photo of your car',15,()=>stats.photos,1]];
 // trophies earned during a run are also listed on its Wrecked screen, in case a crash cut their pop-up short
 let runAch=[];
 function checkAch(){const got=[];for(const[id,name,,rw,val,n]of ACH){if(achGot[id]||val()<n)continue;achGot[id]=1;cans+=rw;got.push([name,rw])}
@@ -1451,13 +1483,17 @@ const v=state==='play'?C.v:0;$('speed').textContent=settings.units==='kmh'?Math.
 const ptrs=new Set();let keyDown=false;
 function press(){audioInit();if(state==='ready')startRun();else if(state==='play'||(state==='paused'&&counting>0))holding=true}
 function release(){if(!ptrs.size&&!keyDown)holding=false}
-canvas.addEventListener('pointerdown',e=>{e.preventDefault();if(state==='garage'){drag={x:e.clientX};return}ptrs.add(e.pointerId);press()});
-window.addEventListener('pointermove',e=>{if(drag){const dx=e.clientX-drag.x;if(car&&car.engineOn)engA=clamp(engA-dx*.006,-1.3,1.3);else orbA-=dx*.008;drag.x=e.clientX}});
-const up=e=>{drag=null;ptrs.delete(e.pointerId);release()};window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();if(state==='garage'){if(photo)phPtr.set(e.pointerId,{x:e.clientX,y:e.clientY});drag={x:e.clientX};return}ptrs.add(e.pointerId);press()});
+window.addEventListener('pointermove',e=>{
+ // photo mode: two fingers pinch the zoom; one finger also tilts the camera up and down as it turns
+ if(photo&&phPtr.has(e.pointerId)){const p=phPtr.get(e.pointerId);if(phPtr.size>=2){const[a,b]=[...phPtr.values()],d0=Math.hypot(a.x-b.x,a.y-b.y);p.x=e.clientX;p.y=e.clientY;const d1=Math.hypot(a.x-b.x,a.y-b.y);if(d0>10&&d1>10)photo.zoom=clamp(photo.zoom*d0/d1,.5,1.7);if(drag)drag.x=e.clientX;return}
+  photo.pitch=clamp(photo.pitch+(e.clientY-p.y)*.0012,.03,.55);p.x=e.clientX;p.y=e.clientY}
+ if(drag){const dx=e.clientX-drag.x;if(car&&car.engineOn)engA=clamp(engA-dx*.006,-1.3,1.3);else orbA-=dx*.008;drag.x=e.clientX}});
+const up=e=>{drag=null;phPtr.delete(e.pointerId);ptrs.delete(e.pointerId);release()};window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
 // leaving the app mid-run pauses it rather than letting the car drive off the road
 function pause(){if(state!=='play'&&!(state==='paused'&&counting>0))return;state='paused';counting=0;ptrs.clear();keyDown=false;holding=false;show('count',0);show('pauseBtn',0);show('coach',0);show('paused',1)}
 function resume(){show('paused',0);show('count',1);counting=2.4;$('countN').textContent='3'}
-window.addEventListener('blur',()=>{drag=null;ptrs.clear();keyDown=false;release();pause()});
+window.addEventListener('blur',()=>{drag=null;phPtr.clear();ptrs.clear();keyDown=false;release();pause()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
 window.addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input'))return;
  if(e.code==='Escape'||e.code==='KeyP'){if(!$('settings').hidden){show('settings',0);return}if(state==='play')pause();else if(state==='paused'&&!counting)resume();return}
@@ -1471,10 +1507,11 @@ $('toGarage').addEventListener('click',goGarage);
 /* ---------- share card ---------- */
 // a 1080x1350 branded card ("I drove 4,312 m in Swervy. Can you beat it?"); the native share sheet sends the image where supported,
 // otherwise the challenge text is copied and the image can be long-pressed to save
-let lastRun=null,shareFile=null;
+let lastRun=null,shareFile=null,shareData=null,shareKind='run';
 // set this to the App Store link (https://apps.apple.com/app/id…) once App Store Connect assigns one; every share then carries it
 const APP_STORE_URL='';
-function shareText(){const reached=lastRun.region?` and reached ${REGIONS[lastRun.region].n}`:'',link=APP_STORE_URL?' '+APP_STORE_URL:'';
+function shareText(){if(shareKind==='car'){const M=MODELS[cfg.model];return`Check out my ${M.name} in Swervy.`+(APP_STORE_URL?' Build yours: '+APP_STORE_URL:'')}
+ const reached=lastRun.region?` and reached ${REGIONS[lastRun.region].n}`:'',link=APP_STORE_URL?' '+APP_STORE_URL:'';
  return(lastRun.race?`I drove ${fmt(lastRun.dist)} m on Swervy race ${lastRun.race}${reached}. Same road for you, can you beat it? ${RACE_URL}${lastRun.race}`:lastRun.daily?`I drove ${fmt(lastRun.dist)} m on today's Swervy Daily Road${reached}. Same road for everyone, can you beat it?`:`I drove ${fmt(lastRun.dist)} m in Swervy${reached} (${fmt(lastRun.sc)} pts). Can you beat it?`)+link}
 function drawCard(){const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
  // the card's sky matches the furthest region the run reached: golden-hour forest, autumn dusk, or the snowy pass at night
@@ -1495,12 +1532,40 @@ function drawCard(){const W=1080,H=1350,c=document.createElement('canvas');c.wid
  g.fillStyle='rgba(13,17,23,.78)';g.fillRect(0,H-190,W,190);g.fillStyle='#f2b33d';g.font='800 italic 92px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillText('CAN YOU BEAT IT?',W/2,H-82);
  g.fillStyle='rgba(245,240,230,.6)';g.font='700 26px "Barlow",system-ui,sans-serif';g.letterSpacing='6px';g.fillText('BY TORQUE SPEC STUDIOS',W/2,H-30);g.letterSpacing='0px';
  return c}
-function openShare(){if(!lastRun)return;const c=drawCard();$('shareImg').src=c.toDataURL('image/png');$('shareMsg').textContent='';shareFile=null;
- c.toBlob(b=>{try{shareFile=new File([b],'swervy-run.png',{type:'image/png'})}catch(e){}},'image/png');show('share',1)}
+// the share sheet takes either card: a run's score card or a photo of the player's car
+function showShareCard(c,kind){shareKind=kind;const url=c.toDataURL('image/png');$('shareImg').src=url;shareData=url.split(',')[1];$('shareMsg').textContent='';shareFile=null;
+ $('shareImg').alt=kind==='car'?'Photo of your car':'Your Swervy score card';$('share').firstElementChild.setAttribute('aria-label',kind==='car'?'Share your car':'Share your run');
+ c.toBlob(b=>{try{shareFile=new File([b],kind==='car'?'swervy-car.png':'swervy-run.png',{type:'image/png'})}catch(e){}},'image/png');show('share',1)}
+function openShare(){if(!lastRun)return;showShareCard(drawCard(),'run')}
+// photo mode: the garage menus step aside, the camera stops its slow spin and the player frames the shot themselves
+function openPhoto(){if(state!=='garage'||photo)return;audioInit();photo={tod:0,zoom:.85,pitch:.14,eng:!!(car&&car.engineOn)};if(photo.eng)setEngineView(false);
+ show('garage',0);show('photo',1);setPhotoTod(0);applyView()}
+function closePhoto(){if(!photo)return;const eng=photo.eng;photo=null;phPtr.clear();show('photo',0);show('share',0);show('garage',1);renderGarage();if(eng&&tab==='engine')setEngineView(true);applyView()}
+function setPhotoTod(t){photo.tod=t;document.querySelectorAll('#phTod button').forEach(b=>b.classList.toggle('on',+b.dataset.t===t))}
+// renders one frame at the screen's full resolution and copies it before the buffer clears, then puts it on a 4:5 card
+function snapPhoto(){if(!photo)return;const old=R.getPixelRatio();R.setPixelRatio(Math.min(window.devicePixelRatio||1,3));R.render(scene,cam);
+ const src=R.domElement,W=1080,H=1350,band=210,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),ph=H-band,k=Math.max(W/src.width,ph/src.height),sw=W/k,sh=ph/k;
+ g.drawImage(src,(src.width-sw)/2,(src.height-sh)/2,sw,sh,0,0,W,ph);R.setPixelRatio(old);
+ const M=MODELS[cfg.model],paint=PAINTS[cfg.paint]?PAINTS[cfg.paint].n:'';
+ let gr=g.createLinearGradient(0,ph,0,H);gr.addColorStop(0,'#161b23');gr.addColorStop(1,'#0b0e13');g.fillStyle=gr;g.fillRect(0,ph,W,band);g.fillStyle='#f2b33d';g.fillRect(0,ph,W,6);
+ g.textBaseline='alphabetic';g.textAlign='left';g.font='800 italic 92px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillStyle='#f5f0e6';g.fillText(M.name.toUpperCase(),56,ph+104);
+ g.font='700 30px "Barlow",system-ui,sans-serif';g.fillStyle='#a9a69e';g.fillText([M.make,paint].filter(Boolean).join(' · '),58,ph+152);
+ g.textAlign='right';g.font='800 italic 64px "Saira Condensed","Arial Narrow",Impact,sans-serif';const w1=g.measureText('SWER').width,w2=g.measureText('VY').width;
+ g.fillStyle='#f5f0e6';g.fillText('SWER',W-56-w2,ph+92);g.fillStyle='#f2b33d';g.fillText('VY',W-56,ph+92);
+ g.font='700 26px "Barlow",system-ui,sans-serif';g.fillStyle='#a9a69e';g.fillText(`Level ${level}`+(bestDist>0?` · Best ${fmt(bestDist)} m`:''),W-56,ph+140);
+ g.fillStyle='rgba(245,240,230,.45)';g.font='700 20px "Barlow",system-ui,sans-serif';g.letterSpacing='4px';g.fillText('BY TORQUE SPEC STUDIOS',W-52,ph+182);g.letterSpacing='0px';
+ const f=$('phFlash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');chime([1568,2093]);buzz(20);bumpStat('photos');saveStats();if(checkAch().length)renderAch();
+ setTimeout(()=>showShareCard(c,'car'),260)}
+$('photoBtn').addEventListener('click',openPhoto);$('phClose').addEventListener('click',closePhoto);$('phSnap').addEventListener('click',snapPhoto);
+document.querySelectorAll('#phTod button').forEach(b=>b.addEventListener('click',()=>{if(photo)setPhotoTod(+b.dataset.t)}));
+canvas.addEventListener('wheel',e=>{if(!photo)return;e.preventDefault();photo.zoom=clamp(photo.zoom*Math.exp(e.deltaY*.0012),.5,1.7)},{passive:false});
 $('shareBtn').addEventListener('click',()=>{audioInit();openShare()});
 $('shareClose').addEventListener('click',()=>show('share',0));
 $('shareGo').addEventListener('click',async()=>{const text=shareText(),msg=$('shareMsg');
- if(NATIVE.share){try{await NATIVE.share.share({title:'Swervy',text,dialogTitle:'Share your run'});msg.textContent='Shared!'}catch(e){}return}
+ if(NATIVE.share){try{let files;
+  // the native share sheet needs a real file: the card is written to the app's cache first
+  if(NATIVE.fs&&shareData)try{const r=await NATIVE.fs.writeFile({path:shareKind==='car'?'swervy-car.png':'swervy-run.png',data:shareData,directory:'CACHE'});files=[r.uri]}catch(e){}
+  await NATIVE.share.share(Object.assign({title:'Swervy',text,dialogTitle:shareKind==='car'?'Share your car':'Share your run'},files?{files}:{}));msg.textContent='Shared!'}catch(e){}return}
  try{if(shareFile&&navigator.canShare&&navigator.canShare({files:[shareFile]})){await navigator.share({files:[shareFile],text});msg.textContent='Shared!';return}
   if(navigator.share){await navigator.share({text});msg.textContent='Shared!';return}}catch(e){if(e&&e.name==='AbortError')return}
  try{await navigator.clipboard.writeText(text);msg.textContent='Challenge copied. Press and hold the card to save the image.'}catch(e){msg.textContent=text}});
@@ -1536,6 +1601,8 @@ $('setClose').addEventListener('click',()=>show('settings',0));
 if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{
  const open=[['settings','setClose'],['share','shareClose'],['achPanel','achClose']].find(([p])=>!$(p).hidden);if(open){$(open[1]).click();return}
  if(!$('daily').hidden){show('daily',0);return}
+ if(!$('share').hidden){show('share',0);return}
+ if(photo){closePhoto();return}
  if(state==='play'||(state==='paused'&&counting>0)){pause();return}
  if(state==='paused'){resume();return}
  if(state==='ready'||state==='over'){goGarage();return}
@@ -1710,7 +1777,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  if(state==='garage'&&car.engineOn){const B=car.bay,ctr=car.engine.localToWorld(new THREE.Vector3((B.xb0+B.xb1)/2,B.fy+.3,0)),fw=new THREE.Vector3(1,0,0).transformDirection(car.model.matrixWorld),sd=new THREE.Vector3(0,0,1).transformDirection(car.model.matrixWorld);
   if(car.M.mid)fw.negate();const mid=car.M.mid,ea=engA+(mid?.55:0),hd=mid?2.5:3.3;desired.copy(ctr).addScaledVector(fw,Math.cos(ea)*hd).addScaledVector(sd,Math.sin(ea)*hd);desired.y+=mid?3.6:2.9;
   cam.position.lerp(desired,Math.min(1,dt*4));lookT.lerp(ctr,Math.min(1,dt*5));cam.fov+=(44-cam.fov)*Math.min(1,dt*4);cam.lookAt(lookT)}
- else if(state==='garage'){if(!drag)orbA+=dt*.22;if(unlockSpin>0){unlockSpin-=dt;orbA+=dt*2.4*Math.min(1,unlockSpin)}lookT.set(C.x,.6,-C.d);cam.fov=cam.aspect<1?46:34;const hh=Math.tan(cam.fov*Math.PI/360)*Math.min(cam.aspect,1.6),dist=Math.max(cam.aspect<1?8:10.5,(cam.aspect<1?3.2:5)/hh);cam.position.set(C.x+Math.sin(orbA)*dist,.9+dist*.16,-C.d+Math.cos(orbA)*dist);cam.lookAt(C.x,.6,-C.d)}
+ else if(state==='garage'){if(!drag&&!photo)orbA+=dt*.22;if(unlockSpin>0){unlockSpin-=dt;orbA+=dt*2.4*Math.min(1,unlockSpin)}lookT.set(C.x,.6,-C.d);cam.fov=cam.aspect<1?46:34;const hh=Math.tan(cam.fov*Math.PI/360)*Math.min(cam.aspect,1.6),dist=Math.max(cam.aspect<1?8:10.5,(cam.aspect<1?3.2:5)/hh);const pd=dist*(photo?photo.zoom:1),pp=photo?photo.pitch:.16;cam.position.set(C.x+Math.sin(orbA)*pd,.9+pd*pp,-C.d+Math.cos(orbA)*pd);cam.lookAt(C.x,.6,-C.d)}
  else{
   const k=state==='ready'?Math.min(1,dt*3):Math.min(1,dt*8);
   if(state==='crash'||state==='over'||state==='revive'){desired.copy(cam.position);desired.y=Math.max(desired.y,4.4);cam.position.lerp(desired,Math.min(1,dt*2));lookD.set(C.x,.6,-C.d);lookT.lerp(lookD,Math.min(1,dt*4))}
@@ -1731,7 +1798,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  ground.position.set(Math.round(cam.position.x/10)*10,0,Math.round(cam.position.z/10)*10);
  mtns.position.set(cam.position.x,0,cam.position.z);clouds.position.set(cam.position.x,0,cam.position.z);clouds.rotation.y+=dt*.003;
  sunSprite.position.copy(cam.position).addScaledVector(SUNDIR,700);
- timeOfDay(state==='garage'?0:clamp((C.d-START_D-1500)/2500,0,1));updateBiomeGround(state==='garage'?0:C.d-START_D);updateSnowfall(dt,snowFs);
+ timeOfDay(state==='garage'?(photo?photo.tod:0):clamp((C.d-START_D-1500)/2500,0,1));updateBiomeGround(state==='garage'?0:C.d-START_D);updateSnowfall(dt,snowFs);
  // audio
  if(AC){const at=AC.currentTime;engineTick(dt,at);
   skG.gain.setTargetAtTime(state==='play'&&Math.abs(C.a)>.55?.06*(Math.abs(C.a)-.55)/.4:0,at,.05);
