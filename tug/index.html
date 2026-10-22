@@ -163,7 +163,8 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #ready #readyS{background:rgba(13,17,23,.5);padding:6px 12px;border-radius:10px}
 #ready .tip{line-height:1.45}
 
-#over{background:radial-gradient(ellipse at center,rgba(10,12,16,.55),rgba(10,12,16,.85));pointer-events:auto}
+#over{background:radial-gradient(ellipse at center,rgba(10,12,16,.55),rgba(10,12,16,.85));pointer-events:auto;overflow-y:auto;overscroll-behavior:contain;justify-content:flex-start;padding-top:max(14px,env(safe-area-inset-top,0px));padding-bottom:max(14px,env(safe-area-inset-bottom,0px));box-sizing:border-box}
+#over>:first-child{margin-top:auto}#over>:last-child{margin-bottom:auto}
 #over .disp.t{font-size:clamp(46px,13vw,80px);color:var(--amber);line-height:.9}
 #over .disp.t.bad{color:var(--red)}
 #over .dist{font-family:var(--display);font-weight:800;font-size:60px;line-height:1;font-variant-numeric:tabular-nums}
@@ -270,15 +271,15 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .drive-wrap{position:sticky;bottom:0;padding-top:6px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 14px);background:linear-gradient(transparent,rgba(13,17,23,.9) 30%);display:flex;gap:10px}
 .drive-wrap .btn{font-size:24px;padding:14px 16px}
 #drive{flex:1}
-@media (min-width:700px) and (min-height:900px){.center>*,#hud>*,#region>*{zoom:1.35}.pop{font-size:38px}#mtoast{font-size:18px;padding:12px 22px;top:calc(env(safe-area-inset-top,0px) + 178px)}}
-@media (min-width:860px) and (min-aspect-ratio:1/1){
+@media (min-width:700px) and (min-height:1000px){.center>*,#hud>*,#region>*{zoom:1.35}.pop{font-size:38px}#mtoast{font-size:18px;padding:12px 22px;top:calc(env(safe-area-inset-top,0px) + 178px)}}
+@media (min-width:860px) and (min-aspect-ratio:1/1),(max-height:500px) and (min-aspect-ratio:1/1){
   #garage{display:block}
   .sheet{height:auto;position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:84px;bottom:16px;width:380px;max-height:none;border-radius:20px;border:1px solid var(--hair);padding-left:18px;padding-right:18px}
   .drive-wrap{padding-bottom:16px}
 }
 @media (prefers-reduced-motion:reduce){#ready p{animation:none}}
 /* jobs: throttle lever, tow winch, berth readout and the operations panel (fuel transfer, crane) */
-#thrBox{position:fixed;right:max(14px,env(safe-area-inset-right,0px));top:46%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto;touch-action:none;z-index:3}
+#thrBox{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 100px);transform-origin:right bottom;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto;touch-action:none;z-index:3}
 #thrBox .thrLab{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:8px;background:var(--glass);border:1px solid var(--hair);min-width:64px;text-align:center}
 .thrTrack{position:relative;width:46px;height:190px;border-radius:14px;background:var(--glass);border:1px solid var(--hair);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);cursor:ns-resize}
 .thrTrack::before{content:"";position:absolute;left:21px;top:12px;bottom:12px;width:4px;border-radius:2px;background:rgba(255,255,255,.18)}
@@ -295,10 +296,10 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .btn.ready{animation:goPulse 1.4s ease-in-out infinite}
 @keyframes goPulse{0%,100%{box-shadow:0 0 0 0 rgba(242,179,61,.6)}50%{box-shadow:0 0 0 10px rgba(242,179,61,0)}}
 #winch{pointer-events:auto;gap:6px;padding:4px 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
-#winch button{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.12);font-weight:800;touch-action:none}
+#winch button{position:relative;z-index:1;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.12);font-weight:800;touch-action:none}
 #winch button.held{background:var(--amber);color:#1d1508}
 #ops{position:fixed;left:0;right:0;bottom:0;max-height:57%;overflow-y:auto;overscroll-behavior:contain;background:var(--glass);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);border-top:1px solid var(--hair);border-radius:20px 20px 0 0;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 14px) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;pointer-events:auto;z-index:4}
-@media (min-width:860px) and (min-aspect-ratio:1/1){#ops{left:auto;right:16px;top:84px;bottom:16px;width:410px;max-height:none;border-radius:20px;border:1px solid var(--hair)}}
+@media (min-width:860px) and (min-aspect-ratio:1/1){#ops{left:max(16px,env(safe-area-inset-left,0px));right:auto;top:118px;bottom:16px;width:410px;max-height:none;border-radius:20px;border:1px solid var(--hair)}}
 .ophead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .ophead .disp{font-size:26px;line-height:1}
 .ophead span{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);text-align:right}
@@ -347,12 +348,24 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
 #ops .note{text-align:center}
 /* short phones (iPhone SE): a taller sheet and a tighter boat header so the River / Upgrades list keeps room */
 @media (max-height:740px) and (max-aspect-ratio:1/1){.sheet{height:68%;gap:10px;padding-top:10px}.car-head h2{font-size:22px}.car-head .ty{font-size:11px;margin-top:2px}.stats{gap:3px}.perk{font-size:11px}.mcard{padding:7px 10px}.mcard .mn{font-size:17px}.tab{padding:7px 4px}}
+/* landscape phones */
+@media (max-height:500px) and (min-aspect-ratio:1/1){
+  .sheet{top:62px;bottom:10px;width:340px;overflow-y:auto;-webkit-overflow-scrolling:touch;gap:10px;padding-top:10px}.sheet>.opts{flex:none;overflow:visible}.drive-wrap{margin-top:auto;padding-bottom:10px}.drive-wrap .btn{font-size:20px;padding:11px 12px}
+  .car-head h2{font-size:22px}.mcard{padding:7px 10px}.mcard .mn{font-size:17px}.tab{padding:7px 4px}
+  #ops{left:max(10px,env(safe-area-inset-left,0px));right:auto;top:8px;bottom:8px;width:min(400px,50%);max-height:none;border-radius:16px;border:1px solid var(--hair);padding-top:10px;padding-bottom:10px}
+  #thrBox{right:auto;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 96px);transform:scale(.72);transform-origin:left bottom}
+  #ready{padding-top:calc(env(safe-area-inset-top,0px) + 64px)}#ready .mlist{display:none}
+  #over{gap:5px}#over .disp.t{font-size:40px}#over .dist{font-size:42px}#over .dist small{font-size:15px}#over .mlist,#over .tip{display:none}#over .medal{width:80px;font-size:0;gap:2px}#over .medal i{width:22px;height:22px}#over .medal b{font-size:11px}
+  #over .btns{grid-template-columns:1.6fr 1fr 1fr;width:min(520px,100%)}#over #retry{grid-column:auto;font-size:22px}
+}
+@media (max-width:400px){.drive-wrap .btn{font-size:20px;padding:12px 10px}}
 .pjobs{display:block;margin-top:4px;color:var(--mute);font-weight:600;font-size:11.5px;line-height:1.3}
 .deck{color:var(--amber);font-weight:700}
 .pickh{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:2px 0 -2px}
 /* portrait phones: the whole garage sheet scrolls, so the races and jobs list isn't squeezed into one row above the button */
 @media (max-aspect-ratio:1/1) and (max-width:700px){.sheet{overflow-y:auto;-webkit-overflow-scrolling:touch;height:72%}.sheet>.opts{flex:none;overflow:visible}.drive-wrap{margin-top:auto}}
-</style></head><body>
+</style><script data-goatcounter="https://torquespecstudios.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head><body>
 
 <canvas id="gl" aria-hidden="true"></canvas>
 <div id="boot" role="status"><div class="logo disp">Tug<i>gy</i></div><p>Loading the river…</p><i class="bar"></i></div>
@@ -589,7 +602,7 @@ let stats=Object.assign({runs:0,cans:0,deliv:0,clean:0,gold:0,upg:0,heavy:0,lift
 let achGot=obj(store.get('ach',{}));
 // jobs: instead of racing to the finish, dock at each stop and do the work there. Prices are paid on completion.
 const JOBS=[
- {id:'fuel',n:'Fuel Run',sub:'Job · Refinery to depot',boats:['tug','atb'],start:0,par:520,pars:{atb:565},pay:140,
+ {id:'fuel',n:'Fuel Run',sub:'Job · Refinery to depot',boats:['tug','atb'],start:0,par:450,pars:{atb:495},pay:140,
   desc:'Load a tank barge at Mill Creek Refinery, run the river, then pump the fuel ashore at Riverside Fuel Depot.',
   stops:[{kind:'fuel',dir:'load',name:'Mill Creek Refinery',d:160,side:1},{kind:'fuel',dir:'discharge',name:'Riverside Fuel Depot',d:1365,side:-1}]},
  {id:'lift',n:'Bridge Repair Lift',sub:'Job · Crane work',boats:['crane'],start:560,par:320,pay:130,
@@ -612,7 +625,7 @@ const JOBS=[
   desc:'Run the Cedar Point car ferry: four landings across the river below the bridge, cars off and on at each, and the river traffic still coming up.',
   stops:[{kind:'ferry',name:'Mill Creek Landing',d:905,side:-1,on:4},{kind:'ferry',name:'Cedar Point Landing',d:905,side:1,on:3},{kind:'ferry',name:'Mill Creek Landing',d:905,side:-1,on:4},{kind:'ferry',name:'Cedar Point Landing',d:905,side:1,on:0}]},
  // bunkering: the barge starts loaded; a cargo ship lies at anchor mid-river and takes the fuel through her own hose crane
- {id:'bunker',n:'Bunker a Ship',sub:'Job · Ship at anchor',boats:['tug','atb'],start:690,load:97,par:210,pars:{atb:235},pay:150,
+ {id:'bunker',n:'Bunker a Ship',sub:'Job · Ship at anchor',boats:['tug','atb'],start:690,load:97,par:175,pars:{atb:220},pay:150,
   desc:'Take a loaded fuel barge alongside MV Northern Star, at anchor mid-river, and pump her bunkers aboard with the ship\'s hose crane.',
   stops:[{kind:'fuel',dir:'discharge',name:'MV Northern Star',d:935,side:-1,ship:true,lat:-1}]},
  // river tour: slow down at each sight so the passengers can take photos, keep the ride smooth, and land them at the excursion pier
@@ -1181,7 +1194,7 @@ function applyEnv(){const f=ENV==='fog',n=ENV==='night';scene.background=f?skyFo
 function applyQuality(){const low=settings.quality==='low';R.shadowMap.enabled=!low;sun.castShadow=!low;prMax=prCap();prNow=Math.min(prNow,prMax);if(!low)prNow=prMax;R.setPixelRatio(prNow);resize();
  scene.traverse(o=>{if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>m.needsUpdate=true)}})}
 function show(id,on){$(id).hidden=!on}
-function applyView(){const w=innerWidth,h=innerHeight;if(state==='garage'||(state==='moored'||state==='paused')&&OPS){if(w>=860&&w>=h)cam.setViewOffset(w,h,w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*.26,w,h)}else cam.clearViewOffset()}
+function applyView(){const w=innerWidth,h=innerHeight,wide=w>=h&&(w>=860||h<=500);if(state==='garage'||(state==='moored'||state==='paused')&&OPS){if(wide)cam.setViewOffset(w,h,(state==='garage'?1:-1)*w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*.26,w,h)}else cam.clearViewOffset()}
 function hideRunUI(){document.querySelectorAll('.pop').forEach(e=>e.remove());show('revive',0);show('share',0);show('hornBtn',0);show('thrBox',0);show('jobBar',0);show('ops',0);show('winch',0);show('region',0);show('paused',0);show('count',0);show('pauseBtn',0);show('coach',0);show('stL',0);show('stR',0);counting=0}
 function goGarage(){if(ghostM)ghostM.visible=false;ghost=null;state='garage';resetWorld();hideRunUI();show('hud',0);show('ready',0);show('over',0);show('garage',1);renderGarage();applyView();checkDaily()}
 function goReady(){if(!unlocked.includes(sel)){sel='tug';store.set('sel',sel);rebuildBoat()}
@@ -1280,6 +1293,8 @@ function hit(v,dmg,x,d,part,who,kind){HITLOG.push({t:+runT.toFixed(1),d:Math.rou
  splash(x,-d,10+n,'#ffffff');sfxHit(Math.min(1,k));buzz(n>10?50:25);shake=Math.max(shake,settings.shake?.25+k*.5:0);
  const el=$(part==='hull'?'mHull':'mCargo');el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');
  if(n>=3)popText((part==='hull'?'Hull ':'Cargo ')+'<b>−'+n+'%</b>',true)}
+// how far a dock, ferry landing or the start pier sticks out from bank s at d (what passing boats must keep clear of)
+function dockClear(d,s){let c=s<0&&Math.abs(d-6)<12?8.5:0;for(const D of DOCKS){if(D.ship||D.salvage||D.pickup||D.side!==s)continue;if(Math.abs(d-D.d)<(D.ferry?22:D.len/2+6))c=Math.max(c,D.ferry?10.5:D.depth+2)}return c}
 function hazardsTick(dt){for(const o of OB){if(o.hitCD>0)o.hitCD-=dt;if(o.k==='ship'||o.penned||o.lost)continue;if(o.k==='log'){const r=riv(o.d,CUR),gl=o.drive?.3:.8,cf=o.drive?.65:.8;o.vx+=(Math.sin(r.h)*r.cu*cf-o.vx)*dt*gl;
    // the boom sits in an eddy: over the last 60 m above it, marked logs are set gently toward its bank
    if(o.drive&&driveJob()&&DOCKS[0]){const D=DOCKS[0],up=D.d-D.len/2-o.d;if(up>-2&&up<60)o.vx+=D.side*Math.cos(r.h)*.45*dt}o.vd+=(Math.cos(r.h)*r.cu*cf-o.vd)*dt*.8;o.x+=o.vx*dt;o.d+=o.vd*dt;o.th+=o.spin*dt;
@@ -1298,8 +1313,10 @@ function hazardsTick(dt){for(const o of OB){if(o.hitCD>0)o.hitCD-=dt;if(o.k==='s
   // compare positions across the river (from each one's own centre line), not raw map x: round a bend the two differ by metres
   else{const rel=(b.x-r.c)-(T.x-riv(T.d).c);if((state==='play'||state==='done')&&(b.yieldT>0||ah>-12&&ah<Math.max(70,(T.vd-b.vd)*7)&&Math.abs(rel)<18)){lat=(Math.sign(rel)||Math.sign(b.lat)||1)*(r.w/2-5);b.giving=true}else b.giving=false}
   if(ferryJob()&&!b.big&&b.d<JOBD().stops[0].d-230){const rr=riv(b.d+460,{});b.d+=460;b.x=rr.c+b.lat;b.vx=b.vd=0;b.honked=false}
+  // stay in the water: clear of the banks where the river narrows, and of docks, landings and the start pier
+  if(!b.big){const sd=Math.sign(lat)||1,lim=r.w/2-b.r-1.5-Math.max(dockClear(b.d,sd),dockClear(b.d-25,sd));if(Math.abs(lat)>lim)lat=sd*Math.max(0,lim)}
   const tx=r.c+lat;{let da=Math.atan2(tx-b.x,b.giving?-14:-25)-b.a;da=Math.atan2(Math.sin(da),Math.cos(da));b.a+=da*dt*(b.giving?1.6:.8)}const fx=Math.sin(b.a),fd=Math.cos(b.a);
-  b.vx+=(cv.cx+fx*b.thr-b.vx)*dt*.9;b.vd+=(cv.cd+fd*b.thr-b.vd)*dt*.9;b.x+=b.vx*dt;b.d+=b.vd*dt;b.m.position.set(b.x,Math.sin(runT*1.5+b.d)*.08,-b.d);b.m.rotation.y=-b.a;
+  b.vx+=(cv.cx+fx*b.thr-b.vx)*dt*.9;b.vd+=(cv.cd+fd*b.thr-b.vd)*dt*.9;b.x+=b.vx*dt;b.d+=b.vd*dt;if(!b.big){const rr=riv(b.d,CUR),off=b.x-rr.c,sd=Math.sign(off)||1,lim=rr.w/2-b.r-.5-dockClear(b.d,sd);if(Math.abs(off)>lim){b.x=rr.c+sd*Math.max(0,lim);if(b.vx*sd>0)b.vx*=-.2}}b.m.position.set(b.x,Math.sin(runT*1.5+b.d)*.08,-b.d);b.m.rotation.y=-b.a;
   if(Math.random()<dt*8)wake(b.x-fx*(b.half||3),-(b.d-fd*(b.half||3)),b.big?4.5:1.6,b.big?11:5,1.3,.4);if(b.big&&Math.random()<dt*6)wake(b.x+fx*20,-(b.d+fd*20),3,7,1.2,.35)}}
 // crane load: a 6 m pendulum driven by the sideways (centripetal) acceleration of turning and by the rapids
 function swingTick(dt,spd){const r=riv(T.d),lat=T.av*spd+r.rp*Math.sin(runT*3.1)*2.2;SW.v+=(-9.8/6*Math.sin(SW.a)-.55*SW.v-lat/6)*dt;SW.a+=SW.v*dt;
@@ -1352,7 +1369,7 @@ function buildShip(D,g,s){const navy=new THREE.MeshStandardMaterial({color:0x223
  const chain=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,9,6),MAT.dark);chain.position.set(s*3,2.5,-33);chain.rotation.x=.5;g.add(chain);
  for(let z=-28;z<=28;z+=4)box(.08,.9,.08,white,s*.25,7.7,z,g);
  // bunker station on her rail: the ship's own hose crane, and bollards for the barge's lines
- box(.5,6.4,.5,yel,s*2.2,D.deckY+3.2,1.5,g);const jib=new THREE.Group();jib.position.set(s*2.2,D.jibY,1.5);g.add(jib);const arm=box(1,.35,.35,yel,.5,0,0,jib),blk=box(.4,.45,.4,MAT.dark,1,-.35,0,jib);D.jib={g:jib,arm,blk};
+ box(.5,6.4,.5,yel,s*2.2,D.deckY+3.2,1.5,g).scale.set(1.5,1,1.5);const jib=new THREE.Group();jib.position.set(s*2.2,D.jibY,1.5);g.add(jib);const arm=box(1,.6,.6,HCM,.5,0,0,jib),blk=box(.65,.7,.65,MAT.dark,1,-.5,0,jib);D.jib={g:jib,arm,blk};
  D.bollards=[-10,10].map(z=>{const b=new THREE.Mesh(new THREE.CylinderGeometry(.22,.28,.6,10),MAT.dark);b.position.set(s*1.3,D.deckY+.3,z);g.add(b);return new THREE.Vector3(s*1.3,D.deckY+.55,z)});
  // Yokohama fenders: big floating fenders that hold the barge 1.6 m off her side
  for(const z of[-9,0,9]){const f=new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,3.4,16).rotateX(Math.PI/2),new THREE.MeshStandardMaterial({color:0x1d1e21,roughness:.7}));f.position.set(-s*.8,.5,z);g.add(f);const n=new THREE.Mesh(new THREE.TorusGeometry(.82,.06,6,16),MAT.dark);n.position.copy(f.position);n.rotation.y=Math.PI/2;g.add(n)}
@@ -1457,8 +1474,8 @@ function buildDocks(){SLACK=[];while(dockGroup.children.length){const o=dockGrou
    for(let i=0;i<3;i++){const t=new THREE.Mesh(new THREE.CylinderGeometry(5.2,5.2,8,24),tankM);t.position.set(s*(25+(i%2)*3),5.6,-13+i*13);t.castShadow=true;g.add(t);box(10.6,.3,10.6,MAT.dark,s*(25+(i%2)*3),9.7,-13+i*13,g).visible=false}
    for(const y of[3,3.5]){const pp=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,20,8).rotateZ(Math.PI/2),new THREE.MeshStandardMaterial({color:0xd8d2c0,roughness:.5,metalness:.3}));pp.position.set(s*12,y,1.5);g.add(pp)}
    // hose crane: a yellow post with a jib that slews and telescopes; the hose hangs from a block at its tip
-   const yel=new THREE.MeshStandardMaterial({color:0xf0b21c,roughness:.5});box(.5,6.4,.5,yel,s*2.2,5.6,1.5,g);
-   const jib=new THREE.Group();jib.position.set(s*2.2,8.6,1.5);g.add(jib);const arm=box(1,.35,.35,yel,.5,0,0,jib),blk=box(.4,.45,.4,MAT.dark,1,-.35,0,jib);D.jib={g:jib,arm,blk};
+   const yel=new THREE.MeshStandardMaterial({color:0xf0b21c,roughness:.5});box(.5,6.4,.5,yel,s*2.2,5.6,1.5,g).scale.set(1.5,1,1.5);
+   const jib=new THREE.Group();jib.position.set(s*2.2,8.6,1.5);g.add(jib);const arm=box(1,.6,.6,HCM,.5,0,0,jib),blk=box(.65,.7,.65,MAT.dark,1,-.5,0,jib);D.jib={g:jib,arm,blk};
    D.hoseTip=new THREE.Vector3(-s*1.4,8.4,1.5);
    if(st.dir==='load'){const fl=new THREE.Mesh(new THREE.CylinderGeometry(.35,.6,24,10),new THREE.MeshStandardMaterial({color:0x9a9a96,roughness:.6}));fl.position.set(s*44,13,-20);g.add(fl);
     const fire=new THREE.Sprite(new THREE.SpriteMaterial({map:puffTex,color:0xff8a2a,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));fire.scale.set(4,6,1);fire.position.set(s*44,26.5,-20);g.add(fire);D.flare=fire}}
@@ -1524,7 +1541,7 @@ let hornT=0;
 function horn(){if(state!=='play'||hornT>0)return;audioInit();if(searchJob())swimWhistle();if(hornDue>0){hornDue=0;popText('Departure <b>signal</b>')}hornT=1.6;sfxHorn(false);buzz(30);stats.horns++;missionEvent('horn');if(NIGHT)stats.fogHorn++;
  let n=0;const tl=T.x-riv(T.d).c;for(const b of BOATSX){const ah=b.d-T.d;if(!b.off&&ah>-10&&ah<160&&Math.abs(b.x-riv(b.d).c-tl)<35){b.yieldT=8;n++}}if(n)popText(n>1?`${n} boats <b>giving way</b>`:'Boat <b>giving way</b>');$('hornBtn').classList.add('on');setTimeout(()=>$('hornBtn').classList.remove('on'),1300)}
 function berthText(){if(!isJob()||state!=='play')return'';if(tourJob()&&TS.i<JOBD().sights.length){const sg=JOBD().sights[TS.i],ah=sg.d-T.d,u=SPD[settings.units]||SPD.kn,spd=Math.hypot(T.vx,T.vd);return`Sight ${TS.i+1} of ${JOBD().sights.length}: <b>${sg.n}</b>${sg.side?' · '+(sg.side>0?'right':'left')+' bank':''}<br>`+(Math.abs(ah)<30?`<span class="${spd<2.6?'ok':'no'}">${spd<2.6?'Photos… '+Math.min(100,Math.round(TS.t/5*100))+'%':'Slow to '+(2.6*u[0]).toFixed(0)+' '+u[1]}</span>`:`${fmt(Math.max(0,ah-30))} m · slow down there`)}const b=berthStatus();if(!b)return'';const D=b.D,c=(ok,t)=>`<span class="${ok?'ok':'no'}">${t}</span>`,u=SPD[settings.units]||SPD.kn;
- if(b.boom){const L=OB.filter(o=>o.drive),pn=L.filter(o=>o.penned).length,ls=L.filter(o=>o.lost).length,ad=L.length-pn-ls;return`<b>${pn} of ${L.length}</b> logs in the boom · ${ad} adrift${ls?' · '+ls+' lost':''}<br>Push from the river side to move a log toward the <b>left bank</b>`}
+ if(b.boom){const L=OB.filter(o=>o.drive),pn=L.filter(o=>o.penned).length,ls=L.filter(o=>o.lost).length,ad=L.length-pn-ls;return`<b>${pn} of ${L.length}</b> logs in the boom · ${ad} adrift${ls?' · '+ls+' lost':''}<br>${spec.cannon?'Run alongside a log and blast it toward the':'Push from the river side to move a log toward the'} <b>left bank</b>`}
  if(b.search){const n=SWIM.filter(q=>!q.got).length;return`<b>${n} paddler${n>1?'s':''}</b> in the water · watch for white strobes<br>`+(heard?`Last whistle: <b>${heard.txt}</b>`:'Sound the horn (B) and listen')}
  if(b.assist&&SH){const P=shipPos(),near=Math.hypot(T.x-SH.x,T.d-SH.d)<40;const tv=Math.hypot(T.vx-SH.vx,T.vd-SH.vd),dTS=Math.hypot(T.x-SH.x,T.d-SH.d);// warn in time to stop: a tug needs about 5 m for every m/s it's closing on her
   const warn=SH.push<=.05&&tv>1.2&&dTS<12+tv*5;return`<b>MV Kestrel</b> · ${warn?'<span class="no">slow down before you touch her</span>':near?(SH.push>.05?'pushing '+Math.round(SH.push*100)+'%':'bow on her side and push'):'run down to her, '+fmt(Math.max(0,Math.hypot(T.x-SH.x,T.d-SH.d)-10))+' m'}<br>${c(P.gap<2,'Off the wharf '+P.gap.toFixed(1)+' m')} · ${c(P.ang<.08,(P.ang*57.3).toFixed(0)+'° off parallel')} · ${c(P.lat<.45,(P.lat*u[0]).toFixed(1)+' '+u[1]+' in')}`+(SH.lines?'<br><b>Lines ashore</b>: hold her gently while they heave in':P.lat>.12&&P.lat*10>P.gap-1.5?'<br><b>Ease off!</b> She\'ll carry '+(P.lat*10).toFixed(0)+' m on her own':'')}
@@ -1546,7 +1563,10 @@ function deckCue(b,u){const D=b.D,tow=D.ship?'her side':'the dock',toward=D.side
  if(b.spd>=.8)return`ease off to a stop`;return`<b>Make fast!</b>`}
 function renderJobBtns(){const on=isJob()&&state==='play',B=BG[0];show('hipBtn',on&&!!B);if(B)$('hipBtn').textContent=B.hip?'Let out tow':'On the hip';const b=on?berthStatus():null;show('moorBtn',!!(b&&b.near));$('moorBtn').textContent=b&&b.D.ferry?'Land':b&&b.D.salvage?'Drop spuds':b&&b.D.pickup?'Pass the line':b&&b.D.stop.kind==='handover'?'Hand over':'Make fast';$('moorBtn').disabled=!(b&&b.ok);$('moorBtn').classList.toggle('ready',!!(b&&b.ok))}
 const moorLines=[0,1].map(()=>{const m=new THREE.Mesh(ropeGeo,ropeMat);m.visible=false;scene.add(m);return m});
-const hoseMat=new THREE.MeshStandardMaterial({color:0x1b1b1d,roughness:.6}),hoseGeo=new THREE.CylinderGeometry(.14,.14,1,8).translate(0,.5,0).rotateX(Math.PI/2);
+const hoseMat=new THREE.MeshStandardMaterial({color:0xe0561c,roughness:.55,emissive:0x3a1000}),hoseGeo=new THREE.CylinderGeometry(.2,.2,1,10).translate(0,.5,0).rotateX(Math.PI/2);
+// the hose cranes' jibs (yellow, lit a little so they read at dusk) and the coupling on the hose end
+const HCM=new THREE.MeshStandardMaterial({color:0xffc21a,roughness:.45,emissive:0x4a3000});
+const hoseEnd=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.36,18),new THREE.MeshStandardMaterial({color:0xffd23a,roughness:.35,metalness:.3,emissive:0x5a3a00}));hoseEnd.visible=false;scene.add(hoseEnd);
 const hoseSegs=Array.from({length:12},()=>{const m=new THREE.Mesh(hoseGeo,hoseMat);m.visible=false;scene.add(m);return m});
 function moor(){const b=berthStatus();if(!b||!b.ok||state!=='play')return;const D=b.D;state='moored';throttle=0;
  if(D.pickup){state='play';takeTow(D);return}
@@ -1567,13 +1587,13 @@ function castOff(){const D=DOCKS[stopI];if(!D)return;
 function jobErr(key,msg){const o=OPS?OPS:{};o.warned=o.warned||{};if(o.warned[key])return;o.warned[key]=1;jobLog.errs.push(msg);popText(msg.split(':')[0].replace(/^(\S+ \S+)/,'<b>$1</b>'),true);buzz(40)}
 function jobSpill(bbl,x,z){jobLog.spill+=bbl;if((jobSpill.t||0)<performance.now()-1500){jobSpill.t=performance.now();popText('Spill! <b>'+Math.max(1,Math.round(bbl))+' bbl</b>',true);buzz(60)}
  for(let i=0;i<3;i++)wake(x+(Math.random()-.5)*6,z+(Math.random()-.5)*6,2,9+Math.random()*4,6,.7,'#2a2117')}
-function jobBrief(){const J=JOBD(),st=J.stops[0];if(J.id==='logdrive')return`Five logs with <b>orange ends</b> are coming down below the last rapid. Get them into the <b>boom at Copper Mill</b> on the left bank before they drift past it. A log gets shoved away from your bow, so come at it from the <b>river side</b>. Lose more than two and the drive's off.`;if(J.id==='search')return`A canoe has capsized in the fog. <b>Three paddlers</b> are in the water somewhere on the bend. Watch for their <b>white strobes</b>, sound the horn (B) and they'll <b>whistle back</b>. Come alongside each one <b>slowly</b>, then land them at <b>Foghollow Landing</b>.`;if(J.id==='assist')return`You're running <b>light</b>. MV Kestrel is stopped off <b>Harbor Wharf</b> on the left bank, and the wind is setting her off. Put your bow on her side and push her in: <b>gently</b> (a hard landing is a slip) and <b>parallel</b>. Push near the middle to move her straight; near an end to turn her. She's heavy: <b>ease off early</b> and let her carry her way in. Get her within 4 m and slow, and the line handlers take her the rest of the way.`;if(J.id==='tour')return`A boatload of sightseers is aboard. Slow right down at the <b>osprey nest</b>, the <b>old bridge</b> and the <b>mill wheel</b> so they can take photos, keep your turns gentle, then make fast at the <b>Excursion Pier</b> on the right bank.`;if(J.id==='dredge')return`Push the crane barge and its <b>mud scow</b> (lashed alongside to starboard, so mind the extra width) down to the yellow <b>survey buoy</b>. Stop beside it, <b>drop the spuds</b>, then dig five grabs from the marked shoal with the clamshell and dump them in the scow. Mud dumped anywhere else is a slip.`;if(J.id==='ferry')return`Cars are waiting at <b>${st.name}</b> on the left bank. Land square on the slipway, lower the ramp, open the gate, load up, and cross to <b>Cedar Point</b>. She's double-ended: <b>back across</b> instead of turning. One long blast on the horn each time you leave.`;if(J.id==='rescue')return`The <b>${st.name}</b> has broken down at anchor below the first rapids. Come up beside her slowly and <b>pass the line</b>, then tow her to <b>Mill Creek Boatyard</b> on the left bank.`;if(J.id==='salvage')return`Run down through the first rapids to the orange <b>marker buoy</b> mid-river. Stop beside it, <b>drop the spuds</b>, and crane the three log bundles aboard.`;if(J.id==='yard')return`Come down through the rapids to <b>${st.name}</b> on the right bank. Then lift each container, <b>turn it</b> to line up with its bay, and stack the last one on top.`;if(J.id==='bunker')return`<b>${st.name}</b> is at anchor mid-river, below the bridge. Your barge is <b>loaded</b>: put it on the hip, come alongside her slowly, and pump her bunkers aboard.`;if(J.id==='fuel')return BG.length?`Head for <b>${st.name}</b> on the right bank. Ease the throttle back, put the barge <b>on the hip</b>, and come alongside under 1.5 kn.`:`Head for <b>${st.name}</b> on the right bank and come alongside under 1.5 kn, using astern to hold against the current.`;
+function jobBrief(){const J=JOBD(),st=J.stops[0];if(J.id==='logdrive')return`Five logs with <b>orange ends</b> are coming down below the last rapid. Get them into the <b>boom at Copper Mill</b> on the left bank before they drift past it. ${spec.cannon?'Your <b>water cannons</b> blast a log away from your bow: run alongside it, with the log between you and the bank, and blast it in.':'A log gets shoved away from your bow, so come at it from the <b>river side</b>.'} Lose more than two and the drive's off.`;if(J.id==='search')return`A canoe has capsized in the fog. <b>Three paddlers</b> are in the water somewhere on the bend. Watch for their <b>white strobes</b>, sound the horn (B) and they'll <b>whistle back</b>. Come alongside each one <b>slowly</b>, then land them at <b>Foghollow Landing</b>.`;if(J.id==='assist')return`You're running <b>light</b>. MV Kestrel is stopped off <b>Harbor Wharf</b> on the left bank, and the wind is setting her off. Put your bow on her side and push her in: <b>gently</b> (a hard landing is a slip) and <b>parallel</b>. Push near the middle to move her straight; near an end to turn her. She's heavy: <b>ease off early</b> and let her carry her way in. Get her within 4 m and slow, and the line handlers take her the rest of the way.`;if(J.id==='tour')return`A boatload of sightseers is aboard. Slow right down at the <b>osprey nest</b>, the <b>old bridge</b> and the <b>mill wheel</b> so they can take photos, keep your turns gentle, then make fast at the <b>Excursion Pier</b> on the right bank.`;if(J.id==='dredge')return`Push the crane barge and its <b>mud scow</b> (lashed alongside to starboard, so mind the extra width) down to the yellow <b>survey buoy</b>. Stop beside it, <b>drop the spuds</b>, then dig five grabs from the marked shoal with the clamshell and dump them in the scow. Mud dumped anywhere else is a slip.`;if(J.id==='ferry')return`Cars are waiting at <b>${st.name}</b> on the left bank. Land square on the slipway, lower the ramp, open the gate, load up, and cross to <b>Cedar Point</b>. She's double-ended: <b>back across</b> instead of turning. One long blast on the horn each time you leave.`;if(J.id==='rescue')return`The <b>${st.name}</b> has broken down at anchor below the first rapids. Come up beside her slowly and <b>pass the line</b>, then tow her to <b>Mill Creek Boatyard</b> on the left bank.`;if(J.id==='salvage')return`Run down through the first rapids to the orange <b>marker buoy</b> mid-river. Stop beside it, <b>drop the spuds</b>, and crane the three log bundles aboard.`;if(J.id==='yard')return`Come down through the rapids to <b>${st.name}</b> on the right bank. Then lift each container, <b>turn it</b> to line up with its bay, and stack the last one on top.`;if(J.id==='bunker')return`<b>${st.name}</b> is at anchor mid-river, below the bridge. Your barge is <b>loaded</b>: put it on the hip, come alongside her slowly, and pump her bunkers aboard.`;if(J.id==='fuel')return BG.length?`Head for <b>${st.name}</b> on the right bank. Ease the throttle back, put the barge <b>on the hip</b>, and come alongside under 1.5 kn.`:`Head for <b>${st.name}</b> on the right bank and come alongside under 1.5 kn, using astern to hold against the current.`;
  return`Run down to <b>${st.name}</b> on the right bank and come alongside slowly. Then work the crane: <b>slew, boom and hoist</b>.`}
 
 /* ---------- operations panel ---------- */
 function bindHolds(root){root.querySelectorAll('[data-hold]').forEach(b=>{const k=b.dataset.hold,on=e=>{e.preventDefault();e.stopPropagation();audioInit();HOLD[k]=true;b.classList.add('held');try{b.setPointerCapture(e.pointerId)}catch(_){}},off=()=>{HOLD[k]=false;b.classList.remove('held')};
  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);b.addEventListener('contextmenu',e=>e.preventDefault())})}
-function openOps(D){OPS={kind:D.stop.kind,D,warned:{}};if(OPS.kind==='fuel')fuelInit(D.stop);else if(OPS.kind==='ferry')ferryInit(D);else craneInit(D);show('jobBar',0);show('thrBox',0);show('stL',0);show('stR',0);show('winch',0);renderOps();show('ops',1);applyView()}
+function openOps(D){OPS={kind:D.stop.kind,D,warned:{}};show('coach',0);coachT=0;if(OPS.kind==='fuel')fuelInit(D.stop);else if(OPS.kind==='ferry')ferryInit(D);else craneInit(D);show('jobBar',0);show('thrBox',0);show('stL',0);show('stR',0);show('winch',0);renderOps();show('ops',1);applyView()}
 /* ---------- car ferry ---------- */
 // FH: half length to the ramp hinge. Cars sit in four deck slots; they drive off over the ramp up the slipway, and the waiting queue drives on.
 // Cars face the far end once aboard, so on a double-ended ferry they drive straight off at the other bank.
@@ -1645,7 +1665,7 @@ function carOnRamp(){return FY&&FY.anims.some(a=>{if(a.t<0)return false;const p=
 function ferryAct(a){const f=FY;if(!f||state!=='moored')return;audioInit();
  if(a==='gate'){if(carOnRamp()){popText('Wait for the car to <b>clear the gate</b>',true);return}f.gate=!f.gate;chime(f.gate?[392,330]:[330,392]);buzz(15)}
  else if(a==='off'||a==='on'){if(f.up>.03){popText('Lower the <b>ramp</b> first',true);return}if(!f.gate){popText('Open the <b>gate</b> first',true);return}
-  if(a==='off'){if(f.offStarted||!f.nOff)return;f.offStarted=true;const order=ferryAboard.slice().sort((p,q)=>(q.slot[1]-p.slot[1])*f.k);order.forEach((c,i)=>f.anims.push({dir:'off',m:c.m,slot:c.slot,t:-i*1.7}));ferryAboard=[]}
+  if(a==='off'){if(f.offStarted||!f.nOff)return;f.offStarted=true;const order=ferryAboard.slice().sort((p,q)=>(p.slot[1]-q.slot[1])*f.k);order.forEach((c,i)=>f.anims.push({dir:'off',m:c.m,slot:c.slot,t:-i*1.7}));ferryAboard=[]}
   else{if(f.nOff&&!ferryDone('off')){popText('Let the cars <b>off</b> first',true);return}if(f.onStarted||!f.nOn)return;f.onStarted=true;const u=boatM.userData,slots=FSLOT.slice().sort((p,q)=>(q[1]-p[1])*f.k);
    for(let i=0;i<f.nOn;i++){const m=u.cars[ferryCarN++%u.cars.length];f.anims.push({dir:'on',m,slot:slots[i],t:-i*1.9,q:i})}}}
  else if(a==='cast'){if(f.up<.97){popText('Raise the <b>ramp</b> first',true);return}if(!ferryDone('off')||!ferryDone('on'))return;if(f.gate)jobErr('gate'+stopI,'Left the slip with the vehicle gate open');
@@ -1668,8 +1688,8 @@ function ferrySteps(){const f=FY,S=f.seen,mark=(k,c)=>S[k]=S[k]||!!c;
 function closeOps(){OPS=null;show('ops',0);show('thrBox',1);show('jobBar',1);showSteer();show('winch',BG.length>0&&!BG[0].hip);applyView()}
 
 /* ---------- fuel transfer ---------- */
-// one barge tank of 10,000 bbl; the transfer is sped up (full flow fills it in about 30 s). Pressure is in psi; the hose is rated to 150.
-const CAP=10000,RATE=3.2,VALVES=[['shore','Shore'],['manifold','Manifold'],['tank','Tank']];
+// one barge tank of 10,000 bbl; the transfer is sped up a lot (full flow fills it in about 12 s, tapering off as the tank tops up). Pressure is in psi; the hose is rated to 150.
+const CAP=10000,RATE=8,VALVES=[['shore','Shore'],['manifold','Manifold'],['tank','Tank']];
 function fuelInit(st){F={dir:st.dir,hoseOn:false,stowed:true,bolt:0,gen:{crank:0,rpm:0,run:false},brk:false,pump:{crank:0,rpm:0,run:false},thr:0,thrT:0,pdir:null,
  valves:{shore:{p:0,t:0},manifold:{p:0,t:0},tank:{p:0,t:0}},P:0,flow:0,hiP:0,done:false,seen:{}};hcInit(OPS.D)}
 function fuelSteps(){const f=F,load=f.dir==='load',open=VALVES.every(([k])=>f.valves[k].p>.97),shut=VALVES.every(([k])=>f.valves[k].p<.03),S=f.seen;
@@ -1679,30 +1699,31 @@ function fuelSteps(){const f=F,load=f.dir==='load',open=VALVES.every(([k])=>f.va
   ['open','Open the shore, manifold and tank valves'],['pump','Start the pump engine'],['flow','Bring the pump throttle up slowly'],['fill',load?'Load to 95–98%':'Strip the tank below 4%'],
   ['stop','Throttle down and stop the pump'],['shut','Close all three valves'],['disc','Unbolt the hose and swing it back over the dock'],['secure','Breaker off, stop the generator'],['cast','Cast off']].map(([k,t])=>({k,t,done:k==='fill'?f.done:!!S[k]}))}
 function fuelTick(dt){const f=F,g=f.gen,p=f.pump;
- for(const[k]of VALVES){const v=f.valves[k];v.p+=clamp(v.t-v.p,-dt/1.6,dt/1.6)}
+ for(const[k]of VALVES){const v=f.valves[k];v.p+=clamp(v.t-v.p,-dt/.7,dt/.7)}
  // the dock's hose crane swings the hose across and the crew bolts it to the manifold
  hcTick(dt);
- // the crew bolts the flange up (1.5 s) once the hose end is held still on the manifold
+ // the crew bolts the flange up (0.8 s) once the hose end is held still on the manifold
  if(f.bolt>0){f.bolt-=dt;if(f.bolt<=0){f.hoseOn=true;chime([523,659]);popText('Hose <b>bolted up</b>');if(f.valves.manifold.p>.05)jobErr('conn','Connected the hose with the manifold open')}}
- // generator: hold the starter until it catches (about 1.3 s); let go early and it dies
+ // generator: hold the starter until it catches (about 0.8 s); let go early and it dies
  const ex=exhaustPos();
- if(!g.run){if(HOLD.crank){g.crank+=dt;g.rpm=Math.min(260,g.crank*300);if(Math.random()<dt*10&&ex)spray(ex.x,ex.y,ex.z,0,1.5,0,.4,'#6b6762',1,2,-.3,.5);if(g.crank>1.3){g.run=true;g.crank=0;chime([330,440]);if(ex)for(let i=0;i<8;i++)spray(ex.x,ex.y,ex.z,(Math.random()-.5),2+Math.random()*2,(Math.random()-.5),.8,'#141210',2,3,-.8,.85)}}else{g.crank=0;g.rpm=Math.max(0,g.rpm-500*dt)}}
+ if(!g.run){if(HOLD.crank){g.crank+=dt;g.rpm=Math.min(260,g.crank*420);if(Math.random()<dt*10&&ex)spray(ex.x,ex.y,ex.z,0,1.5,0,.4,'#6b6762',1,2,-.3,.5);if(g.crank>.8){g.run=true;g.crank=0;chime([330,440]);if(ex)for(let i=0;i<8;i++)spray(ex.x,ex.y,ex.z,(Math.random()-.5),2+Math.random()*2,(Math.random()-.5),.8,'#141210',2,3,-.8,.85)}}else{g.crank=0;g.rpm=Math.max(0,g.rpm-500*dt)}}
  else g.rpm+=(1800-(p.run&&f.brk?40+60*f.thr:0)-g.rpm)*Math.min(1,dt*2);
  const power=g.run&&f.brk;
  // pump engine: its starter and controls need the generator's power
- if(!p.run){if(HOLD.pstart){if(!power){if(!f.seen.np){f.seen.np=1;popText('No power to the <b>starter</b>',true)}}else{p.crank+=dt;p.rpm=Math.min(240,p.crank*260);if(p.crank>1){p.run=true;p.crank=0;chime([294,392]);if(ex)for(let i=0;i<10;i++)spray(ex.x,ex.y,ex.z,(Math.random()-.5),2.5+Math.random()*2,(Math.random()-.5),1,'#141210',2.2,3,-.8,.9)}}}else{p.crank=0;p.rpm=Math.max(0,p.rpm-500*dt)}}
+ if(!p.run){if(HOLD.pstart){if(!power){if(!f.seen.np){f.seen.np=1;popText('No power to the <b>starter</b>',true)}}else{p.crank+=dt;p.rpm=Math.min(240,p.crank*360);if(p.crank>.7){p.run=true;p.crank=0;chime([294,392]);if(ex)for(let i=0;i<10;i++)spray(ex.x,ex.y,ex.z,(Math.random()-.5),2.5+Math.random()*2,(Math.random()-.5),1,'#141210',2.2,3,-.8,.9)}}}else{p.crank=0;p.rpm=Math.max(0,p.rpm-500*dt)}}
  else{if(!power){p.run=false;popText('Pump <b>stopped</b>: no power',true)}p.rpm+=(700+1300*f.thr-p.rpm)*Math.min(1,dt*2)}
  if(!p.run)f.thrT=Math.min(f.thrT,1);
- // the throttle governor follows the lever at 0.5 per second; slamming the lever open surges the line pressure
- const gap=f.thrT-f.thr;f.thr+=clamp(gap,-dt*.8,dt*.5);const surge=p.run&&gap>.15?(gap-.15)*240:0;if(surge>40&&f.P>140)jobErr('surge','Opened the pump throttle too fast: pressure surge');
+ // the throttle governor follows the lever at 1 per second; slamming the lever open surges the line pressure
+ const gap=f.thrT-f.thr;f.thr+=clamp(gap,-dt*1.2,dt);const surge=p.run&&gap>.15?(gap-.15)*240:0;if(surge>40&&f.P>140)jobErr('surge','Opened the pump throttle too fast: pressure surge');
  const om=Math.min(f.valves.shore.p,f.valves.manifold.p,f.valves.tank.p);let Pt=0;f.flow=0;
  if(p.run){const drive=.15+.85*f.thr;if(om<.06)Pt=70+180*drive;else{Pt=20+105*drive/(.3+.7*om);f.flow=drive*om}}
  f.P+=((Pt+surge)-f.P)*Math.min(1,dt*(Pt+surge>f.P?2.5:2));
  if(f.flow>0){
   if(!f.hoseOn){jobErr('nohose','Pumped with no hose connected: fuel on deck');const m=manifoldPos();if(m)jobSpill(f.flow*90*dt,m.x,m.z)}
   else{const wrong=f.pdir!==f.dir,sg=(f.dir==='load'?1:-1)*(wrong?-1:1);if(wrong)jobErr('dir','Pump set the wrong way: '+(f.dir==='load'?'it pumped fuel back ashore':'it pumped fuel into the barge'));
-   // stripping: as the tank empties the pump loses suction, so the last few percent come out slowly
-   const strip=sg<0?clamp(.2+.8*fuelLv/12,.2,1):1;fuelLv+=sg*RATE*f.flow*strip*dt;
+   // stripping: as the tank empties the pump loses suction, so the last few percent come out slowly;
+   // topping off: loading tapers over the last 10% so there's time to throttle down before it overfills
+   const strip=sg<0?clamp(.3+.7*fuelLv/12,.3,1):clamp((100-fuelLv)/10,.15,1);fuelLv+=sg*RATE*f.flow*strip*dt;
    if(fuelLv>100){jobErr('over','Overfilled the tank: fuel out the vents');const m=manifoldPos();if(m)jobSpill((fuelLv-100)/100*CAP,m.x,m.z);fuelLv=100}
    if(fuelLv<0){fuelLv=0;jobErr('dry','Ran the pump dry: stop it once the tank is stripped')}}}
  // over-pressure: past the 150 psi red line for more than a second and the hose bursts, and the pump trips
@@ -1715,7 +1736,7 @@ function manifoldPos(){const m=BG[0]?bargeM[0]:boatM;if(!m||!m.userData.manifold
 function fuelAct(a,arg){const f=F,p=f.pump,g=f.gen;audioInit();
  if(a==='hose'){if(f.bolt>0)return;
   if(f.hoseOn){if(p.run||VALVES.some(([k])=>f.valves[k].p>.05)){jobErr('disc','Broke the hose connection with the valves open');const m=manifoldPos();if(m)jobSpill(25,m.x,m.z)}f.hoseOn=false;HC.att=false;HC.L=Math.min(HC.L,HC.H.distanceTo(hcTip()));HC.V.set(0,0,0);popText('Hose <b>unbolted</b>')}
-  else if(hcAligned()){f.bolt=1.5;HC.att=true;f.stowed=false;popText('Crew bolting <b>the flange</b>')}else popText('Bring the hose end onto the <b>manifold</b>',true)}
+  else if(hcAligned()){f.bolt=.8;HC.att=true;f.stowed=false;popText('Crew bolting <b>the flange</b>')}else popText('Bring the hose end onto the <b>manifold</b>',true)}
  if(a==='genstop'){if(g.run){if(p.run)jobErr('genpump','Stopped the generator with the pump running');g.run=false}}
  if(a==='brk'){f.brk=!f.brk;if(f.brk&&!g.run)popText('Breaker closed: <b>no power yet</b>',true);else chime([f.brk?660:440])}
  if(a==='dir'){if(p.run&&f.flow>.05){jobErr('dirrun','Swapped the pump direction under load');f.P+=60}f.pdir=arg}
@@ -1828,6 +1849,8 @@ function updateOps(){if(!OPS)return;const n=$('opNext');
 // a small jib on the dock: slew (psi, 0 = pointing out over the river), telescope (R, 2 to 9.5 m) and a hoist line (L) carrying
 // the heavy hose end, which swings as a pendulum like the big crane's hook. The crew can only bolt it up once it is still on the manifold.
 let HC=null;
+// the camera looks up at the hose crane while the hose is being swung across or stowed
+function hoseUp(){return!!(OPS&&OPS.kind==='fuel'&&F&&HC&&!F.hoseOn&&!(F.stowed&&F.done))}
 function hcTip(){const D=OPS.D,s=D.side;return new THREE.Vector3(s*2.2-s*Math.cos(HC.psi)*HC.R,D.jibY-.6,1.5+Math.sin(HC.psi)*HC.R)}
 function hcInit(D){HC={psi:Math.PI,pv:0,R:3,L:3.2,V:new THREE.Vector3(),att:false,hT:0};HC.H=hcTip().add(new THREE.Vector3(0,-HC.L,0))}
 function hcManifold(){const m=manifoldPos();if(!m)return null;OPS.D.g.updateMatrixWorld(true);return OPS.D.g.worldToLocal(m.clone())}
@@ -1844,7 +1867,7 @@ function hoseCue(){const f=F,h=HC,D=OPS.D,s=D.side;let x,z,y,fin;
  else if(f.done&&!f.hoseOn&&f.bolt<=0&&!f.stowed){x=s*5;z=1.5;y=D.deckY+1.3;fin='onto the dock';CUE={x,z,ty:D.deckY+.35,ok:false,dock:true}}
  else return fuelCue();
  const vx=x-s*2.2,vz=z-1.5,R=Math.hypot(vx,vz),ps=Math.atan2(vz,-s*vx),dp=wrapA(ps-h.psi),dR=R-h.R,dy=h.H.y-y,hor=Math.hypot(h.H.x-x,h.H.z-z);
- if(h.V.length()>.9)return{k:null,t:'let the swing settle'};
+ if((h.hT>0?Math.hypot(h.V.x,h.V.z):h.V.length())>.9)return{k:null,t:'let the swing settle'};
  // the slew coasts after you let go (about half a second), so call it on where the jib will stop, plus a moment to react
  const dpe=dp-h.pv*(Math.abs(h.pv)/1.6+.3);
  if(hor>.8&&Math.abs(dpe)*R>.5){const l=(dpe>0)===(s>0);return{k:l?'hcL':'hcR',t:'slew '+(l?'◀':'▶')}}
@@ -1861,7 +1884,7 @@ function fuelCue(){const f=F,load=f.dir==='load',st=fuelSteps(),cur=st.find(x=>!
   case'open':return openV?{k:`[data-v="${openV[0]}"]`,t:`open the <b>${openV[1]}</b> valve`}:{k:null,t:'valves opening…'};
   case'pump':return{k:'pstart',t:'hold <b>Start</b> to start the pump engine'};
   case'flow':return{k:'#opThr',t:'slide the pump throttle up <b>slowly</b>'};
-  case'fill':return f.pump.run&&(load?fuelLv>92:fuelLv<12)?{k:'#opThr',t:'nearly there: <b>throttle down</b>'}:{k:null,t:load?'loading… watch the pressure':'pumping out… watch the pressure'};
+  case'fill':return f.pump.run&&(load?fuelLv>92:fuelLv<12)?{k:'#opThr',t:'nearly there: <b>throttle down</b>'}:f.pump.run&&f.thrT<.65&&f.P<120?{k:'#opThr',t:'bring the throttle up to about <b>¾</b>, slowly'}:{k:null,t:load?'loading… watch the pressure':'pumping out… watch the pressure'};
   case'stop':return f.thr>.35?{k:'#opThr',t:'<b>throttle down</b> before you stop the pump'}:{k:'#opPStop',t:'<b>Stop</b> the pump'};
   case'shut':return shutV?{k:`[data-v="${shutV[0]}"]`,t:`close the <b>${shutV[1]}</b> valve`}:{k:null,t:'valves closing…'};
   case'disc':{// check the real state, not the ticked list: never unbolt with the pump running or a valve open
@@ -1904,16 +1927,16 @@ function aidsDraw(){const on=state==='moored'&&OPS&&(OPS.kind==='crane'&&K||OPS.
  if(CUE){const t=w(new THREE.Vector3(CUE.x,CUE.ty+.06,CUE.z));aidTgt.position.copy(t);aidTgt.material=CUE.ok?AIDG:AIDT;aidTgt.scale.setScalar(1+.08*Math.sin(performance.now()/180));aidTgt.visible=true}else aidTgt.visible=false}
 function hcTick(dt){const h=HC,D=OPS.D,s=D.side;if(!h)return;
  const want=((HOLD.hcL?1:0)-(HOLD.hcR?1:0))*.45*s;h.pv+=clamp(want-h.pv,-.8*dt,.8*dt);h.psi+=h.pv*dt;
- if(HOLD.hcO)h.R=Math.min(9.5,h.R+1.2*dt);if(HOLD.hcI)h.R=Math.max(2,h.R-1.2*dt);
+ if(HOLD.hcO)h.R=Math.min(9.5,h.R+2.2*dt);if(HOLD.hcI)h.R=Math.max(2,h.R-2.2*dt);
  const hd=(HOLD.hcD?1:0)-(HOLD.hcU?1:0);h.hT=hd?h.hT+dt:0;
  // the hose winch creeps in the last metre and a half above the manifold or the dock
  const mC=hcManifold(),lowC=hd>0&&(mC&&Math.hypot(h.H.x-mC.x,h.H.z-mC.z)<3&&h.H.y-mC.y<1.5||h.H.x*s>.25&&h.H.y-D.deckY<1.8);if(hd)h.L=clamp(h.L+hd*(lowC?.3:Math.min(1.1,.3+h.hT*.8))*dt,1,D.jibY+1);
  if(h.att&&F.hoseOn){const m=hcManifold();if(m)h.H.copy(m);h.V.set(0,0,0);return}
  if(h.att&&F.bolt>0){const m=hcManifold();if(m)h.H.lerp(m,Math.min(1,dt*4));h.V.set(0,0,0);return}
- const prev=h.H.clone(),tip=hcTip();h.V.y-=9.8*dt;h.V.multiplyScalar(Math.exp(-1.1*dt));h.H.addScaledVector(h.V,dt);
+ const prev=h.H.clone(),tip=hcTip();h.V.y-=9.8*dt;h.V.multiplyScalar(Math.exp(-1.9*dt));h.H.addScaledVector(h.V,dt);
  // deckhands: once the hose end is close over the manifold and steady, they take hold of it and walk it onto the flange
  {const m=hcManifold();if(m&&!F.hoseOn&&F.bolt<=0&&!F.done){const hd=Math.hypot(h.H.x-m.x,h.H.z-m.z),up=h.H.y-m.y;
-  if(hd<1.8&&up>-.4&&up<1.8&&h.V.length()<1.4){h.H.x+=(m.x-h.H.x)*Math.min(1,dt*2.2);h.H.z+=(m.z-h.H.z)*Math.min(1,dt*2.2);h.V.x*=Math.exp(-4*dt);h.V.z*=Math.exp(-4*dt);if(!h.crew){h.crew=true;popText('Deckhand has <b>the hose</b>')}}else if(hd>2.6)h.crew=false}}
+  if(hd<2.6&&up>-.4&&up<2.4&&h.V.length()<1.8){h.H.x+=(m.x-h.H.x)*Math.min(1,dt*3.5);h.H.z+=(m.z-h.H.z)*Math.min(1,dt*3.5);h.V.x*=Math.exp(-6*dt);h.V.z*=Math.exp(-6*dt);if(!h.crew){h.crew=true;popText('Deckhand has <b>the hose</b>')}}else if(hd>3.2)h.crew=false}}
  const dv=h.H.clone().sub(tip),len=dv.length();if(len>h.L)h.H.copy(tip).addScaledVector(dv.multiplyScalar(1/len),h.L);h.V.copy(h.H).sub(prev).multiplyScalar(1/dt);
  // what the hose end can rest on: the dock deck, the barge deck by the manifold, or the river
  const m=hcManifold(),onDock=h.H.x*s>.25&&Math.abs(h.H.z)<D.len/2,nearM=m&&Math.hypot(h.H.x-m.x,h.H.z-m.z)<2.6,floor=onDock?D.deckY+.35:nearM?m.y-.25:-.1;
@@ -2040,7 +2063,7 @@ function finishRun(){if(isJob())return finishJob();const ok=result.kind==='finis
 // to the barge (cargo back to 35%), and the run carries on from where it was after a countdown
 const REVIVE_COST=60;let reviveUsed=false,reviveT=0;
 function canRevive(){return!isJob()&&!reviveUsed&&(result.kind==='sunk'||result.kind==='lost')&&T.d>150&&cans>=REVIVE_COST}
-function offerRevive(){state='revive';reviveT=4;$('rvT').textContent='4';$('rvWhat').textContent=result.kind==='sunk'?'Patch the hull and carry on':BG.length?'Rig a new tow line to the barge':'Re-secure the cargo and carry on';show('hud',0);show('revive',1)}
+function offerRevive(){state='revive';document.querySelectorAll('.pop').forEach(e=>e.remove());reviveT=4;$('rvT').textContent='4';$('rvWhat').textContent=result.kind==='sunk'?'Patch the hull and carry on':BG.length?'Rig a new tow line to the barge':'Re-secure the cargo and carry on';show('hud',0);show('revive',1)}
 function acceptRevive(){if(state!=='revive'||cans<REVIVE_COST)return;audioInit();cans-=REVIVE_COST;store.set('cans',cans);reviveUsed=true;stats.revives=(stats.revives||0)+1;show('revive',0);
  if(result.kind==='sunk'){hull=40;T.sink=0;T.y=0}else{cargo=35;const fx=Math.sin(T.a),fd=Math.cos(T.a);let ad=T.d-spec.stern,ax=T.x;BG.forEach((B,i)=>{B.cut=false;B.hip=0;const L=B.L;B.x=ax-fx*L;B.d=ad-fd*L;B.a=T.a;B.vx=T.vx;B.vd=T.vd;ax=B.x-fx*6;ad=B.d-fd*6});ropeSegs.forEach(sg=>sg.forEach(m=>m.visible=true))}
  const r=riv(T.d,{}),off=T.x-r.c,lim=r.w/2-spec.r-2;if(Math.abs(off)>lim)T.x=r.c+Math.sign(off)*lim;T.a=r.h;T.av=0;T.vx=T.vd=0;T.cool=2;result=null;
@@ -2057,7 +2080,7 @@ function finishJob(){const J=JOBD(),ok=result.kind==='job',key='job_'+J.id+'_'+s
  $('oTime').innerHTML=ok?clock(result.time)+(nb?'<small>New best!</small>':''):`${stopI}<small>of ${DOCKS.length} stops done</small>`;
  const cond=[['Bronze','Complete the job'],J.logs?['Silver','4 of 5 logs or better']:J.swimmers?['Silver','Hull 60% or better']:J.id==='assist'?['Silver','Ship condition 80%+']:J.sights?['Silver','Comfort 80% or better']:J.ferry?['Silver','Hull 60% or better']:['Silver','No spills · 80% cargo'],['Gold','No slips · under '+clock(jobPar(J))]];
  $('oMed').innerHTML=cond.map(([n,c],i)=>`<div class="medal m${i+1} ${m>i?'on':''}" style="animation-delay:${.15+i*.18}s"><i></i><b>${n}</b>${c}</div>`).join('');
- $('oMeta').innerHTML=`<span>Hull <b>${Math.round(hull)}%</b></span>`+(J.logs?`<span>Logs <b>${OB.filter(o=>o.drive&&o.penned).length} of ${J.logs.length}</b></span>`:spec.cargo||J.sights?`<span>${J.sights?'Comfort':J.id==='assist'?'Ship':'Cargo'} <b>${Math.round(cargo)}%</b></span>`:'')+(J.id==='fuel'?`<span>Spills <b>${fmt(spill)} bbl</b></span>`:'')+(J.sights?`<span>Sights <b>${TS.seen}/${J.sights.length}</b></span><span>Tips <b>${TS.tips}</b></span>`:'')+`${skip?`<span>Unfinished stops <b>${skip}</b></span>`:''}<span>Slips <b>${errs}</b></span><span><span class="can"></span> <b>+${pay}</b>${fine?` (fine −${fine})`:''}</span>`;
+ $('oMeta').innerHTML=`<span>Hull <b>${Math.round(hull)}%</b></span>`+(J.logs?`<span>Logs <b>${OB.filter(o=>o.drive&&o.penned).length} of ${J.logs.length}</b></span>`:spec.cargo||J.sights||J.notow||J.id==='assist'?`<span>${J.sights?'Comfort':J.id==='assist'?'Ship':J.notow?'Tow':'Cargo'} <b>${Math.round(cargo)}%</b></span>`:'')+(J.id==='fuel'?`<span>Spills <b>${fmt(spill)} bbl</b></span>`:'')+(J.sights?`<span>Sights <b>${TS.seen}/${J.sights.length}</b></span><span>Tips <b>${TS.tips}</b></span>`:'')+`${skip?`<span>Unfinished stops <b>${skip}</b></span>`:''}<span>Slips <b>${errs}</b></span><span><span class="can"></span> <b>+${pay}</b>${fine?` (fine −${fine})`:''}</span>`;
  $('oAch').hidden=!got.length;$('oAch').innerHTML=got.length>2?`${TROPHY} ${got.length} trophies unlocked · +${got.reduce((t,g)=>t+g[1],0)} <span class="can"></span>`:got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
  $('oTip').innerHTML=errs?'<b>Slips:</b> '+jobLog.errs.slice(0,3).join(' · ')+(errs>3?' …':''):ok?(m<3?`Gold needs no slips and <b>${clock(jobPar(J))}</b> or better.`:'A clean job. The dock crew are impressed.'):'Take the river slowly on a job: there is no prize for speed if the cargo is lost.';
  $('toGarage').classList.toggle('nudge',canSpend());state='over';clearTimeout(banner.t);show('region',0);toastQ=[];toastBusy=false;show('mtoast',0);show('hud',0);show('over',1);if(m===3&&m>prevM)chime([523,659,784,1047,1319]);afterRun(ok,m,nb)}
@@ -2254,7 +2277,7 @@ canvas.addEventListener('pointerdown',e=>{if(state==='moored')return;e.preventDe
 window.addEventListener('pointermove',e=>{if(drag){orbA-=(e.clientX-drag.x)*.008;drag.x=e.clientX}if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,e.clientX)});
 const up=e=>{drag=null;ptrs.delete(e.pointerId)};window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
 let NOPAUSE=false;
-function pause(){if(NOPAUSE)return;if(state!=='play'&&state!=='count'&&state!=='moored')return;pausedFrom=state;for(const k in HOLD)HOLD[k]=false;state='paused';show('pEnd',isJob());ptrs.clear();keyL=keyR=false;show('count',0);show('pauseBtn',0);show('coach',0);show('paused',1)}
+function pause(){if(NOPAUSE)return;if(state!=='play'&&state!=='count'&&state!=='moored')return;pausedFrom=state;for(const k in HOLD)HOLD[k]=false;state='paused';document.querySelectorAll('.pop').forEach(e=>e.remove());show('pEnd',isJob());ptrs.clear();keyL=keyR=false;show('count',0);show('pauseBtn',0);show('coach',0);show('paused',1)}
 function resume(){show('paused',0);show('pauseBtn',1);if(pausedFrom==='moored'){state='moored';return}state='count';counting=2.4;$('countN').textContent='3';show('count',1)}
 $('pauseBtn').addEventListener('click',e=>{e.stopPropagation();pause()});$('hornBtn').addEventListener('click',e=>{e.stopPropagation();horn()});$('hornBtn').addEventListener('pointerdown',e=>e.stopPropagation());$('resume').addEventListener('click',resume);$('pEnd').addEventListener('click',()=>{if(state!=='paused'||!isJob())return;show('paused',0);show('pauseBtn',1);state=pausedFrom;endRun('quit')});
 $('restart').addEventListener('click',()=>{show('paused',0);goReady()});$('pGarage').addEventListener('click',()=>{show('paused',0);goGarage()});
@@ -2262,7 +2285,7 @@ window.addEventListener('blur',()=>{drag=null;ptrs.clear();keyL=keyR=false;pause
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
 const LKEYS=['ArrowLeft','KeyA'],RKEYS=['ArrowRight','KeyD'];
 window.addEventListener('keydown',e=>{
- if(e.code==='Escape'||e.code==='KeyP'){if(!$('settings').hidden){show('settings',0);return}if(state==='play'||state==='count')pause();else if(state==='paused')resume();return}
+ if(e.code==='Escape'||e.code==='KeyP'){for(const id of['help','share','achPanel','settings'])if(!$(id).hidden){show(id,0);return}if(state==='play'||state==='count'||state==='moored')pause();else if(state==='paused')resume();return}
  // crane controls while moored at the work pier
  if(state==='moored'&&OPS&&OPS.kind==='fuel'){const m=HKEYS[e.code];if(m){e.preventDefault();HOLD[m]=true}else if(e.code==='Space'&&!e.repeat){e.preventDefault();fuelAct('hose')}return}
  if(state==='moored'&&OPS&&OPS.kind==='ferry'){if(e.code==='ArrowUp'){e.preventDefault();HOLD.fRu=true}else if(e.code==='ArrowDown'){e.preventDefault();HOLD.fRd=true}else if(!e.repeat){if(e.code==='KeyG')ferryAct('gate');if(e.code==='KeyF')ferryAct('off');if(e.code==='KeyR')ferryAct('on');if(e.code==='Space'){e.preventDefault();ferryAct('cast')}}return}
@@ -2271,7 +2294,7 @@ window.addEventListener('keydown',e=>{
  if(e.code==='KeyB'&&!e.repeat)horn();
  if(e.code==='KeyQ')HOLD.winIn=true;if(e.code==='KeyE')HOLD.winOut=true;
  if(LKEYS.includes(e.code)){keyL=true;e.preventDefault()}if(RKEYS.includes(e.code)){keyR=true;e.preventDefault()}
- if(e.code==='Space'||e.code==='Enter'){if(state==='ready'){e.preventDefault();startCount()}else if(state==='over'&&!e.repeat){e.preventDefault();$('retry').click()}}
+ if(e.code==='Space'||e.code==='Enter'){if(state==='ready'){e.preventDefault();startCount()}else if(state==='over'&&!e.repeat&&$('share').hidden&&$('settings').hidden&&$('achPanel').hidden){e.preventDefault();$('retry').click()}}
  else if(state==='ready'&&(LKEYS.includes(e.code)||RKEYS.includes(e.code)))startCount()});
 window.addEventListener('keyup',e=>{if(LKEYS.includes(e.code))keyL=false;if(RKEYS.includes(e.code))keyR=false;const m=CKEYS[e.code];if(m)HOLD[m]=false;const m2=HKEYS[e.code];if(m2)HOLD[m2]=false;
  if(['KeyW','ArrowUp','KeyS','ArrowDown'].includes(e.code))thrKey=0;if(e.code==='ArrowUp')HOLD.fRu=false;if(e.code==='ArrowDown')HOLD.fRd=false;if(e.code==='KeyQ')HOLD.winIn=false;if(e.code==='KeyE')HOLD.winOut=false});
@@ -2280,12 +2303,12 @@ const CKEYS={KeyA:'slL',KeyD:'slR',KeyW:'bUp',KeyS:'bDn',ArrowUp:'hUp',ArrowDown
 const THR_MIN=-.6;
 function setThr(v){throttle=clamp(v,THR_MIN,1);if(Math.abs(throttle)<.05)throttle=0;renderThr()}
 function renderThr(){$('thrKnob').style.top=(12+(1-throttle)/(1-THR_MIN)*166)+'px';$('thrKnob').classList.toggle('astern',throttle<0);$('thrLab').textContent=throttle>=.95?'Full':throttle>.6?'Ahead':throttle>.35?'Half':throttle>.04?'Slow':throttle<-.04?'Astern':'Stop'}
-{const tr=$('thrTrack'),at=e=>{const r=tr.getBoundingClientRect();setThr(1-(e.clientY-r.top-12)/166*(1-THR_MIN))};
+{const tr=$('thrTrack'),at=e=>{const r=tr.getBoundingClientRect(),k=r.height/(tr.offsetHeight||1);setThr(1-(e.clientY-r.top-12*k)/(166*k)*(1-THR_MIN))};
  tr.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();audioInit();tr.setPointerCapture(e.pointerId);at(e)});tr.addEventListener('pointermove',e=>{if(tr.hasPointerCapture(e.pointerId))at(e)})}
 $('hipBtn').addEventListener('click',e=>{e.stopPropagation();toggleHip()});$('moorBtn').addEventListener('click',e=>{e.stopPropagation();moor()});
 for(const id of['hipBtn','moorBtn'])$(id).addEventListener('pointerdown',e=>e.stopPropagation());
 bindHolds($('winch'));
-document.addEventListener('touchmove',e=>{if(!e.target.closest('.sheet,.card,#ops'))e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.sheet,.card,#ops,#over'))e.preventDefault()},{passive:false});
 $('retry').addEventListener('click',()=>{audioInit();goReady()});
 $('toGarage').addEventListener('click',goGarage);
 
@@ -2364,8 +2387,8 @@ function tick(dt,t){
  if(state==='moored'&&F&&OPS&&HC){const D=OPS.D,tip=hcTip(),a=D.g.localToWorld(tip.clone()),b=HC.att&&F.hoseOn?manifoldPos():D.g.localToWorld(HC.H.clone());
   const th=D.side>0?HC.psi+Math.PI:-HC.psi;D.jib.g.rotation.y=th;D.jib.arm.scale.x=HC.R;D.jib.arm.position.x=HC.R/2;D.jib.blk.position.x=HC.R;
   if(b){const N=hoseSegs.length,sag=clamp(1.2+(HC.L-a.distanceTo(b))*.4,.3,2.6);let px=a.x,py=a.y,pz=a.z;
-   for(let k=1;k<=N;k++){const u2=k/N,qx=lerp(a.x,b.x,u2),qz=lerp(a.z,b.z,u2),qy=lerp(a.y,b.y,u2)-sag*4*u2*(1-u2),sg=hoseSegs[k-1];sg.visible=true;sg.position.set(px,py,pz);sg.lookAt(qx,qy,qz);sg.scale.set(1,1,Math.hypot(qx-px,qy-py,qz-pz));px=qx;py=qy;pz=qz}}}
- else hoseSegs.forEach(m=>m.visible=false);
+   for(let k=1;k<=N;k++){const u2=k/N,qx=lerp(a.x,b.x,u2),qz=lerp(a.z,b.z,u2),qy=lerp(a.y,b.y,u2)-sag*4*u2*(1-u2),sg=hoseSegs[k-1];sg.visible=true;sg.position.set(px,py,pz);sg.lookAt(qx,qy,qz);sg.scale.set(1,1,Math.hypot(qx-px,qy-py,qz-pz));px=qx;py=qy;pz=qz}hoseEnd.position.copy(b);hoseEnd.visible=true}}
+ else{hoseSegs.forEach(m=>m.visible=false);hoseEnd.visible=false}
  // mooring lines from the barge (or boat) to the dock bollards
  if(state==='moored'&&OPS&&OPS.D.bollards){const D=OPS.D,src=BG[0]?bargeM[0]:boatM,h=BG[0]?2.5:sel==='atb'?3.75:4,zs=BG[0]?[-5,5]:sel==='atb'?[-13,2]:[-9,3];src.updateMatrixWorld(true);
   if(D.bollards)D.bollards.forEach((bl,i)=>{const b=D.g.localToWorld(bl.clone()),q=src.localToWorld(new THREE.Vector3(h,1.6,zs[i])),q2=src.localToWorld(new THREE.Vector3(-h,1.6,zs[i])),a=q.distanceTo(b)<q2.distanceTo(b)?q:q2,m=moorLines[i];
@@ -2385,7 +2408,7 @@ function tick(dt,t){
  // camera
  const focusD=BG.length?(T.d+BG[0].d)/2:T.d,fX=BG.length?(T.x+BG[0].x)/2:T.x;
  if(state==='garage'){if(!drag)orbA+=dt*.18;const asp=cam.aspect,dist=spec.gcam[0]*(asp<1?1.25:1);cam.fov=asp<1?52:40;cam.position.set(fX+Math.sin(orbA)*dist,spec.gcam[1]+dist*.12,-focusD+Math.cos(orbA)*dist);lookT.set(fX,1,-focusD);cam.lookAt(lookT)}
- else if(state==='moored'||state==='paused'&&OPS){const s=OPS?OPS.D.side:1,crane=OPS&&OPS.kind==='crane',fk=OPS&&OPS.kind==='ferry'&&FY?FY.k:0,pos=fk?L2W(-13,13,fk*21):crane?L2W(-s*24,30,16):L2W(-s*18,15,19),lk=fk?L2W(0,1,-fk*7):crane?L2W(s*4,4,-4):L2W(s*4,2,-2);
+ else if(state==='moored'||state==='paused'&&OPS){const s=OPS?OPS.D.side:1,crane=OPS&&OPS.kind==='crane',fk=OPS&&OPS.kind==='ferry'&&FY?FY.k:0,pos=fk?L2W(-13,13,fk*21):crane?L2W(-s*24,30,16):(fo=>fo?L2W(-s*20,OPS.D.ship?21:15,19):L2W(-s*16,OPS&&OPS.D.ship?13:11,15))(hoseUp()),lk=fk?L2W(0,1,-fk*7):crane?L2W(s*4,4,-4):hoseUp()?L2W(s*3,OPS.D.ship?8.5:4.5,0):L2W(s*1.5,OPS&&OPS.D.ship?3.5:1.5,0);
   desired.copy(pos);cam.position.lerp(desired,Math.min(1,dt*2));lookT.lerp(lk,Math.min(1,dt*3));cam.lookAt(lookT);cam.fov+=((cam.aspect<1?62:50)-cam.fov)*Math.min(1,dt*2)}
  else{const[bk,ht,ah]=spec.cam,ra=riv(T.d+ah,{}),yaw=lerp(T.a,ra.h,.55);camYaw+=(yaw-camYaw)*Math.min(1,dt*2.5);const sy=Math.sin(camYaw),cy=Math.cos(camYaw);
   const k=state==='done'||state==='over'?dt*.8:dt*5;desired.set(T.x-sy*bk,ht+(state==='over'?4:0),-(T.d-cy*bk));cam.position.lerp(desired,Math.min(1,k));
