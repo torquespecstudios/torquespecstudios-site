@@ -12,11 +12,12 @@
 {"@context":"https://schema.org","@graph":[
  {"@type":"Organization","@id":"https://torquespecstudios.com/#org","name":"Torque Spec Studios","alternateName":"Torque Spec Studios LLC","url":"https://torquespecstudios.com/","logo":"https://torquespecstudios.com/img/swervy-icon.png","email":"torquespecstudios@gmail.com","description":"Independent game and app studio in Washington State, making games and apps for iPhone and iPad.","address":{"@type":"PostalAddress","addressRegion":"WA","addressCountry":"US"},"sameAs":["https://www.instagram.com/torquespecstudios/","https://www.instagram.com/playswervy/"]},
  {"@type":"WebSite","@id":"https://torquespecstudios.com/#site","name":"Torque Spec Studios","url":"https://torquespecstudios.com/","publisher":{"@id":"https://torquespecstudios.com/#org"}},
+ {"@type":"VideoGame","name":"Tuggy","url":"https://torquespecstudios.com/#tuggy","description":"A river boat game: race tugs and work boats down rivers, push a cargo ship alongside the wharf, run a car ferry, cranes and a fuel barge.","genre":["Racing","Simulation","Arcade"],"gamePlatform":["Web browser","iPhone","iPad"],"publisher":{"@id":"https://torquespecstudios.com/#org"},"image":"https://torquespecstudios.com/img/tuggy-1-assist.jpg"},
  {"@type":"VideoGame","name":"Swoopy: Sky Racer","url":"https://torquespecstudios.com/#swoopy","description":"A low-flying air racer: fly through canyons, an airport and a storm in 14 planes, from a bush plane to a jumbo jet.","genre":["Racing","Arcade","Flight"],"gamePlatform":["Web browser","iPhone","iPad"],"publisher":{"@id":"https://torquespecstudios.com/#org"},"image":"https://torquespecstudios.com/img/swoopy-1-hangar.jpg"},
  {"@type":"VideoGame","name":"Swervy: One-Tap Racer","url":"https://torquespecstudios.com/swervy/","description":"A one-tap racer on an endless mountain road. Tap to steer, let go to swing.","genre":["Racing","Arcade"],"gamePlatform":["iPhone","iPad"],"publisher":{"@id":"https://torquespecstudios.com/#org"},"image":"https://torquespecstudios.com/img/swervy-1-hook.jpg"}
 ]}
 </script>
-<meta name="description" content="Torque Spec Studios is an independent game and app studio in Washington State, making games and apps for iPhone and iPad. Makers of Swervy: One-Tap Racer and Swoopy: Sky Racer.">
+<meta name="description" content="Torque Spec Studios is an independent game and app studio in Washington State, making games and apps for iPhone and iPad. Makers of Swervy: One-Tap Racer, Swoopy: Sky Racer and Tuggy.">
 <link rel="icon" href="img/favicon.png">
 <link rel="apple-touch-icon" href="img/swervy-icon.png">
 <meta property="og:title" content="Torque Spec Studios">
@@ -95,12 +96,12 @@ footer a{color:var(--muted)}
         <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="#f2b33d" stroke-width="3"/><path d="M17 17 L26 9" stroke="#f3efe6" stroke-width="3" stroke-linecap="round"/><circle cx="17" cy="17" r="3" fill="#f2b33d"/><path d="M8 24 h4 M22 24 h4" stroke="#6b707a" stroke-width="2" stroke-linecap="round"/></svg>
         Torque Spec Studios
       </a>
-      <div class="links"><a href="play/">Play beta</a><a href="swervy/">Swervy</a><a href="#swoopy">Swoopy</a><a class="hide-s" href="#about">About</a><a class="hide-s" href="#contact">Contact</a></div>
+      <div class="links"><a class="hide-s" href="play/">Play beta</a><a href="swervy/">Swervy</a><a href="#swoopy">Swoopy</a><a href="#tuggy">Tuggy</a><a class="hide-s" href="#about">About</a><a class="hide-s" href="#contact">Contact</a></div>
     </nav>
     <div class="hero">
       <h1><small>Torque Spec Studios</small>Built to <span>spec.</span></h1>
       <p>Torque Spec Studios is an independent studio making games and apps for iPhone and iPad. Every control tight, every screen dialed in, every release finished.</p>
-      <div class="btns"><a class="btn primary" href="play/">Play the Swervy beta</a><a class="btn primary" href="swoopy-beta/">Play the Swoopy beta</a></div>
+      <div class="btns"><a class="btn primary" href="play/">Play the Swervy beta</a><a class="btn primary" href="swoopy-beta/">Play the Swoopy beta</a><a class="btn primary" href="tug/">Play the Tuggy beta</a></div>
     </div>
   </div>
 </header>
@@ -164,20 +165,47 @@ footer a{color:var(--muted)}
     </div>
   </section>
 
+  <section id="tuggy" class="alt">
+    <div class="wrap product">
+      <div>
+        <p class="kicker">New · open beta</p>
+        <div class="app"><img src="img/tuggy-icon.png" alt="Tuggy app icon: a red tug towing a container barge up a river at dusk" width="84" height="84"><div><b>Tuggy</b><small>River work boats · plays in your browser</small></div></div>
+        <p>Run the river in a tug and its barge, then take on the real work. Push a cargo ship alongside the wharf, run a car ferry across the current, dig a channel with a clamshell crane, pump fuel at the refinery, and find capsized paddlers in the fog.</p>
+        <ul class="feat">
+          <li>14 boats: tugs towing one, two or three barges, a towboat, a crane barge, a car ferry, a sternwheeler, a fireboat, a pilot boat and a jet ski</li>
+          <li>12 hands-on jobs: valves, generator and pump on the fuel barge, a crane with a load-moment limiter, ferry ramps and gates, and ship assist with a tug that rolls coal when it pushes</li>
+          <li>Four rivers, from rapids and a foggy bend to a harbor mouth with cargo ships, plus night runs</li>
+          <li>Gold times, upgrades, paint jobs, trophies and daily missions</li>
+        </ul>
+        <p class="beta-note"><b>The beta is open.</b> Play it in your phone's browser right now, no download needed. In Safari, tap Share, then Add to Home Screen, to play it full screen like an app. Feedback goes to <a href="mailto:torquespecstudios@gmail.com?subject=Tuggy%20beta%20feedback" data-contact>torquespecstudios@gmail.com</a>.</p>
+        <div class="btns">
+          <a class="btn primary" href="tug/">Play the free beta</a>
+          <a class="btn" href="mailto:torquespecstudios@gmail.com?subject=Tuggy%20beta%20feedback">Send feedback</a>
+          <span class="btn" aria-disabled="true">Coming soon to the Apple App Store</span>
+        </div>
+      </div>
+      <div class="shots">
+        <img src="img/tuggy-1-assist.jpg" alt="Tuggy screenshot: a red tug pushing a cargo ship toward the wharf, black smoke from its stack" width="900" height="1956" loading="lazy">
+        <img src="img/tuggy-2-ferry.jpg" alt="Tuggy screenshot: a car ferry with four cars crossing the river" width="900" height="1956" loading="lazy">
+        <img src="img/tuggy-3-rapids.jpg" alt="Tuggy screenshot: a tug towing a container barge through autumn rapids" width="900" height="1956" loading="lazy">
+      </div>
+    </div>
+  </section>
+
   <section id="about" class="about">
     <div class="wrap about-grid">
       <div>
         <p class="kicker">About the studio</p>
         <h2>Games and apps built to spec</h2>
         <p>Torque Spec Studios is an independent game and app studio based in Washington State. The name comes from engineering: a torque spec is the exact value a part has to be built to. Not close, not good enough, exactly right. That's the standard we hold every game and app to.</p>
-        <p>Swervy is the first. Swoopy, a low-flying air racer, is in open beta, and more games and apps are on the way.</p>
+        <p>Swervy is the first. Swoopy, a low-flying air racer, and Tuggy, a river work-boat game, are in open beta, and more games and apps are on the way.</p>
       </div>
       <div class="spec" aria-label="Studio facts">
         <div><span>Studio</span><b>Torque Spec Studios LLC</b></div>
         <div><span>Based in</span><b>Washington State, USA</b></div>
         <div><span>Makes</span><b>Games and apps for iPhone and iPad</b></div>
         <div><span>First release</span><b>Swervy: One-Tap Racer</b></div>
-        <div><span>In beta</span><b>Swoopy: Sky Racer</b></div>
+        <div><span>In beta</span><b>Swoopy: Sky Racer and Tuggy</b></div>
       </div>
     </div>
   </section>
