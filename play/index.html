@@ -532,10 +532,44 @@ const GLOWS=[{n:'Off',c:null},{n:'Ice',c:'#36cfff'},{n:'Violet',c:'#b44bff'},{n:
 const BAYS=[{n:'Factory'},{n:'Blue Six'}],HALOS=[{n:'Off'},{n:'On'}];
 // cabin: street seats come with every car; racing buckets with harnesses, and the full race cabin with a roll cage, are bought looks
 const CABINS=[{n:'Street'},{n:'Racing seats'},{n:'Full race'}];
-const LISTS={bay:BAYS,halo:HALOS,paint:PAINTS,finish:FINISHES,roof:ROOFS,tint:TINTS,rimStyle:RIMS,rimSize:RIMSIZES,wheels:WHEELS,tires:TIRES,caliper:CALIPERS,ride:RIDES,spoiler:SPOILERS,lip:LIPS,skirts:SKIRTS,kit:KITS,stripeStyle:STRIPE_STYLES,stripeColor:STRIPE_COLS,lights:LIGHTS,glow:GLOWS,cabin:CABINS};
+// liveries: painted designs projected onto the body. Each draws three 1024×512 regions of one texture: the right side,
+// the left side and the top, in "side space" (x from the rear to the nose; y 150 is the beltline and y 400 the sill on
+// every car, so designs fill the door panels whatever the model; `k` squeezes x so round shapes stay round on the car). The left side shows the texture mirrored, which keeps flames running
+// nose to tail on both sides; text is drawn pre-mirrored there so it still reads. `base` repaints the whole car for
+// full-cover designs; `glow` makes the design emit light (neon). Priced in cans now, ready to sell as premium skins.
+const livTxt=(g,t,x,y,sd)=>{g.save();g.translate(x,y);if(sd<0)g.scale(-1,1);g.fillText(t,0,0);g.restore()};
+const livRnd=k=>{const x=Math.sin(k*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+// one hot-rod flame: solid at the nose, four tongues licking back, dark outline
+function livFlames(g,x0,len,yc,h){const gr=g.createLinearGradient(x0,0,x0-len,0);gr.addColorStop(0,'#ffe066');gr.addColorStop(.35,'#ff9a1e');gr.addColorStop(.8,'#e0301e');gr.addColorStop(1,'#b3180f');
+ g.fillStyle=gr;g.strokeStyle='#7a0f06';g.lineWidth=6;g.lineJoin='round';g.beginPath();g.moveTo(x0,yc-h/2);
+ for(let k=0;k<4;k++){const yA=yc-h/2+k*h/4,yB=yA+h/4,L=len*(.6+.4*livRnd(k+3)),tY=yA+h/4*.35;
+  g.bezierCurveTo(x0-L*.45,yA-h*.08,x0-L*.8,tY-h*.12,x0-L,tY);g.bezierCurveTo(x0-L*.7,tY+h*.06,x0-L*.45,yB-h*.02,x0-len*.18,yB)}
+ g.lineTo(x0,yc+h/2);g.closePath();g.fill();g.stroke()}
+function livShards(g,cols,y0,y1,n,seed){for(let k=0;k<n;k++){const x=livRnd(seed+k)*1024,w=60+livRnd(seed+k+50)*120,yt=y0+livRnd(seed+k+90)*(y1-y0)*.5;g.fillStyle=cols[k%cols.length];
+ g.beginPath();g.moveTo(x-w*.6,y1);g.lineTo(x+w*.25,yt);g.lineTo(x+w*.9,y1);g.closePath();g.fill()}}
+const LIVERIES=[{n:'None'},
+ {n:'Flames',draw:(g,sd,top)=>top?livFlames(g,1024,380,256,300):livFlames(g,1024,640,290,200)},
+ {n:'Sunset fade',draw:(g,sd,top)=>{if(top)return;const gr=g.createLinearGradient(0,205,0,430);gr.addColorStop(0,'rgba(214,36,110,0)');gr.addColorStop(.42,'rgba(214,36,110,1)');gr.addColorStop(1,'rgba(255,128,26,1)');g.fillStyle=gr;g.fillRect(0,205,1024,307)}},
+ {n:'Checkered',draw:(g,sd,top)=>{const y0=top?217:326,rows=top?3:2,q=26;for(let r=0;r<rows;r++)for(let i=0;i*q<1024;i++){g.fillStyle=(i+r)%2?'#111':'#f4f2ec';g.fillRect(i*q,y0+r*q,q,q)}
+  if(!top){g.fillStyle='#f4f2ec';g.fillRect(0,y0-10,1024,5);g.fillRect(0,y0+rows*q+5,1024,5)}}},
+ {n:'Racer 7',draw:(g,sd,top,k)=>{g.fillStyle='#f4f2ec';if(top){g.fillRect(0,216,1024,26);g.fillRect(0,270,1024,26);return}g.fillRect(0,386,1024,10);g.fillRect(0,402,1024,6);
+  g.save();g.translate(470,276);g.scale(k,1);g.beginPath();g.arc(0,0,92,0,7);g.fill();g.lineWidth=8;g.strokeStyle='#111';g.stroke();g.fillStyle='#111';g.font='800 italic 150px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.textAlign='center';g.textBaseline='middle';livTxt(g,'7',4,10,sd);g.restore()}},
+ {n:'Midnight circuit',base:'#0e1016',glow:.9,draw:(g,sd,top)=>{g.strokeStyle='#2ef2ff';g.fillStyle='#2ef2ff';g.lineWidth=6;g.lineJoin='round';
+  const path=pts=>{g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke();for(const[x,y]of pts.slice(1,-1)){g.beginPath();g.arc(x,y,9,0,7);g.fill()}};
+  if(top){path([[0,196],[380,196],[430,226],[1024,226]]);path([[0,316],[380,316],[430,286],[1024,286]]);return}
+  path([[0,360],[300,360],[360,300],[700,300],[740,340],[1024,340]]);path([[0,384],[310,384],[372,322],[690,322],[730,362],[1024,362]])}},
+ {n:'Digital camo',base:'#4b5320',draw:(g,sd,top)=>{const C=['#4b5320','#6b7a3a','#2f3a1f','#8a8f5c'];for(let x=0;x<1024;x+=32)for(let y=0;y<512;y+=32){g.fillStyle=C[Math.floor(livRnd(x*.31+y*.77+(top?9:0))*4)];g.fillRect(x,y,32,32)}}},
+ {n:'Glacier',base:'#e9f3fb',draw:(g,sd,top)=>livShards(g,['#9fd4f2','#5fa8d8','#cfeaf9','#3d86c4'],top?60:170,top?452:420,top?16:22,top?7:3)},
+ {n:'Tiger',base:'#d9771e',draw:(g,sd,top)=>{g.fillStyle='#141210';for(let k=0;k<14;k++){const x=40+k*72+livRnd(k)*24,w=16+livRnd(k+30)*14,yA=top?0:160,yB=top?200+livRnd(k+60)*60:330+livRnd(k+60)*80;
+  g.beginPath();g.moveTo(x-w,yA);g.quadraticCurveTo(x+w*.6,(yA+yB)/2,x+w*.2,yB);g.quadraticCurveTo(x-w*.2,(yA+yB)/2,x+w,yA);g.fill();if(top){g.beginPath();g.moveTo(x-w,512);g.quadraticCurveTo(x+w*.6,512-(yB)/2,x+w*.2,512-yB);g.quadraticCurveTo(x-w*.2,512-yB/2,x+w,512);g.fill()}}}}];
+function liveryTex(L,M){const k=(1024/M.L)/(250/(M.belt-M.y0));const c=document.createElement('canvas');c.width=1024;c.height=1536;const g=c.getContext('2d');
+ for(let i=0;i<3;i++){g.save();g.translate(0,i*512);g.beginPath();g.rect(0,0,1024,512);g.clip();L.draw(g,i===1?-1:1,i===2,k);g.restore()}
+ // uploaded premultiplied, like the clouds, so iPhones keep the soft edges clean; the shader un-premultiplies
+ const t=new THREE.CanvasTexture(c);t.premultiplyAlpha=true;t.anisotropy=ANISO;t.needsUpdate=true;return t}
+const LISTS={bay:BAYS,halo:HALOS,paint:PAINTS,finish:FINISHES,roof:ROOFS,tint:TINTS,rimStyle:RIMS,rimSize:RIMSIZES,wheels:WHEELS,tires:TIRES,caliper:CALIPERS,ride:RIDES,spoiler:SPOILERS,lip:LIPS,skirts:SKIRTS,kit:KITS,stripeStyle:STRIPE_STYLES,stripeColor:STRIPE_COLS,lights:LIGHTS,glow:GLOWS,cabin:CABINS,livery:LIVERIES};
 const TABS=[{id:'paint',n:'Paint',opts:[['paint','Paint','sw'],['finish','Finish','chip'],['roof','Roof & pillars','sw'],['tint','Window tint','sw']]},
  {id:'wheels',n:'Wheels',opts:[['rimStyle','Rim style','chip'],['rimSize','Rim size','chip'],['wheels','Rim color','sw'],['tires','Tires','chip'],['caliper','Brake calipers','sw'],['ride','Ride height','chip']]},
- {id:'style',n:'Style',opts:[['lip','Front lip','chip'],['skirts','Side skirts','chip'],['kit','Lip & skirt finish','sw'],['spoiler','Spoiler','chip'],['stripeStyle','Stripes','chip'],['stripeColor','Stripe color','sw'],['lights','Headlights','sw'],['halo','Halo rings','chip'],['cabin','Cabin','chip'],['glow','Underglow','sw'],['plate','License plate','text']]},{id:'engine',n:'Engine',opts:[]}];
+ {id:'style',n:'Style',opts:[['livery','Livery','chip'],['lip','Front lip','chip'],['skirts','Side skirts','chip'],['kit','Lip & skirt finish','sw'],['spoiler','Spoiler','chip'],['stripeStyle','Stripes','chip'],['stripeColor','Stripe color','sw'],['lights','Headlights','sw'],['halo','Halo rings','chip'],['cabin','Cabin','chip'],['glow','Underglow','sw'],['plate','License plate','text']]},{id:'engine',n:'Engine',opts:[]}];
 const DEF={coupe:[0,0,0],rally:[7,1,0],sedan:[13,3,1],muscle:[2,4,0],suv:[4,0,0],pickup:[15,4,1],super:[12,2,1],hyper:[8,3,1]};
 const PERF=[
  {id:'engine',n:'Engine',lv:['Stock','Street','Sport','Race'],cost:[0,15,35,70],pow:[0,.05,.1,.16]},
@@ -544,7 +578,7 @@ const PERF=[
  {id:'exhaust',n:'Exhaust',lv:['Stock','Headers','Race'],cost:[0,10,25],pow:[0,.03,.05]},
  {id:'tires',n:'Tire compound',lv:['Street','Sport','Semi-slick','Slick'],cost:[0,15,35,60],grip:[0,.06,.12,.18]},
  {id:'susp',n:'Suspension',lv:['Stock','Lowered','Coilovers','Race'],cost:[0,15,35,60],grip:[0,.05,.1,.15]}];
-function defLook(id){const d=DEF[id]||[0,0,0];return{paint:d[0],finish:d[2],roof:0,tint:1,rimStyle:d[1],rimSize:1,wheels:0,tires:0,caliper:0,ride:1,spoiler:0,stripeStyle:id==='muscle'||id==='coupe'?1:0,stripeColor:0,lights:0,glow:0,plate:'SWERVY',bay:0,halo:0,cabin:0,lip:0,skirts:0,kit:0}}
+function defLook(id){const d=DEF[id]||[0,0,0];return{paint:d[0],finish:d[2],roof:0,tint:1,rimStyle:d[1],rimSize:1,wheels:0,tires:0,caliper:0,ride:1,spoiler:0,stripeStyle:id==='muscle'||id==='coupe'?1:0,stripeColor:0,lights:0,glow:0,plate:'SWERVY',bay:0,halo:0,cabin:0,livery:0,lip:0,skirts:0,kit:0}}
 
 let best=num(store.get('best',0),0),cans=num(store.get('cans',0),0),unlocked=store.get('unlocked',['coupe']),muted=store.get('muted',false)===true;
 unlocked=Array.isArray(unlocked)?unlocked.filter((id,i,a)=>MODELS[id]&&a.indexOf(id)===i):[];if(!unlocked.includes('coupe'))unlocked.unshift('coupe');
@@ -554,7 +588,7 @@ for(const k of['haptics','shake','flip','music'])settings[k]=settings[k]!==false
 const sideH=()=>settings.flip?'right':'left',sideR=()=>settings.flip?'left':'right';
 // premium styling: some looks cost cans, bought once and then usable on every car, so there is always something to save for;
 // a car's factory look is always free, and options a save already used before prices existed stay owned
-const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140]};
+const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140],livery:[0,200,150,150,200,350,250,300,300]};
 let owned=new Set((v=>Array.isArray(v)?v.filter(x=>typeof x==='string'):[])(store.get('owned',[]))),pv=null;
 const isOwned=(id,k,i)=>!PRICE[k]||!PRICE[k][i]||owned.has(k+':'+i)||defLook(id)[k]===i;
 let looks=store.get('looks',null);if(looks!==null)looks=obj(looks);const oldCfg=obj(store.get('cfg',{}));
@@ -616,7 +650,7 @@ const showroom=new THREE.Group(),SHOW_R=13.5;showroom.visible=false;scene.add(sh
  // polished concrete floor in 1.25 m tiles
  const floorTex=canvasTex(512,512,(g,w,h)=>{g.fillStyle='#3b3e44';g.fillRect(0,0,w,h);speck(g,w,h,9000,()=>{const l=50+Math.random()*30|0;return`rgb(${l},${l+1},${l+4})`});
   g.strokeStyle='#26282d';g.lineWidth=3;for(let i=0;i<=4;i++){g.beginPath();g.moveTo(i*128,0);g.lineTo(i*128,h);g.stroke();g.beginPath();g.moveTo(0,i*128);g.lineTo(w,i*128);g.stroke()}},true);floorTex.repeat.set(4.4,4.4);
- const floor=new THREE.Mesh(new THREE.CircleGeometry(SR,64),flat(0x8c9098,{map:floorTex,roughness:.24,metalness:.3,envMapIntensity:.35}));floor.rotation.x=-Math.PI/2;floor.position.y=.012;floor.receiveShadow=true;showroom.add(floor);
+ const floor=new THREE.Mesh(new THREE.CircleGeometry(SR,64),flat(0x8c9098,{map:floorTex,roughness:.42,metalness:.2,envMapIntensity:.35}));floor.rotation.x=-Math.PI/2;floor.position.y=.012;floor.receiveShadow=true;showroom.add(floor);
  // turntable, flush with the floor, with a glowing amber rim
  const tt=new THREE.Mesh(new THREE.CylinderGeometry(3.3,3.3,.03,64),flat(0x1a1c21,{roughness:.35,metalness:.3,envMapIntensity:.3}));tt.position.y=.015;tt.receiveShadow=true;showroom.add(tt);
  const rim=new THREE.Mesh(new THREE.TorusGeometry(3.3,.04,8,120),glow(0xf2b33d));rim.rotation.x=Math.PI/2;rim.position.y=.035;showroom.add(rim);
@@ -1015,7 +1049,17 @@ function buildEngine(M,PF,B,c){const bs=c&&c.bay===1;
 function buildCar(c){
  const M=MODELS[c.model],P=PAINTS[c.paint],F=FINISHES[c.finish],Wh=WHEELS[c.wheels],Gl=GLOWS[c.glow],Cal=CALIPERS[c.caliper],LT=LIGHTS[c.lights].c,RF=ROOFS[c.roof].c;
  const std=o=>new THREE.MeshStandardMaterial(o);
- const paint=new THREE.MeshPhysicalMaterial({color:P.c,metalness:F.m,roughness:F.r,clearcoat:F.cc,clearcoatRoughness:.04,envMapIntensity:1.35});
+ const LV=LIVERIES[c.livery]||LIVERIES[0],livTex=LV.draw?liveryTex(LV,M):null;
+ const paint=new THREE.MeshPhysicalMaterial({color:LV.base||P.c,metalness:F.m,roughness:F.r,clearcoat:F.cc,clearcoatRoughness:.04,envMapIntensity:1.35});
+ // the livery is blended over the paint from the body's own baked coordinates (livP, livN: see the end of buildCar),
+ // sides by length and height, the top by length and width, faded by which way the surface faces
+ if(livTex)paint.onBeforeCompile=sh=>{sh.uniforms.livMap={value:livTex};sh.uniforms.livDim={value:new THREE.Vector3(M.L,M.roofY,M.W)};sh.uniforms.livGlow={value:LV.glow||0};sh.uniforms.livB={value:new THREE.Vector2(M.y0,M.belt)};
+  sh.vertexShader='attribute vec3 livP;\nattribute vec3 livN;\nvarying vec3 vLivP;\nvarying vec3 vLivN;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvLivP=livP;vLivN=livN;');
+  sh.fragmentShader='uniform sampler2D livMap;\nuniform vec2 livB;\nuniform vec3 livDim;\nuniform float livGlow;\nvarying vec3 vLivP;\nvarying vec3 vLivN;\n'+sh.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+  vec3 ln=normalize(vLivN);float lu=clamp(vLivP.x/livDim.x+.5,0.,1.),lY=(400.-(vLivP.y-livB.x)/(livB.y-livB.x)*250.)/512.,lin=step(0.,lY)*step(lY,1.);
+  vec4 lS=texture2D(livMap,vec2(lu,ln.z>=0.?1.-lY/3.:1.-(1.+lY)/3.))*lin,lT=texture2D(livMap,vec2(lu,1.-(2.+clamp(vLivP.z/livDim.z+.5,0.,1.))/3.));
+  float lws=smoothstep(.25,.55,abs(ln.z)),lwt=smoothstep(.3,.65,ln.y)*(1.-lws);vec4 lC=lS*lws+lT*lwt;vec3 livCol=vec3(0.);
+  if(lC.a>.002){livCol=pow(lC.rgb/lC.a,vec3(2.2));diffuseColor.rgb=mix(diffuseColor.rgb,livCol,lC.a);}`).replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\n  totalEmissiveRadiance+=livCol*lC.a*livGlow;')};
  const roofM=RF==='body'?paint:new THREE.MeshPhysicalMaterial({color:RF,metalness:.3,roughness:.25,clearcoat:1,envMapIntensity:1.3});
  // the glass is see-through (more for lighter tints) so the cabin shows; it still reflects the sky
  const glass=new THREE.MeshPhysicalMaterial({color:TINTS[c.tint].c,metalness:.1,roughness:.05,clearcoat:.6,envMapIntensity:.9,transparent:true,opacity:[.24,.5,.76,.36,.36][c.tint]??.36,depthWrite:false});
@@ -1163,7 +1207,13 @@ function buildCar(c){
  const rh=RIDES[c.ride].h;if(rh)model.children.forEach(o=>{if(o.isMesh?!o.material.transparent:!wheels.some(w=>w.steer===o))o.position.y+=rh});
  const clipMats=[];model.children.forEach(o=>{if(o.isMesh&&!o.material.transparent&&!o.material.userData.noClip&&!clipMats.includes(o.material))clipMats.push(o.material)});
  const planesL=[[-1,0,0,bay.xb0],[1,0,0,-bay.xb1],[0,-1,0,bay.bf],[0,0,1,-bay.zi],[0,0,-1,-bay.zi]].map(a=>new THREE.Plane(new THREE.Vector3(a[0],a[1],a[2]),a[3]));
- return{root,roll,model,wheels,M,glow:Gl.c,texs:[pTex].concat(engine.userData.tex?[engine.userData.tex]:[]),engine,hood,bay,clipMats,planesL,planes:planesL.map(q=>q.clone()),hoodA:0,engineOn:false}}
+ // bake each painted part's position and normal in the car's own space, so the livery stays put however the car moves
+ if(livTex){model.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(model.matrixWorld).invert(),rel=new THREE.Matrix4(),nm=new THREE.Matrix3(),v=new THREE.Vector3();
+  model.traverse(o=>{if(!o.isMesh||o.material!==paint||!o.geometry.attributes.normal)return;let g=o.geometry;if(g.userData.liv){g=g.clone();o.geometry=g}g.userData.liv=1;
+   rel.multiplyMatrices(inv,o.matrixWorld);nm.getNormalMatrix(rel);const P=g.attributes.position,N=g.attributes.normal,lp=new Float32Array(P.count*3),lnv=new Float32Array(P.count*3);
+   for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i).applyMatrix4(rel);lp[i*3]=v.x;lp[i*3+1]=v.y;lp[i*3+2]=v.z;v.fromBufferAttribute(N,i).applyMatrix3(nm).normalize();lnv[i*3]=v.x;lnv[i*3+1]=v.y;lnv[i*3+2]=v.z}
+   g.setAttribute('livP',new THREE.BufferAttribute(lp,3));g.setAttribute('livN',new THREE.BufferAttribute(lnv,3))})}
+ return{root,roll,model,wheels,M,glow:Gl.c,texs:[pTex].concat(livTex?[livTex]:[],engine.userData.tex?[engine.userData.tex]:[]),engine,hood,bay,clipMats,planesL,planes:planesL.map(q=>q.clone()),hoodA:0,engineOn:false}}
 
 
 function mergeGroup(par,filter){par.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(par.matrixWorld).invert(),buckets=new Map(),kill=[];
@@ -1589,7 +1639,7 @@ function setPhotoTod(t){photo.studio=t==='s';photo.tod=photo.studio?0:+t;documen
 function snapPhoto(){if(!photo)return;const old=R.getPixelRatio();R.setPixelRatio(Math.min(window.devicePixelRatio||1,3));R.render(scene,cam);
  const src=R.domElement,W=1080,H=1350,band=210,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),ph=H-band,k=Math.max(W/src.width,ph/src.height),sw=W/k,sh=ph/k;
  g.drawImage(src,(src.width-sw)/2,(src.height-sh)/2,sw,sh,0,0,W,ph);R.setPixelRatio(old);
- const M=MODELS[cfg.model],paint=PAINTS[cfg.paint]?PAINTS[cfg.paint].n:'';
+ const M=MODELS[cfg.model],LVn=cfg.livery>0&&LIVERIES[cfg.livery]?LIVERIES[cfg.livery].n+' livery':'',paint=LVn||(PAINTS[cfg.paint]?PAINTS[cfg.paint].n:'');
  let gr=g.createLinearGradient(0,ph,0,H);gr.addColorStop(0,'#161b23');gr.addColorStop(1,'#0b0e13');g.fillStyle=gr;g.fillRect(0,ph,W,band);g.fillStyle='#f2b33d';g.fillRect(0,ph,W,6);
  g.textBaseline='alphabetic';g.textAlign='left';g.font='800 italic 92px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillStyle='#f5f0e6';g.fillText(M.name.toUpperCase(),56,ph+104);
  g.font='700 30px "Barlow",system-ui,sans-serif';g.fillStyle='#a9a69e';g.fillText([M.make,paint].filter(Boolean).join(' · '),58,ph+152);
