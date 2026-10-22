@@ -344,6 +344,8 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
 #ops .note{text-align:center}
 /* short phones (iPhone SE): a taller sheet and a tighter boat header so the River / Upgrades list keeps room */
 @media (max-height:740px) and (max-aspect-ratio:1/1){.sheet{height:68%;gap:10px;padding-top:10px}.car-head h2{font-size:22px}.car-head .ty{font-size:11px;margin-top:2px}.stats{gap:3px}.perk{font-size:11px}.mcard{padding:7px 10px}.mcard .mn{font-size:17px}.tab{padding:7px 4px}}
+.pjobs{display:block;margin-top:4px;color:var(--mute);font-weight:600;font-size:11.5px;line-height:1.3}
+.deck{color:var(--amber);font-weight:700}
 .pickh{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:2px 0 -2px}
 /* portrait phones: the whole garage sheet scrolls, so the races and jobs list isn't squeezed into one row above the button */
 @media (max-aspect-ratio:1/1) and (max-width:700px){.sheet{overflow-y:auto;-webkit-overflow-scrolling:touch;height:72%}.sheet>.opts{flex:none;overflow:visible}.drive-wrap{margin-top:auto}}
@@ -453,7 +455,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v33 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v34 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1518,7 +1520,17 @@ function berthText(){if(!isJob()||state!=='play')return'';if(tourJob()&&TS.i<JOB
  if(D.salvage)return b.near?`<b>${D.stop.name}</b><br>${c(b.gap<9,'Marker '+b.gap.toFixed(0)+' m')} · ${c(b.spd<.8,(b.spd*u[0]).toFixed(1)+' '+u[1])}`:`Next: <b>${D.stop.name}</b> · ${fmt(b.dist)} m · mid-river`;
  if(!b.near)return`Next: <b>${D.stop.name}</b> · ${fmt(b.dist)} m · ${D.ship?'at anchor, come alongside her '+(D.side>0?'port':'starboard')+' side':(D.side>0?'right':'left')+' bank'}`+(BG[0]&&!BG[0].hip&&b.dist<250?'<br>Slow down and put the barge <b>on the hip</b>':'');
  if(!b.hipOk)return`<b>${D.stop.name}</b><br>${c(false,BG[0].hip?'Barge on the wrong side':'Put the barge on the hip')}`;
- return`<b>${D.stop.name}</b><br>${c(b.gap<2.2,'Off '+Math.max(0,b.gap).toFixed(1)+' m')} · ${c(Math.abs(b.along)<7,(b.along>0?'Past ':'Short ')+Math.abs(b.along).toFixed(0)+' m')} · ${c(b.spd<.8,(b.spd*u[0]).toFixed(1)+' '+u[1])}${b.ang>=.3?' · '+c(false,'Square up'):''}`}
+ return`<b>${D.stop.name}</b><br>${c(b.gap<2.2,'Off '+Math.max(0,b.gap).toFixed(1)+' m')} · ${c(Math.abs(b.along)<7,(b.along>0?'Past ':'Short ')+Math.abs(b.along).toFixed(0)+' m')} · ${c(b.spd<.8,(b.spd*u[0]).toFixed(1)+' '+u[1])}${b.ang>=.3?' · '+c(false,'Square up'):''}<br><span class="deck">Deckhand: ${deckCue(b,u)}</span>`}
+// the deckhand's call when coming alongside: one thing at a time, speed first, then line, then position
+function deckCue(b,u){const D=b.D,tow=D.ship?'her side':'the dock',toward=D.side>0?'▶':'◀',away=D.side>0?'◀':'▶';
+ if(b.along<-30)return b.spd>3.2?`slow down as you near the berth, ${Math.round(-b.along)} m to go`:`come on down to the berth, ${Math.round(-b.along)} m`+(b.gap>8?`, keeping ${toward}`:'');
+ if(b.spd>1.6)return`ease the throttle back, under ${(1.6*u[0]).toFixed(0)} ${u[1]} to come alongside`;
+ if(b.gap>8)return`steer ${toward} in toward ${tow}`;
+ if(b.ang>=.3)return`straighten up, parallel to ${tow}`;
+ if(b.gap>2.2)return`ease ${toward} in gently, ${b.gap.toFixed(1)} m to go`;
+ if(b.gap<-.5)return`too tight: steer ${away} a touch`;
+ if(b.along>4)return`you're past the berth: a touch astern`;if(b.along<-4)return`short of the berth: ahead slowly`;
+ if(b.spd>=.8)return`ease off to a stop`;return`<b>Make fast!</b>`}
 function renderJobBtns(){const on=isJob()&&state==='play',B=BG[0];show('hipBtn',on&&!!B);if(B)$('hipBtn').textContent=B.hip?'Let out tow':'On the hip';const b=on?berthStatus():null;show('moorBtn',!!(b&&b.near));$('moorBtn').textContent=b&&b.D.ferry?'Land':b&&b.D.salvage?'Drop spuds':b&&b.D.pickup?'Pass the line':b&&b.D.stop.kind==='handover'?'Hand over':'Make fast';$('moorBtn').disabled=!(b&&b.ok);$('moorBtn').classList.toggle('ready',!!(b&&b.ok))}
 const moorLines=[0,1].map(()=>{const m=new THREE.Mesh(ropeGeo,ropeMat);m.visible=false;scene.add(m);return m});
 const hoseMat=new THREE.MeshStandardMaterial({color:0x1b1b1d,roughness:.6}),hoseGeo=new THREE.CylinderGeometry(.14,.14,1,8).translate(0,.5,0).rotateX(Math.PI/2);
@@ -2165,7 +2177,7 @@ function renderGarage(){checkAch();renderAch();renderLevel();spec=specFor(sel);c
  $('models').innerHTML=ORDER.map(id=>{const M=BOATS[id],o=unlocked.includes(id),ready=!o&&cans>=M.price;return`<button class="mcard ${id===sel?'on':''} ${ready?'ready':''}" data-id="${id}"><span class="mk">${M.make}</span><span class="mn">${M.name}</span><span class="mt">${o?M.type:`<span class="can"></span>${fmt(M.price)}`}</span></button>`}).join('')
   +SOON.map(s=>`<div class="mcard soon"><span class="mk">Coming soon</span><span class="mn">${s.n}</span><span class="mt">${s.t}</span></div>`).join('');
  $('models').querySelectorAll('button.mcard').forEach(b=>b.onclick=()=>{audioInit();sel=b.dataset.id;if(unlocked.includes(sel))store.set('sel',sel);rebuildBoat();resetWorld();renderGarage()});
- $('cName').textContent=B.name;$('cType').textContent=B.make+' · '+B.type;$('cPerk').textContent=B.perk;
+ $('cName').textContent=B.name;$('cType').textContent=B.make+' · '+B.type;$('cPerk').innerHTML=B.perk+(()=>{const js=JOBS.filter(J=>J.boats.includes(sel)).map(J=>J.n);return js.length?`<span class="pjobs">Jobs: ${js.join(' · ')}</span>`:'<span class="pjobs">Races only</span>'})();
  $('bSpeed').style.width=clamp((spec.top-5)/14,0,1)*100+'%';$('bHand').style.width=clamp((spec.turn-.5)/1.5,0,1)*100+'%';$('bTow').style.width=clamp(B.load*(1+.12*spec.P.hp)/1.2,0,1)*100+'%';
  $('tabs').innerHTML=TABS.map(t=>`<button class="tab ${t.id===tab?'on':''}" role="tab" data-t="${t.id}">${t.n}</button>`).join('');
  $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;renderGarage()});
