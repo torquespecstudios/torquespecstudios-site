@@ -226,7 +226,10 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #ready p{margin:0;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:14px;text-wrap:balance;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:pulse 1.3s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.45}}
 
-#over{background:radial-gradient(ellipse at center,rgba(10,12,16,.55),rgba(10,12,16,.85));pointer-events:auto}
+#over{background:radial-gradient(ellipse at center,rgba(10,12,16,.55),rgba(10,12,16,.85));pointer-events:auto;overflow-y:auto;overscroll-behavior:contain;justify-content:flex-start;padding-top:max(14px,env(safe-area-inset-top,0px));padding-bottom:max(14px,env(safe-area-inset-bottom,0px));box-sizing:border-box}
+#over>:first-child{margin-top:auto}#over>:last-child{margin-bottom:auto}
+/* the results screen lists its own missions and trophies, so toasts stay off it (they covered the title or the buttons) */
+body:has(#over:not([hidden])) #mtoast{display:none}
 #over .disp.t{font-size:clamp(46px,13vw,80px);color:var(--red);line-height:.9}
 #over .dist{font-family:var(--display);font-weight:800;font-size:72px;line-height:1;font-variant-numeric:tabular-nums}
 #over .dist small{font-size:28px;opacity:.75}
@@ -369,7 +372,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 }
 .hint{text-align:center;color:var(--mute);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:8px 0 0}
 /* tablets: the centred screens (results, pause, settings, rewards) are sized for phones, so scale their contents up */
-@media (min-width:700px) and (min-height:900px){.center>*,#hud>*,#region>*,#unlockFx>*{zoom:1.35}.pop{font-size:38px}#mtoast{font-size:18px;padding:12px 22px;top:calc(env(safe-area-inset-top,0px) + 178px)}}
+@media (min-width:700px) and (min-height:1000px){.center>*,#hud>*,#region>*,#unlockFx>*{zoom:1.35}.pop{font-size:38px}#mtoast{font-size:18px;padding:12px 22px;top:calc(env(safe-area-inset-top,0px) + 178px)}}
 /* side-panel garage only on wide landscape screens; portrait tablets use the phone's bottom sheet so the car stays in frame */
 @media (min-width:860px) and (min-aspect-ratio:1/1){
   #garage{display:block}
@@ -377,6 +380,8 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
   .drive-wrap{padding-bottom:16px}
 }
 @media (prefers-reduced-motion:reduce){#ready p{animation:none}}
+/* landscape phones and short wide screens: a compact results screen, buttons in one row */
+@media (max-height:600px) and (min-aspect-ratio:1/1){#over{gap:5px}#over .disp.t{font-size:40px}#over .dist{font-size:46px}#over .dist small{font-size:20px}#over .tip,#over .mlist{display:none}#over .btns{grid-template-columns:1.6fr 1fr 1fr;width:min(520px,100%);margin-top:6px}#over #retry{grid-column:auto;font-size:22px}#over .oach{font-size:12px}}
 </style>
 
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -1765,7 +1770,7 @@ window.addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('inp
  if(state==='over'){if(e.code==='Space'){e.preventDefault();if(!e.repeat)$('retry').click()}return}
  if(state!=='ready'&&state!=='play'&&!(state==='paused'&&counting>0))return;e.preventDefault();keyDown=true;if(!e.repeat)press()});
 window.addEventListener('keyup',e=>{if(e.code==='Space'||e.code==='ArrowLeft'){keyDown=false;release()}});
-document.addEventListener('touchmove',e=>{if(!e.target.closest('.sheet'))e.preventDefault()},{passive:false});
+document.addEventListener('touchmove',e=>{if(!e.target.closest('.sheet,#over'))e.preventDefault()},{passive:false});
 $('retry').addEventListener('click',()=>{audioInit();goReady(true)});
 $('toGarage').addEventListener('click',goGarage);
 /* ---------- share card ---------- */
