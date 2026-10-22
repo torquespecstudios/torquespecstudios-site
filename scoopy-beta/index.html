@@ -452,7 +452,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next job</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Scoopy beta v4 · by Torque Spec Studios</p>
+    <p class="ver">Scoopy beta v5 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -886,7 +886,7 @@ for(let i=0;i<70;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:dus
 for(let i=0;i<90;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:clodTex,transparent:true,depthWrite:false}));s.visible=false;scene.add(s);clods.push({s,life:0,v:new THREE.Vector3()})}
 let duI=0,clI=0;
 function puff(x,y,z,sz=1,vy=.8){const p=dust[duI++%dust.length];p.life=1;p.sz=sz;p.s.visible=true;p.s.position.set(x+rand(-.3,.3),y,z+rand(-.3,.3));p.s.scale.setScalar(sz);p.v.set(rand(-.4,.4),vy,rand(-.4,.4))}
-function burst(x,y,z,n,spd,col,vz=0){for(let i=0;i<n;i++){const p=clods[clI++%clods.length];p.life=.7+Math.random()*.4;p.s.visible=true;p.s.position.set(x,y,z);p.s.material.color.set(col||'#ffffff');p.s.material.map=col&&col[0]==='!'?sparkTex:clodTex;
+function burst(x,y,z,n,spd,col,vz=0){for(let i=0;i<n;i++){const p=clods[clI++%clods.length];p.life=.7+Math.random()*.4;p.s.visible=true;p.s.position.set(x,y,z);p.s.material.color.set(col?col.replace(/^!/,''):'#ffffff');p.s.material.map=col&&col[0]==='!'?sparkTex:clodTex;
  p.v.set((Math.random()-.5)*spd,Math.random()*spd*.7,(Math.random()-.5)*spd+vz);p.s.scale.setScalar(rand(.18,.34))}}
 function pour(x,y,z,n,tx){for(let i=0;i<n;i++){const p=clods[clI++%clods.length];p.life=.6+Math.random()*.3;p.s.visible=true;p.s.position.set(x+rand(-.3,.3),y,z+rand(-.3,.3));p.s.material.color.set('#ffffff');p.s.material.map=clodTex;p.v.set(tx+rand(-.4,.4),rand(-1,.5),rand(-.6,.6));p.s.scale.setScalar(rand(.2,.36))}}
 
