@@ -455,7 +455,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v35 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v36 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -566,7 +566,7 @@ const LEVELS=[
  {id:'mill',n:'Mill Creek Run',sub:'Stretch 1',len:1500,seed:11,rapids:[[380,540],[1030,1170]],bridges:[780],traffic:[260,640,900,1310],par:{tug:165,bigmo:180,hercules:185,jetski:83,airboat:100,pilot:110,speed:92,crew:98,fire:120,atb:165,crane:175,push:185,ferry:160,stern:170}},
  // Copper Rapids: narrower and faster, three long white-water sections with rock gardens, a steel rail bridge, autumn woods
  {id:'copper',n:'Copper Rapids',sub:'Stretch 2',len:1800,seed:23,w0:44,wr:31,cur:5,clear:13,dense:true,rail:true,rapids:[[180,420],[700,1010],[1330,1560]],bridges:[1180],traffic:[560,1250],
-  unlock:'mill',par:{tug:190,bigmo:205,hercules:208,jetski:95,airboat:115,pilot:122,speed:104,crew:112,fire:135,atb:185,crane:195,push:205,ferry:180,stern:188},
+  unlock:'mill',par:{tug:190,bigmo:198,hercules:199,jetski:95,airboat:115,pilot:122,speed:104,crew:112,fire:135,atb:185,crane:195,push:205,ferry:180,stern:188},
   theme:{cols:['#6e6a2e','#7d6a34','#6b4630','#b0805a','#4a4038'],leaves:[[.05,.72,.34],[.09,.7,.4],[.13,.6,.36],[.27,.35,.15],[.03,.6,.3]],rock:0x8a5a3c,shoreRocks:420}},
  // Foghollow Bend: dusk and thick fog, one rapids, a road bridge and heavy fishing traffic; running lights, searchlight and horn
  {id:'fog',n:'Foghollow Bend',sub:'Stretch 3',len:1600,seed:37,w0:48,wr:33,cur:4.4,rapids:[[880,1000]],bridges:[520],traffic:[240,600,820,1120,1380],unlock:'copper',env:'fog',
@@ -1230,7 +1230,8 @@ function bargeTick(dt){let ax,ad,avx,avd,mA;
   if(B.cut){current(B.x,B.d,cv);B.vx+=(cv.cx-B.vx)*dt*.5;B.vd+=(cv.cd-B.vd)*dt*.5;B.a+=.08*dt;B.x+=B.vx*dt;B.d+=B.vd*dt;continue}
   const r=current(B.x,B.d,cv);let rx=B.vx-cv.cx,rd=B.vd-cv.cd;const fx=Math.sin(B.a),fd=Math.cos(B.a);let fw=rx*fx+rd*fd,sd=rx*fd-rd*fx;
   // a loaded barge glides: low drag ahead, a little more sideways, so it keeps its momentum and swings wide on bends
-  fw*=Math.exp(-dt*.06);sd*=Math.exp(-dt*.7);
+  // trailing barges in a string are lashed close behind the one ahead: they slide sideways less, so the string tracks instead of cracking the whip
+  fw*=Math.exp(-dt*.06);sd*=Math.exp(-dt*(i?1.5:.7));
   for(const s of SAND){if(s.off)continue;const u=(B.x-s.x)/s.rx,v=(B.d-s.d)/s.rd;if(u*u+v*v<1.2){fw*=Math.exp(-dt*2);sd*=Math.exp(-dt*2);if(state==='play')damage(dt*4,'cargo')}}
   B.vx=fx*fw+fd*sd+cv.cx;B.vd=fd*fw-fx*sd+cv.cd;B.x+=B.vx*dt;B.d+=B.vd*dt;
   if(r.rp>0)B.vx+=Math.sin(runT*1.6+B.d*.05)*r.rp*1.8*dt;
@@ -1239,7 +1240,7 @@ function bargeTick(dt){let ax,ad,avx,avd,mA;
   if(dist>L){const along=(B.vx-avx)*nx+(B.vd-avd)*nd;if(along>0){const j=along/(1/mA+1/mB);if(i===0)pullJ+=j;B.vx-=nx*j/mB;B.vd-=nd*j/mB;if(i===0){T.vx+=nx*j/mA;T.vd+=nd*j/mA}else{BG[i-1].vx+=nx*j/mA;BG[i-1].vd+=nd*j/mA}}
    const e=dist-L,wb=mA/(mA+mB);B.x-=nx*e*wb;B.d-=nd*e*wb;if(i===0){T.x+=nx*e*(1-wb);T.d+=nd*e*(1-wb)}}
   // the bow follows the line: quickly when it's taut, lazily when it's slack
-  const ta=Math.atan2(ax-B.x,ad-B.d);let da=ta-B.a;da=Math.atan2(Math.sin(da),Math.cos(da));B.a+=da*Math.min(1,dt*(dist>L-.4?1.6:.35));
+  const ta=Math.atan2(ax-B.x,ad-B.d);let da=ta-B.a;da=Math.atan2(Math.sin(da),Math.cos(da));B.a+=da*Math.min(1,dt*(dist>L-.4?(i?2.6:1.6):(i?.8:.35)));
   // banks: test bow and stern
   for(const k of B.offs?[B.offs[0]-.5,0,B.offs[2]+.5]:[-4.5,0,4.5]){const px=B.x+Math.sin(B.a)*k,pd=B.d+Math.cos(B.a)*k,rr=riv(pd,{}),off=px-rr.c,lim=rr.w/2-(B.rad||2.4)-dockAt(pd,Math.sign(off)||1);
    if(Math.abs(off)>lim){const s=Math.sign(off),corr=Math.abs(off)-lim,vn=B.vx*s;B.x-=s*corr;if(vn>0){B.vx-=s*vn*1.35;if(vn>1.1&&B.cool<=0&&state==='play')hit(vn,5,px+s*2.4,pd,'cargo',B)}B.vd*=Math.exp(-dt*1.2)}}}}
