@@ -455,7 +455,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v38 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v39 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -563,18 +563,18 @@ const UPG=[
 const PAINTS=[{n:'Harbor red',c:'#b8322a'},{n:'Navy',c:'#1f3a6b'},{n:'Forest',c:'#1d5838'},{n:'Sunburst',c:'#f0a012'},{n:'Arctic',c:'#e8ebee'},{n:'Midnight',c:'#15181e'},{n:'Teal',c:'#0f7a84'},{n:'Hot pink',c:'#d43a7a'}];
 // river stretches ("levels"); par is the gold-medal time for each boat
 const LEVELS=[
- {id:'mill',n:'Mill Creek Run',sub:'Stretch 1',len:1500,seed:11,rapids:[[380,540],[1030,1170]],bridges:[780],traffic:[260,640,900,1310],par:{tug:165,bigmo:180,hercules:185,jetski:83,airboat:100,pilot:110,speed:92,crew:98,fire:120,atb:165,crane:175,push:185,ferry:160,stern:170}},
+ {id:'mill',n:'Mill Creek Run',sub:'Stretch 1',len:1500,seed:11,rapids:[[380,540],[1030,1170]],bridges:[780],traffic:[260,640,900,1310],par:{tug:172,bigmo:180,hercules:185,jetski:83,airboat:100,pilot:110,speed:92,crew:98,fire:120,atb:165,crane:175,push:185,ferry:160,stern:176}},
  // Copper Rapids: narrower and faster, three long white-water sections with rock gardens, a steel rail bridge, autumn woods
  {id:'copper',n:'Copper Rapids',sub:'Stretch 2',len:1800,seed:23,w0:44,wr:31,cur:5,clear:13,dense:true,rail:true,rapids:[[180,420],[700,1010],[1330,1560]],bridges:[1180],traffic:[560,1250],
-  unlock:'mill',par:{tug:190,bigmo:198,hercules:199,jetski:95,airboat:115,pilot:122,speed:104,crew:112,fire:135,atb:185,crane:195,push:196,ferry:180,stern:188},
+  unlock:'mill',par:{tug:190,bigmo:198,hercules:199,jetski:95,airboat:115,pilot:122,speed:104,crew:112,fire:135,atb:185,crane:195,push:196,ferry:180,stern:194},
   theme:{cols:['#6e6a2e','#7d6a34','#6b4630','#b0805a','#4a4038'],leaves:[[.05,.72,.34],[.09,.7,.4],[.13,.6,.36],[.27,.35,.15],[.03,.6,.3]],rock:0x8a5a3c,shoreRocks:420}},
  // Foghollow Bend: dusk and thick fog, one rapids, a road bridge and heavy fishing traffic; running lights, searchlight and horn
  {id:'fog',n:'Foghollow Bend',sub:'Stretch 3',len:1600,seed:37,w0:48,wr:33,cur:4.4,rapids:[[880,1000]],bridges:[520],traffic:[240,600,820,1120,1380],unlock:'copper',env:'fog',
-  par:{tug:190,bigmo:200,hercules:205,jetski:91,airboat:110,pilot:120,speed:100,crew:108,fire:133,atb:188,crane:198,push:200,ferry:182,stern:190},
+  par:{tug:190,bigmo:200,hercules:205,jetski:91,airboat:110,pilot:120,speed:100,crew:108,fire:133,atb:188,crane:198,push:200,ferry:182,stern:197},
   theme:{cols:['#3a5232','#41583a','#4a3e30','#8a7a5e','#3a443a'],leaves:[[.3,.25,.12],[.33,.2,.1],[.28,.3,.14]],rock:0x5f6266,shoreRocks:220}},
  // Harbor Mouth: the river widens into the estuary; slack water, a tide race over the bar, and cargo ships that cannot give way
  {id:'harbor',n:'Harbor Mouth',sub:'Stretch 4',len:2000,seed:53,w0:74,wr:52,cur:4.2,clear:11,rapids:[[1600,1760]],bridges:[640],traffic:[420,1120,1450],ships:[[300,1],[900,-1],[1380,1]],unlock:'fog',lighthouse:true,
-  par:{tug:225,bigmo:240,hercules:245,jetski:112,airboat:135,pilot:146,speed:122,crew:132,fire:160,atb:220,crane:235,push:238,ferry:220,stern:232},
+  par:{tug:232,bigmo:240,hercules:245,jetski:112,airboat:135,pilot:146,speed:122,crew:132,fire:160,atb:220,crane:235,push:238,ferry:220,stern:240},
   theme:{cols:['#5f6a3a','#6b7040','#6a5a40','#b8a47a','#4a5040'],leaves:[[.17,.3,.28],[.2,.28,.3],[.14,.3,.26]],rock:0x6c6a66,shoreRocks:300}}];
 
 let cans=num(store.get('cans',0),0);
@@ -586,7 +586,7 @@ let stats=Object.assign({runs:0,cans:0,deliv:0,clean:0,gold:0,upg:0,heavy:0,lift
 let achGot=obj(store.get('ach',{}));
 // jobs: instead of racing to the finish, dock at each stop and do the work there. Prices are paid on completion.
 const JOBS=[
- {id:'fuel',n:'Fuel Run',sub:'Job · Refinery to depot',boats:['tug','atb'],start:0,par:520,pay:140,
+ {id:'fuel',n:'Fuel Run',sub:'Job · Refinery to depot',boats:['tug','atb'],start:0,par:520,pars:{atb:565},pay:140,
   desc:'Load a tank barge at Mill Creek Refinery, run the river, then pump the fuel ashore at Riverside Fuel Depot.',
   stops:[{kind:'fuel',dir:'load',name:'Mill Creek Refinery',d:160,side:1},{kind:'fuel',dir:'discharge',name:'Riverside Fuel Depot',d:1365,side:-1}]},
  {id:'lift',n:'Bridge Repair Lift',sub:'Job · Crane work',boats:['crane'],start:560,par:320,pay:130,
@@ -609,7 +609,7 @@ const JOBS=[
   desc:'Run the Cedar Point car ferry: four landings across the river below the bridge, cars off and on at each, and the river traffic still coming up.',
   stops:[{kind:'ferry',name:'Mill Creek Landing',d:905,side:-1,on:4},{kind:'ferry',name:'Cedar Point Landing',d:905,side:1,on:3},{kind:'ferry',name:'Mill Creek Landing',d:905,side:-1,on:4},{kind:'ferry',name:'Cedar Point Landing',d:905,side:1,on:0}]},
  // bunkering: the barge starts loaded; a cargo ship lies at anchor mid-river and takes the fuel through her own hose crane
- {id:'bunker',n:'Bunker a Ship',sub:'Job · Ship at anchor',boats:['tug','atb'],start:690,load:97,par:210,pay:150,
+ {id:'bunker',n:'Bunker a Ship',sub:'Job · Ship at anchor',boats:['tug','atb'],start:690,load:97,par:210,pars:{atb:255},pay:150,
   desc:'Take a loaded fuel barge alongside MV Northern Star, at anchor mid-river, and pump her bunkers aboard with the ship\'s hose crane.',
   stops:[{kind:'fuel',dir:'discharge',name:'MV Northern Star',d:935,side:-1,ship:true,lat:-1}]},
  // river tour: slow down at each sight so the passengers can take photos, keep the ride smooth, and land them at the excursion pier
@@ -622,7 +622,7 @@ const JOBS=[
   desc:'Sand has built up in the channel below the bridge. Spud down at the survey buoy, dig five grabs out of the shoal with the clamshell bucket, and load them into the mud scow alongside.',
   stops:[{kind:'crane',salvage:true,dredge:true,name:'Survey buoy',d:930,side:-1,lat:-5}]},
  // ship assist: run light down to a cargo ship stopped off the wharf, put your bow on her side and push her alongside
- {id:'assist',n:'Ship Assist',sub:'Job · Harbor tug work',boats:['tug','bigmo','hercules'],level:3,light:true,start:880,par:120,pay:180,
+ {id:'assist',n:'Ship Assist',sub:'Job · Harbor tug work',boats:['tug','bigmo','hercules'],level:3,light:true,start:880,par:120,pars:{bigmo:110,hercules:98},pay:180,
   desc:'MV Kestrel has come in on the tide and stopped off Harbor Wharf at Harbor Mouth. Run light, put your bow on her side, and push her alongside: gently, and parallel to the wharf.',
   stops:[{kind:'assist',name:'Harbor Wharf',d:1050,side:-1}]},
  // fog rescue: three paddlers in the water on Foghollow Bend; find them by their strobes and by their whistles, then land them
@@ -630,7 +630,7 @@ const JOBS=[
   desc:'A canoe has capsized in the fog on Foghollow Bend. Find the three paddlers in the water (their life-jacket strobes flash white; sound the horn and they whistle back), pick them up gently, and land them at Foghollow Landing.',
   stops:[{kind:'pier',name:'Foghollow Landing',d:1320,side:-1}]},
  // log drive: five marked logs come down below the last rapid; shove them across into the boom at Copper Mill before they get past it
- {id:'logdrive',n:'Log Drive',sub:'Job · Boom boat',boats:['tug','pilot','fire'],level:1,light:true,start:1490,par:160,pay:170,logs:[[1545,-6],[1560,5],[1575,-2],[1590,8],[1605,-9]],
+ {id:'logdrive',n:'Log Drive',sub:'Job · Boom boat',boats:['tug','pilot','fire'],level:1,light:true,start:1490,par:160,pars:{tug:170,fire:190},pay:170,logs:[[1545,-6],[1560,5],[1575,-2],[1590,8],[1605,-9]],
   desc:'Five marked logs are coming down Copper Rapids. Work them across the river and into the floating boom at Copper Mill on the left bank before they drift past it. Push from the river side to move a log toward the bank.',
   stops:[{kind:'boom',name:'Copper Mill boom',d:1732,side:-1}]}];
 let lvl=0,tab='river',mode=store.get('mode','race')==='job'?'job':'race',jobIdx=clamp(num(store.get('jobIdx',0),0)|0,0,JOBS.length-1);
@@ -2006,6 +2006,8 @@ function endRun(kind){if(state!=='play'&&state!=='moored')return;show('hornBtn',
  else if(kind==='sunk'){popText('Hull <b>breached!</b>',true);buzz(90);sfxSplash()}
  else{BG.forEach(b=>b.cut=true);ropeSegs.forEach(s=>s.forEach(m=>m.visible=false));popText('Tow line <b>snapped!</b>',true);buzz(90);sfxHit(1)}}
 const MEDAL_N=['','Bronze','Silver','Gold'];
+// a job's gold time, for the boat you're in: faster or handier boats get a tighter one
+function jobPar(J){return J.pars&&J.pars[sel]||J.par}
 function medalFor(ok,time){if(!ok)return 0;const par=LV.par[sel];if(time<=par&&hull>=80&&(!spec.cargo||cargo>=80))return 3;if(time<=par*1.2)return 2;return 1}
 function finishRun(){if(isJob())return finishJob();const ok=result.kind==='finish',key=LV.id+'_'+sel,m=medalFor(ok,result.time),prevM=num(medals[key],0),prevBest=num(bests[key],0);
  const deliver=ok?(spec.cargo?Math.round((20+cargo*.3)*(spec.dpay||1)):12):0,medalPay=m>prevM?[0,10,20,40].slice(prevM+1,m+1).reduce((a,b)=>a+b,0):0,pay=Math.round((runCans+deliver+medalPay)*(ENV==='night'?1.25:1));if(ok&&ENV==='night')stats.night=(stats.night||0)+1;
@@ -2034,7 +2036,7 @@ function acceptRevive(){if(state!=='revive'||cans<REVIVE_COST)return;audioInit()
  chime([392,523,784]);buzz(30);show('hud',1);state='count';counting=2.4;$('countN').textContent='3';show('count',1);show('pauseBtn',1);showSteer();show('hornBtn',1)}
 $('rvYes').addEventListener('click',acceptRevive);$('rvNo').addEventListener('click',()=>{if(state!=='revive')return;show('revive',0);finishRun()});
 function finishJob(){const J=JOBD(),ok=result.kind==='job',key='job_'+J.id+'_'+sel,spill=Math.round(jobLog.spill),errs=jobLog.errs.length;
- const skip=jobLog.skipped||0,m=!ok?0:skip?1:spill===0&&cargo>=80&&hull>=60?(errs===0&&result.time<=J.par?3:2):1,prevM=num(medals[key],0),prevBest=num(bests[key],0);
+ const skip=jobLog.skipped||0,m=!ok?0:skip?1:spill===0&&cargo>=80&&hull>=60?(errs===0&&result.time<=jobPar(J)?3:2):1,prevM=num(medals[key],0),prevBest=num(bests[key],0);
  const base=ok?Math.round(J.pay*(.5+.5*cargo/100)*(spec.dpay||1)*Math.max(.25,1-.45*skip)):result.kind==='quit'&&DOCKS.length?Math.round(J.pay*.5*Math.min(stopI,DOCKS.length)/DOCKS.length):0,fine=Math.min(base,Math.round(spill*.3)),medalPay=m>prevM?[0,10,20,40].slice(prevM+1,m+1).reduce((a,b)=>a+b,0):0,pay=Math.max(0,Math.round((runCans+base-fine+medalPay+(ok&&J.sights?TS.tips:0))*(ENV==='night'?1.25:1)));if(ok&&ENV==='night')stats.night=(stats.night||0)+1;
  const nb=ok&&!skip&&(!prevBest||result.time<prevBest);if(nb)bests[key]=+result.time.toFixed(2);if(m>prevM)medals[key]=m;
  lastShare={job:true,where:J.n,time:ok?clock(result.time):stopI+' of '+DOCKS.length+' stops',boat:BOATS[sel].name,cargo:spec.cargo?Math.round(cargo):null,medal:m,fog:false};
@@ -2042,11 +2044,11 @@ function finishJob(){const J=JOBD(),ok=result.kind==='job',key='job_'+J.id+'_'+s
  store.set('cans',cans);store.set('best',bests);store.set('medals',medals);store.set('stats',stats);
  const got=checkAch(),t=$('oT');t.textContent=ok?'Job complete!':result.kind==='sunk'?'Sunk!':result.kind==='quit'?'Job ended early':result.kind==='missed'?(driveJob()?'Drifted past the boom':'Missed the dock'):driveJob()?'Too many logs lost':rescueJob()?'Tow lost':assistJob()?'Ship damaged':tourJob()?'Tour called off':'Cargo lost';t.classList.toggle('bad',!ok);
  $('oTime').innerHTML=ok?clock(result.time)+(nb?'<small>New best!</small>':''):`${stopI}<small>of ${DOCKS.length} stops done</small>`;
- const cond=[['Bronze','Complete the job'],J.logs?['Silver','4 of 5 logs or better']:J.swimmers?['Silver','Hull 60% or better']:J.id==='assist'?['Silver','Ship condition 80%+']:J.sights?['Silver','Comfort 80% or better']:J.ferry?['Silver','Hull 60% or better']:['Silver','No spills · 80% cargo'],['Gold','No slips · under '+clock(J.par)]];
+ const cond=[['Bronze','Complete the job'],J.logs?['Silver','4 of 5 logs or better']:J.swimmers?['Silver','Hull 60% or better']:J.id==='assist'?['Silver','Ship condition 80%+']:J.sights?['Silver','Comfort 80% or better']:J.ferry?['Silver','Hull 60% or better']:['Silver','No spills · 80% cargo'],['Gold','No slips · under '+clock(jobPar(J))]];
  $('oMed').innerHTML=cond.map(([n,c],i)=>`<div class="medal m${i+1} ${m>i?'on':''}" style="animation-delay:${.15+i*.18}s"><i></i><b>${n}</b>${c}</div>`).join('');
  $('oMeta').innerHTML=`<span>Hull <b>${Math.round(hull)}%</b></span>`+(J.logs?`<span>Logs <b>${OB.filter(o=>o.drive&&o.penned).length} of ${J.logs.length}</b></span>`:spec.cargo||J.sights?`<span>${J.sights?'Comfort':J.id==='assist'?'Ship':'Cargo'} <b>${Math.round(cargo)}%</b></span>`:'')+(J.id==='fuel'?`<span>Spills <b>${fmt(spill)} bbl</b></span>`:'')+(J.sights?`<span>Sights <b>${TS.seen}/${J.sights.length}</b></span><span>Tips <b>${TS.tips}</b></span>`:'')+`${skip?`<span>Unfinished stops <b>${skip}</b></span>`:''}<span>Slips <b>${errs}</b></span><span><span class="can"></span> <b>+${pay}</b>${fine?` (fine −${fine})`:''}</span>`;
  $('oAch').hidden=!got.length;$('oAch').innerHTML=got.length>2?`${TROPHY} ${got.length} trophies unlocked · +${got.reduce((t,g)=>t+g[1],0)} <span class="can"></span>`:got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
- $('oTip').innerHTML=errs?'<b>Slips:</b> '+jobLog.errs.slice(0,3).join(' · ')+(errs>3?' …':''):ok?(m<3?`Gold needs no slips and <b>${clock(J.par)}</b> or better.`:'A clean job. The dock crew are impressed.'):'Take the river slowly on a job: there is no prize for speed if the cargo is lost.';
+ $('oTip').innerHTML=errs?'<b>Slips:</b> '+jobLog.errs.slice(0,3).join(' · ')+(errs>3?' …':''):ok?(m<3?`Gold needs no slips and <b>${clock(jobPar(J))}</b> or better.`:'A clean job. The dock crew are impressed.'):'Take the river slowly on a job: there is no prize for speed if the cargo is lost.';
  $('toGarage').classList.toggle('nudge',canSpend());state='over';clearTimeout(banner.t);show('region',0);toastQ=[];toastBusy=false;show('mtoast',0);show('hud',0);show('over',1);if(m===3&&m>prevM)chime([523,659,784,1047,1319]);afterRun(ok,m,nb)}
 function canSpend(){if(ORDER.some(id=>!unlocked.includes(id)&&cans>=BOATS[id].price))return true;const P=perfFor(sel);return UPG.some(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1])}
 const TIPS=['Fuel cans mark the <b>safe channel</b> through each section.','In the rapids the current is about <b>three times</b> as strong.','Sandbars are the pale patches: they slow you right down.','Logs drift with the current, so aim where they <b>will</b> be.','Buoys bend out of the way, but still dent the hull.'];
@@ -2212,7 +2214,7 @@ function renderGarage(){checkAch();renderAch();renderLevel();spec=specFor(sel);c
    if(L.unlock&&!levelOpen(L))return`<div class="lv soon"><span class="ln">${L.n}</span><span class="ls">${L.sub} · finish ${LEVELS.find(x=>x.id===L.unlock).n} to unlock</span><span class="lm"></span></div>`;
    const key=L.id+'_'+sel,m=num(medals[key],0),bt=num(bests[key],0);return`<button class="lv ${!isJob()&&i===lvl?'on':''}" data-i="${i}"><span class="ln">${L.n}</span><span class="ls">${L.sub} · ${km(L.len)} km · ${bt?'best '+clock(bt):'no time yet'} · gold ${clock(L.par[sel])}</span><span class="lm">${med(m)}</span></button>`}).join('')
    +`<div class="opt"><span>Jobs</span></div>`+JOBS.map((J,i)=>{if(J.level&&!levelOpen(LEVELS[J.level]))return`<div class="lv soon"><span class="ln">${J.n}</span><span class="ls">${LEVELS[J.level].n} · finish ${LEVELS.find(x=>x.id===LEVELS[J.level].unlock).n} to unlock</span><span class="lm"></span></div>`;const okB=J.boats.includes(sel),key='job_'+J.id+'_'+sel,m=num(medals[key],0),bt=num(bests[key],0);
-   return`<button class="lv ${isJob()&&i===jobIdx?'on':''}" data-j="${i}"><span class="ln">${J.n}</span><span class="ls">${J.level?LEVELS[J.level].n+' · ':''}${okB?(bt?'best '+clock(bt):'not done yet')+' · pays '+J.pay+' cans':'Needs '+J.boats.map(b=>BOATS[b].name).join(' or ')}</span><span class="lm">${med(m)}</span></button>`}).join('')
+   return`<button class="lv ${isJob()&&i===jobIdx?'on':''}" data-j="${i}"><span class="ln">${J.n}</span><span class="ls">${J.level?LEVELS[J.level].n+' · ':''}${okB?(bt?'best '+clock(bt):'not done yet')+' · gold '+clock(jobPar(J))+' · pays '+J.pay+' cans':'Needs '+J.boats.map(b=>BOATS[b].name).join(' or ')}</span><span class="lm">${med(m)}</span></button>`}).join('')
    +`<p class="note">${isJob()?JOBD().desc:LV.id==='copper'?'Three long rapids with rock gardens, a rail bridge, and fast water.':LV.id==='fog'?'Thick fog at dusk and heavy fishing traffic. Use your searchlight, and sound the horn (B) to make boats give way.':LV.id==='harbor'?'Wide estuary water, a tide race over the bar, and cargo ships that can\'t give way. Keep clear of their wash.':'Two rapids, a bridge, sandbars and river traffic.'}</p>`;
   O.querySelectorAll('#todSeg button').forEach(b=>b.onclick=()=>{const v=b.dataset.n==='1';if(v===settings.night)return;settings.night=v;store.set('settings',settings);loadLevel(lvl);buildDocks();rebuildBoat();resetWorld();renderGarage()});
   O.querySelectorAll('button.lv[data-i]').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(!levelOpen(LEVELS[i]))return;mode='race';store.set('mode',mode);if(i!==lvl)loadLevel(i);buildDocks();rebuildBoat();resetWorld();renderGarage()});
