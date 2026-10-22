@@ -319,6 +319,8 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .pill::before{content:"";position:absolute;inset:-4px}
 .trophy::before{content:"";position:absolute;inset:-11px -4px}
 .chip.lock{border-style:dashed}
+.chip.empty{border-style:dashed;color:var(--mute)}
+.bdot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
 /* legendary paints: a solid rainbow-edged chip */
 .chip.leg{border:1.5px solid transparent;background:linear-gradient(#1b1f26,#1b1f26) padding-box,linear-gradient(120deg,#ff5ac8,#5ad7ff,#ffd25a) border-box}
 .chip.leg.on{background:linear-gradient(var(--amber),var(--amber)) padding-box,linear-gradient(120deg,#ff5ac8,#5ad7ff,#ffd25a) border-box}
@@ -655,7 +657,7 @@ const LIV_T={value:0};let livBlank=null;const blankLiv=()=>livBlank||(livBlank=O
 const LISTS={bay:BAYS,halo:HALOS,paint:PAINTS,finish:FINISHES,roof:ROOFS,tint:TINTS,rimStyle:RIMS,rimSize:RIMSIZES,wheels:WHEELS,tires:TIRES,caliper:CALIPERS,ride:RIDES,spoiler:SPOILERS,lip:LIPS,skirts:SKIRTS,kit:KITS,stripeStyle:STRIPE_STYLES,stripeColor:STRIPE_COLS,lights:LIGHTS,glow:GLOWS,cabin:CABINS,livery:LIVERIES,smoke:SMOKES,trail:TRAILS,room:ROOMS};
 const TABS=[{id:'paint',n:'Paint',opts:[['paint','Paint','sw'],['finish','Finish','chip'],['roof','Roof & pillars','sw'],['tint','Window tint','sw']]},
  {id:'wheels',n:'Wheels',opts:[['rimStyle','Rim style','chip'],['rimSize','Rim size','chip'],['wheels','Rim color','sw'],['tires','Tires','chip'],['caliper','Brake calipers','sw'],['ride','Ride height','chip']]},
- {id:'style',n:'Style',opts:[['livery','Livery','chip'],['room','Garage theme','chip'],['lip','Front lip','chip'],['skirts','Side skirts','chip'],['kit','Lip & skirt finish','sw'],['spoiler','Spoiler','chip'],['stripeStyle','Stripes','chip'],['stripeColor','Stripe color','sw'],['lights','Headlights','sw'],['halo','Halo rings','chip'],['cabin','Cabin','chip'],['glow','Underglow','sw'],['smoke','Tire smoke','sw'],['trail','Boost flame','sw'],['plate','License plate','text']]},{id:'engine',n:'Engine',opts:[]}];
+ {id:'style',n:'Style',opts:[['builds','Saved builds','builds'],['livery','Livery','chip'],['room','Garage theme','chip'],['lip','Front lip','chip'],['skirts','Side skirts','chip'],['kit','Lip & skirt finish','sw'],['spoiler','Spoiler','chip'],['stripeStyle','Stripes','chip'],['stripeColor','Stripe color','sw'],['lights','Headlights','sw'],['halo','Halo rings','chip'],['cabin','Cabin','chip'],['glow','Underglow','sw'],['smoke','Tire smoke','sw'],['trail','Boost flame','sw'],['plate','License plate','text']]},{id:'engine',n:'Engine',opts:[]}];
 const DEF={coupe:[0,0,0],rally:[7,1,0],sedan:[13,3,1],muscle:[2,4,0],suv:[4,0,0],pickup:[15,4,1],super:[12,2,1],hyper:[8,3,1]};
 const PERF=[
  {id:'engine',n:'Engine',lv:['Stock','Street','Sport','Race'],cost:[0,15,35,70],pow:[0,.05,.1,.16]},
@@ -1898,6 +1900,21 @@ function shareGarage(){const{c,g}=drawGarageCard();
  g.textAlign='center';g.fillStyle='rgba(245,240,230,.45)';g.font='700 20px "Barlow",system-ui,sans-serif';g.letterSpacing='5px';g.fillText('BY TORQUE SPEC STUDIOS',540,1336);g.letterSpacing='0px';
  show('coll',0);showShareCard(c,'garage')}
 $('collBtn').addEventListener('click',openColl);$('collClose').addEventListener('click',()=>show('coll',0));$('collShare').addEventListener('click',shareGarage);
+// saved builds: three looks per car to swap between. An empty slot saves the current look (try-ons are put back first, so
+// only owned looks are saved); a saved one loads, keeping the current choice for anything no longer owned
+let builds=obj(store.get('builds',{}));const buildAct={};
+const lookOf=c=>{const L={};for(const k in c)if(k!=='model')L[k]=c[k];return L};
+function buildsRow(){const B=builds[cfg.model]||[],act=buildAct[cfg.model];
+ const chips=[0,1,2].map(i=>{const b=B[i];if(!b)return`<button class="chip empty" data-bs="${i}" aria-label="Save this look as build ${i+1}">+ Save</button>`;
+  const L=LIVERIES[b.livery]||LIVERIES[0],col=L.base||(L.sw&&L.sw[1])||(PAINTS[b.paint]||PAINTS[0]).c;
+  return`<button class="chip ${act===i?'on':''}" data-b="${i}" aria-label="Load build ${i+1}${L.draw||L.fx?', '+L.n:''}"><i class="bdot" style="background:${col}"></i>Build ${i+1}</button>`}).join('');
+ const upd=act!=null&&B[act]&&!pv&&JSON.stringify(B[act])!==JSON.stringify(lookOf(cfg))?`<button class="chip" data-bs="${act}">Update build ${act+1}</button>`:'';
+ return`<div class="opt"><span>Saved builds</span><div class="row">${chips}${upd}</div></div>`}
+function saveBuild(i){if(pv)cancelPreview(false);(builds[cfg.model]=builds[cfg.model]||[null,null,null])[i]=lookOf(cfg);store.set('builds',builds);buildAct[cfg.model]=i;
+ chime([659,880]);buzz(15);toast(`Saved as build ${i+1}`);renderGarage()}
+function loadBuild(i){const b=(builds[cfg.model]||[])[i];if(!b)return;if(pv)cancelPreview(false);const cur=cfg;cfg=Object.assign({model:cur.model},lookFor(cur.model),b);
+ for(const k in LISTS)if(!LISTS[k][cfg[k]])cfg[k]=0;for(const k in PRICE)if(!isOwned(cfg.model,k,cfg[k]))cfg[k]=cur[k];if(typeof cfg.plate!=='string'||!cfg.plate)cfg.plate='SWERVY';
+ saveCfg();buildAct[cfg.model]=i;rebuildCar();renderGarage();buzz(15);toast(`Build ${i+1} loaded`)}
 function cancelPreview(render=true){if(!pv)return;cfg[pv.k]=pv.prev;pv=null;rebuildCar();if(render)renderGarage()}
 function buyLook(){const k=pv.k,i=cfg[k],p=costOf(k,i),nm=LISTS[k][i].n;if(cans<p)return;cans-=p;store.set('cans',cans);owned.add(k+':'+i);store.set('owned',[...owned]);pv=null;saveCfg();
  sfxCan();chime([523,659,784,1047]);buzz(30);toast(`${nm} unlocked · yours on every car`);renderGarage()}
@@ -1928,6 +1945,7 @@ function renderGarage(){checkAch();renderAch();$('collN').textContent=`My cars $
  $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(tab===b.dataset.t)return;cancelPreview(false);tab=b.dataset.t;renderGarage();$('opts').scrollTop=0;setEngineView(tab==='engine')});
  const keep=[...$('opts').querySelectorAll('.row')].map(r=>r.scrollLeft);
  if(tab==='engine')renderPerf();else $('opts').innerHTML=TABS.find(t=>t.id===tab).opts.map(([key,label,kind])=>{
+  if(kind==='builds')return buildsRow();
   if(kind==='text')return`<div class="opt"><span>${label}</span><input class="plate" id="plateIn" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="License plate text" value="${cfg.plate}"></div>`;
   const list=LISTS[key],cur=list[cfg[key]];
   const items=list.map((o,i)=>{const lk=!isOwned(cfg.model,key,i),p=lk?costOf(key,i):0,sale=lk&&p<PRICE[key][i],lab=lk?`${o.n}, ${p} cans`:o.n;
@@ -1938,6 +1956,7 @@ function renderGarage(){checkAch();renderAch();$('collN').textContent=`My cars $
   if(isOwned(cfg.model,k,i)){if(pv)cancelPreview(false);cfg[k]=i;saveCfg();rebuildCar();renderGarage();return}
   // a locked look is tried on first; the Drive button turns into its Buy button until the player buys or backs out
   if(!pv)pv={k,prev:cfg[k]};cfg[k]=i;rebuildCar();renderGarage()});
+ $('opts').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>loadBuild(+b.dataset.b));$('opts').querySelectorAll('[data-bs]').forEach(b=>b.onclick=()=>saveBuild(+b.dataset.bs));
  const pi=$('plateIn');if(pi)pi.oninput=()=>{const v=pi.value.toUpperCase().replace(/[^A-Z0-9 ]/g,'').slice(0,7);if(pi.value!==v)pi.value=v;cfg.plate=v.trim()||'SWERVY';saveCfg();clearTimeout(plateT);plateT=setTimeout(rebuildCar,250)};
  const own=unlocked.includes(cfg.model),d=$('drive');$('rand').textContent=pv?'Cancel':'Random';
  d.classList.toggle('buying',!!pv);if(pv){const p=costOf(pv.k,cfg[pv.k]),nm=LISTS[pv.k][cfg[pv.k]].n;d.classList.remove('go');d.disabled=cans<p;d.innerHTML=cans>=p?`Buy ${nm} · ${fmt(p)} <span class="can"></span>`:`Need ${fmt(p-cans)} more <span class="can"></span>`;d.setAttribute('aria-label',cans>=p?`Buy ${nm} for ${p} cans`:`${nm} costs ${p} cans, ${p-cans} more needed`);return}
