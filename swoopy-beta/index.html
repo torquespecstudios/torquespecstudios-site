@@ -449,7 +449,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="replayTut">Replay the flying lesson on next flight</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v21 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v22 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -548,11 +548,11 @@ Object.assign(PLANES,{
   cam:[22,6.5,42],gcam:[24,3.5],eng:[66,1.3],perk:'Six-blade props, T-tail · 70 seats',paint:2,build:'commuter'},
  narrow:{make:'Meridian',name:'Workhorse',type:'Narrowbody twin',price:220,top:47,min:24,acc:7,turn:.84,roll:.92,climb:9,resp:2.5,tough:.6,span:17,airliner:true,cargo:1.5,
   cam:[24,7,44],gcam:[27,3.5],eng:[118,1.6],perk:'The everyday twin · winglets · 180 seats',paint:1,build:'narrow'},
- bigtwin:{make:'Meridian',name:'Long Hauler',type:'Wide-body twin',price:450,top:46,min:24,acc:6,turn:.76,roll:.82,climb:7.5,resp:2.1,tough:.5,span:24,airliner:true,cargo:1.8,
+ bigtwin:{make:'Meridian',name:'Long Hauler',type:'Wide-body twin',price:450,top:46,min:24,acc:6,turn:.76,roll:.82,climb:7.5,resp:2.1,tough:.38,span:24,airliner:true,cargo:1.8,
   cam:[34,10,54],gcam:[40,5.5],eng:[104,1.5],perk:'Giant fans, six-wheel bogies · 350 seats',paint:2,build:'bigtwin'},
- jumbo:{make:'Meridian',name:'Queen',type:'Jumbo jet',price:600,top:45,min:24,acc:5.5,turn:.74,roll:.8,climb:7,resp:2,tough:.45,span:24,airliner:true,cargo:1.9,
+ jumbo:{make:'Meridian',name:'Queen',type:'Jumbo jet',price:600,top:45,min:24,acc:5.5,turn:.74,roll:.8,climb:7,resp:2,tough:.35,span:24,airliner:true,cargo:1.9,
   cam:[34,10,54],gcam:[40,5.5],eng:[96,1.5],perk:'Queen of the skies · four engines, upper deck',paint:1,build:'jumbo'},
- superjumbo:{make:'Meridian',name:'Double Decker',type:'Superjumbo',price:800,top:44,min:24,acc:5,turn:.72,roll:.78,climb:6.8,resp:1.9,tough:.4,span:25,airliner:true,cargo:2,
+ superjumbo:{make:'Meridian',name:'Double Decker',type:'Superjumbo',price:800,top:44,min:24,acc:5,turn:.72,roll:.78,climb:6.8,resp:1.9,tough:.32,span:25,airliner:true,cargo:2,
   cam:[35,10.5,56],gcam:[42,6],eng:[90,1.4],perk:'Two full decks · the biggest of all',paint:2,build:'superjumbo'},
  supersonic:{make:'Meridian',name:'Mach Dart',type:'Supersonic airliner',price:520,top:70,min:32,acc:13,turn:.92,roll:1.05,climb:13,resp:3.8,tough:.7,span:12.5,airliner:true,jet:true,cargo:1.6,
   cam:[24,6,56],gcam:[30,3],eng:[150,2.2],perk:'Delta wing, droop nose · wide turns flat out',paint:5,build:'supersonic'}});
@@ -720,7 +720,7 @@ function buildCourse(L){const rnd=mulberry(L.seed*7919),n=Math.ceil((L.len+PRE+P
   hh+=(ht-hh)*.05;S.c[i]=x;S.h[i]=hh;x+=Math.tan(hh)*STEP;
   S.hw[i]=P.hw;S.rw[i]=P.rw*smooth(clamp((d-40)/160,0,1));S.base[i]=P.base;S.ceil[i]=P.ceil;S.rock[i]=P.rock;S.snow[i]=P.snow;S.city[i]=P.city;S.dry[i]=P.dry;S.flat[i]=P.flat;
   for(let j=0;j<6;j++)for(const s of[-1,1]){const nz=1+.22*Math.sin(d*.017+s*1.3+j*.7)+.12*Math.sin(d*.053+s*2.1+j);(s<0?S.pl:S.pr)[i*6+j]=P.prof[j]*(j?nz:Math.max(.85,nz))}}
- for(let i=0;i<n;i++){const d=-PRE+i*STEP,hw=Math.min(48,Math.max(4,S.hw[i]-16));
+ for(let i=0;i<n;i++){const d=-PRE+i*STEP,hw=Math.min(36,Math.max(4,S.hw[i]-16));
   S.lane[i]=clamp(Math.sin(d*.0071+L.seed)*.6+Math.sin(d*.019+L.seed*2)*.4,-1,1)*hw*.7*smooth(clamp(d/200,0,1))*(1-S.flat[i]);
   let alt=clamp(15+7*Math.sin(d*.0105+L.seed)+4*Math.sin(d*.031+L.seed*3),8,S.ceil[i]-12);
   for(const[bd,bh]of L.bridges)alt=lerp(alt,bh-10,smooth(clamp(1-(Math.abs(d-bd)-30)/90,0,1)));
@@ -894,7 +894,7 @@ function placeBuildings(){const rnd=mulberry(CO.seed*977),r={pl:new Float32Array
  for(let d=240;d<CO.len+260;d+=20+rnd()*14){crs(d,r);if(r.city<.5)continue;
   for(const s of[-1,1]){// start clear of wherever the flying line goes along this building's length
    let lo=r.lane,hi=r.lane;for(let e=-22;e<=22;e+=4){const l=crs(d+e,GQ).lane;lo=Math.min(lo,l);hi=Math.max(hi,l)}crs(d,r);
-   let lat=(s>0?hi:lo)+s*(19+rnd()*8);
+   let lat=(s>0?hi:lo)+s*(24+rnd()*8);
    for(let k=0;k<7&&Math.abs(lat)<r.hw+150;k++){const w=12+rnd()*16,dp=12+rnd()*12,c=lat+s*w/2,inner=Math.abs(c)<r.hw;
     const wet=r.rw>2&&Math.abs(c)<r.rw+w/2+4,nearB=bd.some(b=>Math.abs(b-d)<26);
     if(!wet&&!nearB){const x=r.c+Math.cos(r.h)*c,dd=d-Math.sin(r.h)*c;building(x,dd,r.h,w,dp,inner?34+rnd()*70:18+rnd()*60,groundAt(x,dd),rnd)}
@@ -932,7 +932,7 @@ function hoodooAt(x,d,rad,H,rnd){const gy=groundAt(x,d),g=new THREE.CylinderGeom
  addBox('stack',x,d,0,rad*.8,rad*.8,gy-4,gy+H+1,30)}
 function placeStacks(){const rnd=mulberry(CO.seed*313),bd=CO.bridges.map(b=>b[0]),want=CO.stacks===true?'sea':CO.stacks;let side=1;
  for(let d=260;d<CO.len+150;d+=55+rnd()*55){if(secAt(CO,d)!==want||bd.some(b=>Math.abs(b-d)<40))continue;const r=crs(d,{});side=-side;
-  for(let k=0;k<2;k++){const rad=4+rnd()*5,lat=r.lane+side*(19+rad+k*28+rnd()*16),H=24+rnd()*46;if(Math.abs(lat)>r.hw-8)continue;stackAt(r.c+Math.cos(r.h)*lat,d-Math.sin(r.h)*lat,rad,H,rnd)}}}
+  for(let k=0;k<2;k++){const rad=4+rnd()*5,lat=r.lane+side*(23+rad+k*28+rnd()*16),H=24+rnd()*46;if(Math.abs(lat)>r.hw-8)continue;stackAt(r.c+Math.cos(r.h)*lat,d-Math.sin(r.h)*lat,rad,H,rnd)}}}
 function lighthouseAt(d){const r=crs(d,{}),lat=r.lane+(r.lane>0?-40:40),x=r.c+Math.cos(r.h)*lat,dd=d-Math.sin(r.h)*lat,g=new THREE.Group();
  stackAt(x,dd,9,16,mulberry(5));
  const t=new THREE.Mesh(new THREE.CylinderGeometry(1.6,2.2,16,14),MAT.white);t.position.y=21;t.castShadow=true;g.add(t);
@@ -1347,7 +1347,11 @@ function planeTick(dt,st,pi,thr){const S=spec,r=crs(T.d,PQ);
   if(T.v<S.min&&pi>-.5)pi=-.5}
  else{const tgt=S.min+(S.top-S.min)*thr+(boostT>0?9:0);
  T.v+=(tgt-T.v)*Math.min(1,dt*(T.v<tgt?S.acc/14:.7));T.v-=T.vy*dt*.35;T.v=clamp(T.v,S.min*.8,S.top+16)}
- T.bank+=(st*S.roll-T.bank)*Math.min(1,dt*S.resp);
+ // bank protection: near the ground each wing's bank is limited so its tip stays about 1.6 m clear (like an airliner's
+ // flight computer), so a hard bank low over a pass or the water can't drag a wingtip along the ground
+ const half=S.span/2*.92,rx=Math.cos(T.a),rd=-Math.sin(T.a),bl=h=>Math.asin(clamp((h-1.6)/half,.15,1))/.95;
+ let tb=st*S.roll;tb=Math.min(tb,bl(T.y-groundAt(T.x+rx*half,T.d+rd*half)));tb=Math.max(tb,-bl(T.y-groundAt(T.x-rx*half,T.d-rd*half)));
+ T.bank+=(tb-T.bank)*Math.min(1,dt*S.resp);
  let yaw=S.turn*(T.bank/S.roll)*Math.pow(32/Math.max(18,T.v),.35);
  const rel=Math.atan2(Math.sin(T.a-r.h),Math.cos(T.a-r.h));if(rel>1.15&&yaw>0||rel<-1.15&&yaw<0)yaw=0;
  T.a+=yaw*dt;
@@ -1405,6 +1409,9 @@ function terrainTick(){const P=contactPoints();let skim=false;
   const sl=(groundAt(p.x+1.5,p.d)-groundAt(p.x-1.5,p.d))/3,wet=Math.abs(p.x-crs(p.d,GQ).c)<GQ.rw&&g<=GQ.base+.05,hard=T.vy<-4||i>0;
   if(Math.abs(sl)>.9&&(i===0||pen>1.5)){// a wall: knocked back toward the middle and turned away
    const s=-Math.sign(sl);T.x+=s*Math.min(6,pen/Math.abs(sl)+1.5);T.y+=Math.min(pen,1);if(T.cool<=0){T.a+=s*.35*Math.sign(Math.cos(T.a));hit(.6+T.v/60,18,p.x,p.y,p.d,'Wall!')}}
+  else if(i>0&&Math.abs(sl)>.35){// a wingtip brushing a hillside: deflect sideways, away from the slope, and level the wings
+   // (pushing up here made planes climb the mountainside scraping all the way)
+   const s=-Math.sign(sl);T.x+=s*Math.min(4,pen/Math.abs(sl)+.6);T.y+=Math.min(pen,.4);T.bank*=.2;if(T.cool<=0){T.a+=s*.2*Math.sign(Math.cos(T.a));hit(.6,10,p.x,p.y,p.d,'Wingtip!')}}
   else if(spec.float&&wet&&i===0&&T.vy>-7){// the seaplane's floats skim the river instead of crashing into it
    T.y+=pen;T.vy=Math.max(T.vy,0);skim=true}
   else{// the ground, the water or a wingtip: bounce up
@@ -1419,8 +1426,10 @@ function boxTick(){const P=contactPoints();
    if(pu<=0||pv<=0||py0<=0||py1<=0)continue;
    const m=Math.min(pu,pv,py0,py1),fresh=T.cool<=0;
    if(m===py1){T.y+=py1;T.vy=Math.max(T.vy,4)}else if(m===py0){T.y-=py0;T.vy=Math.min(T.vy,-4)}
-   else if(m===pu){const s=Math.sign(u)||1;T.x+=o.cs*s*pu;T.d-=o.sn*s*pu;if(fresh)T.a+=s*.3}
-   else{T.d-=Math.sign(Math.cos(T.a))*(pv+1);if(fresh)T.v*=.6}
+   else if(m===pu){const s=Math.sign(u)||1,k=pu+1.5;T.x+=o.cs*s*k;T.d-=o.sn*s*k;if(fresh){T.a+=s*.3;T.bank*=.3;T.wx=s*8}}
+   else{// head-on: knocked back and also aside, so you don't fly into the same thing again
+    // escape toward the side the plane's centre is on (a wingtip can be past the rock's middle)
+    const s=Math.sign((T.x-o.x)*o.cs-(T.d-o.d)*o.sn)||1;T.d-=Math.sign(Math.cos(T.a))*(pv+1);T.x+=o.cs*s*2;T.d-=o.sn*s*2;if(fresh){T.v*=.6;T.a+=s*.25;T.bank*=.3;T.wx=s*8}}
    if(!fresh)continue;
    o.hit=true;hit(1,o.dmg,p.x,p.y,p.d,{plane:'Parked jet!',hangar:'Hangar!',stand:'Work stand!',train:'Train!',bridge:'Bridge!',pier:'Pier!',tower:'Tower!',wire:'Wires!',building:'Building!',ship:'Ship!',crane:'Crane!',stack:'Rocks!'}[o.k]||'Hit!');return}}
  // passing: score close calls and fly-unders
@@ -1471,7 +1480,7 @@ function weatherTick(dt,live){const S=SKY,d=state==='garage'?-110:T.d;stormA+=(s
  flashA=Math.max(0,flashA-dt*3.5);$('flash').style.opacity=(flashA*.7).toFixed(3);
  // cloud banks
  let c=0;for(const C of CLOUDS){const q=Math.hypot((T.x-C.x)/32,(T.y-C.y)/14,(T.d-C.d)/38);c=Math.max(c,clamp(1.25-q,0,1))}if(!live)c=0;cloudA+=(c-cloudA)*Math.min(1,dt*5);$('cloudFx').style.opacity=(cloudA*.5).toFixed(3)}
-function gustTick(dt){const g=CO.gusts.find(([a,b])=>T.d>a&&T.d<b);if(g){const f=Math.sin(runT*.9)*7+Math.sin(runT*2.3)*3;T.wx+=f*dt*2.2;T.bank+=Math.sin(runT*3.1)*dt*.4;
+function gustTick(dt){const g=CO.gusts.find(([a,b])=>T.d>a&&T.d<b);if(g){const f=Math.sin(runT*.9)*7+Math.sin(runT*2.3)*3;T.wx+=f*dt*2.2*(spec.span>20?.55:1);T.bank+=Math.sin(runT*3.1)*dt*.4;
   if(!inGust){inGust=true;banner('Hold steady','Crosswind!','Gusts push you sideways')}
   if(Math.random()<dt*30){const r=crs(T.d+20,{}),s=Math.sign(f)||1;spray(T.x-s*30*Math.cos(r.h),T.y+(Math.random()-.5)*14,-(T.d+10+Math.random()*40),s*26,0,0,1.6,'#ffffff',1.4,3,0,.22)}}else inGust=false}
 
