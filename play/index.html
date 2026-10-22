@@ -556,7 +556,11 @@ const ANISO=R.capabilities.getMaxAnisotropy();
 
 function canvasTex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');draw(g,w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=ANISO;if(rep){t.wrapS=t.wrapT=THREE.RepeatWrapping}return t}
 function speck(g,w,h,n,fn){for(let i=0;i<n;i++){g.fillStyle=fn();const s=Math.random()<.8?1:2;g.fillRect(Math.random()*w,Math.random()*h,s,s)}}
-function radial(inner,outer){return canvasTex(128,128,(g,w,h)=>{const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,inner);r.addColorStop(1,outer);g.fillStyle=r;g.fillRect(0,0,w,h)})}
+// soft round sprite, computed pixel by pixel rather than drawn on a canvas: iPhones unpremultiply a canvas's faint edge pixels
+// into coloured static (it showed in smoke, sparks and snow), and a data texture is uploaded exactly as written
+function radial(inner,outer){const p=s=>s.match(/[\d.]+/g).map(Number),a=p(inner),b=p(outer),n=128,px=new Uint8Array(n*n*4);
+ for(let y=0;y<n;y++)for(let x=0;x<n;x++){const t=Math.min(1,Math.hypot(x-63.5,y-63.5)/64),i=(y*n+x)*4;for(let k=0;k<3;k++)px[i+k]=a[k]+(b[k]-a[k])*t;px[i+3]=255*(a[3]+(b[3]-a[3])*t)}
+ const tx=new THREE.DataTexture(px,n,n,THREE.RGBAFormat);tx.encoding=THREE.sRGBEncoding;tx.magFilter=THREE.LinearFilter;tx.minFilter=THREE.LinearMipmapLinearFilter;tx.generateMipmaps=true;tx.needsUpdate=true;return tx}
 
 // sky + fog
 scene.background=canvasTex(4,512,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#21406f');gr.addColorStop(.28,'#57709f');gr.addColorStop(.46,'#b9988f');gr.addColorStop(.56,'#ebbb88');gr.addColorStop(1,'#d9ac86');g.fillStyle=gr;g.fillRect(0,0,w,h)});
@@ -604,7 +608,10 @@ const mtns=new THREE.Group();
 const clouds=new THREE.Group();
 {const tex=canvasTex(256,128,(g,w,h)=>{for(let i=0;i<14;i++){const x=40+Math.random()*176,y=58+Math.random()*34-Math.abs(x-128)*.12,r=22+Math.random()*30,gr=g.createRadialGradient(x,y,0,x,y,r);
   gr.addColorStop(0,'rgba(255,255,255,.55)');gr.addColorStop(.6,'rgba(255,255,255,.28)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,w,h)}});
- for(let i=0;i<14;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false})),a=i/14*6.283+Math.random()*.3,d=1300+Math.random()*120,sc=320+Math.random()*260;
+ // premultiplied upload: iPhones unpremultiply the canvas's faint edge pixels into random colours (visible static in the
+ // clouds); keeping the data premultiplied end to end avoids that
+ tex.premultiplyAlpha=true;tex.needsUpdate=true;
+ for(let i=0;i<14;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,premultipliedAlpha:true,depthWrite:false,fog:false})),a=i/14*6.283+Math.random()*.3,d=1300+Math.random()*120,sc=320+Math.random()*260;
   m.position.set(Math.cos(a)*d,250+Math.random()*170,Math.sin(a)*d);m.scale.set(sc,sc*(.32+Math.random()*.12),1);m.userData.o=.6+Math.random()*.4;clouds.add(m)}}
 scene.add(clouds);
 scene.add(mtns);
