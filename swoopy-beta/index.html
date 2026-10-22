@@ -450,7 +450,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v24 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v25 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1610,6 +1610,8 @@ const TIPS=['Each ring gives a short <b>speed boost</b>. Chain them for ×2 and 
 function pickTip(ok,m){const b=ORDER.find(id=>!unlocked.includes(id)&&cans>=PLANES[id].price);if(b)return`You can unlock the <b>${PLANES[b].name}</b> ${PLANES[b].type.toLowerCase()} in the Hangar!`;
  if(!ok)return'Canyon walls, towers and the ground all damage the plane. Follow the <b>rings</b> for the safe line.';
  const P=perfFor(sel),up=UPG.find(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1]);if(up)return`You can afford ${/^[aeiou]/i.test(up.n)?'an':'a'} <b>${up.n.toLowerCase()}</b> upgrade in the Hangar.`;
+ // the next plane in reach: the cheapest locked one, shown as a goal a little over half the time
+ const nx=ORDER.filter(id=>!unlocked.includes(id)).sort((a,b)=>PLANES[a].price-PLANES[b].price)[0];if(nx&&Math.random()<.55)return`<b>${fmt(PLANES[nx].price-cans)}</b> more cans to unlock the <b>${PLANES[nx].name}</b> ${PLANES[nx].type.toLowerCase()}.`;
  if(m<3)return runRings<ringNeed()?`Gold needs <b>${ringNeed()} rings</b> and a time under <b>${clock(parOf(CO,sel))}</b>.`:`Gold needs <b>${clock(parOf(CO,sel))}</b> or better.`;
  return TIPS[Math.random()*TIPS.length|0]}
 
@@ -1746,7 +1748,8 @@ function renderGarage(){checkAch();renderAch();spec=specFor(sel);const B=PLANES[
   O.querySelectorAll('.chip[data-l]').forEach(b=>b.onclick=()=>{const i=+b.dataset.l,L=LIVERIES[i];if(!livOwned.includes(i)){if(cans<L.price){b.classList.add('short');setTimeout(()=>b.classList.remove('short'),600);return}
     cans-=L.price;livOwned.push(i);store.set('livOwned',livOwned);store.set('cans',cans);stats.liveries=(stats.liveries||0)+1;store.set('stats',stats);chime([523,784,1047]);buzz(20)}
    livSel[sel]=i;store.set('livSel',livSel);rebuildPlane();resetWorld();renderGarage()})}
- const dr=$('drive');if(own){dr.innerHTML='Fly';dr.disabled=false}else{dr.innerHTML=`Unlock · ${fmt(B.price)} <span class="can"></span>`;dr.disabled=cans<B.price}}
+ // a plane you can't afford yet shows how many more cans it takes, as in Swervy, so the price reads as a goal
+ const dr=$('drive');if(own){dr.innerHTML='Fly';dr.disabled=false}else if(cans>=B.price){dr.innerHTML=`Unlock · ${fmt(B.price)} <span class="can"></span>`;dr.disabled=false}else{dr.innerHTML=`Collect ${fmt(B.price-cans)} more <span class="can"></span>`;dr.disabled=true}}
 const km=m=>(m/1000).toLocaleString('en-US',{maximumFractionDigits:1});
 $('drive').addEventListener('click',()=>{audioInit();if(!unlocked.includes(sel)){const B=PLANES[sel];if(cans<B.price)return;cans-=B.price;unlocked.push(sel);store.set('unlocked',unlocked);store.set('cans',cans);store.set('sel',sel);chime([392,523,659,784,1047]);buzz(40);renderGarage();return}goReady()});
 
