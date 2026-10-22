@@ -39,6 +39,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .prog{position:relative;width:150px;height:6px;margin-top:9px;border-radius:3px;background:rgba(255,255,255,.18);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
 .prog i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--amber)}
 .prog b{position:absolute;top:-5px;width:3px;height:16px;border-radius:1px;background:var(--ink)}
+.prog.job::after{display:none}
 .prog::after{content:"";position:absolute;right:-6px;top:-6px;width:12px;height:12px;border-radius:2px;background:repeating-conic-gradient(#16181c 0 25%,#f4f2ec 0 50%) 0 0/6px 6px}
 .hud-r{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .pill{display:flex;align-items:center;gap:7px;background:var(--glass);border:1px solid var(--hair);border-radius:999px;padding:6px 12px;font-weight:700;font-variant-numeric:tabular-nums;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -157,7 +158,10 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #ready .disp{font-size:clamp(34px,9vw,56px);line-height:.95;text-shadow:0 3px 18px rgba(0,0,0,.5)}
 #ready p{margin:0;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:14px;text-wrap:balance;text-shadow:0 1px 3px rgba(0,0,0,.9),0 2px 12px rgba(0,0,0,.6);animation:pulse 1.3s ease-in-out infinite}
 #ready .tip{animation:none;text-transform:none;letter-spacing:0;background:rgba(13,17,23,.62);border:1px solid var(--hair);text-shadow:none}
-@keyframes pulse{50%{opacity:.45}}
+@keyframes pulse{50%{opacity:.7}}
+#ready .mlist{margin-top:12px}
+#ready #readyS{background:rgba(13,17,23,.5);padding:6px 12px;border-radius:10px}
+#ready .tip{line-height:1.45}
 
 #over{background:radial-gradient(ellipse at center,rgba(10,12,16,.55),rgba(10,12,16,.85));pointer-events:auto}
 #over .disp.t{font-size:clamp(46px,13vw,80px);color:var(--amber);line-height:.9}
@@ -445,7 +449,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v29 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v30 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -827,7 +831,7 @@ function addShip(d,side){const r=riv(d,{}),hw=r.w/2,lat=side*r.w*.28,m=buildCoas
  m.position.set(r.c+lat,0,-d);hazards.add(m);BOATSX.push({k:'boat',big:true,side,x:r.c+lat,d,lat,r:4.2,offs:[-17,-8.5,0,8.5,17],half:22,m,dmg:30,a:Math.PI,vx:0,vd:0,thr:2.4})}
 function addTraffic(d,side){const r=riv(d,{}),hw=r.w/2,lat=side*(hw-9),m=buildTrawler(['#2a6f97','#e8ebee','#d8a21c','#6a2a2a'][BOATSX.length%4]);
  if(NIGHT){lamp(0xffffff,2.6,m,0,5.1,-1.5);lamp(0xff3a2a,1.6,m,-1.4,2.3,-2);lamp(0x3aff6a,1.6,m,1.4,2.3,-2)}
- m.position.set(r.c+lat,0,-d);hazards.add(m);BOATSX.push({k:'boat',x:r.c+lat,d,lat,r:1.9,m,dmg:14,a:Math.PI,vx:0,vd:0,thr:3.6+.8*((BOATSX.length*.618)%1)})}
+ m.position.set(r.c+lat,0,-d);hazards.add(m);BOATSX.push({k:'boat',x:r.c+lat,d,lat,r:1.9,m,dmg:10,a:Math.PI,vx:0,vd:0,thr:3.6+.8*((BOATSX.length*.618)%1)})}
 // hazards out of view distance are hidden, which removes most of the draw calls (and their shadow passes)
 let cullT=0;const SHARED=new Set();
 function cullWorld(){const lo=T.d-70,hi=T.d+(ENV==='fog'?170:320);
@@ -1243,7 +1247,8 @@ function collide(){const C=bodyCircles();
    if(vn<0){const k=mov?.6:1.35;W.vx-=nx*vn*k;W.vd-=nd*vn*k;
     // floating things get shoved off to the side of the boat's track, so a wide bow doesn't bulldoze a log down the river
     if(mov&&!o.big){o.vx+=nx*vn*.9;o.vd+=nd*vn*.9;if(o.k!=='boat'){const fx=Math.sin(W.a),fd=Math.cos(W.a),sd=((o.x-W.x)*fd-(o.d-W.d)*fx)>=0?1:-1;o.vx+=fd*sd*2.6;o.vd-=fx*sd*2.6}}
-    if(-vn>.7&&W.cool<=0&&!(o.hitCD>0))hit(-vn,o.dmg,c.x-nx*c.r,c.d-nd*c.r,c.part,W===T?null:W,o.k);if(mov)o.hitCD=2
+    // floating logs and buoys only hurt at a real knock; a gentle nudge at drifting speed does nothing
+    if(-vn>(mov&&o.k!=='boat'?1.6:.7)&&W.cool<=0&&!(o.hitCD>0))hit(-vn,o.dmg,c.x-nx*c.r,c.d-nd*c.r,c.part,W===T?null:W,o.k);if(mov)o.hitCD=2
     if(W===T)T.av+=(Math.random()-.5)*1.5}}};
  const lo=Math.min(T.d,BG.length?BG[BG.length-1].d:T.d)-20,hi=T.d+22;
  for(const o of OB){if(o.off||o.d<lo||o.d>hi)continue;
@@ -1274,9 +1279,9 @@ function hazardsTick(dt){for(const o of OB){if(o.hitCD>0)o.hitCD-=dt;if(o.k==='s
   if(b.big){if(state==='play'&&!b.honked&&ah>20&&ah<150&&Math.abs(b.x-T.x)<14){b.honked=true;shipBlasts();popText('Ship <b>can\'t give way!</b>',true)}
    // the bow wave and wash push smaller boats off sideways and set them rolling
    const ad=Math.abs(T.d-b.d),lx=T.x-b.x,ax=Math.abs(lx);if(state==='play'&&ad<b.half+14&&ax>4.6&&ax<20){const k=(1-(ax-4.6)/15.4)*(ad<b.half?1:.4);T.vx+=Math.sign(lx)*k*1.6*dt;T.roll+=Math.sin(runT*6)*k*.04;if(k>.5&&!b.washed){b.washed=true;popText('Ship\'s <b>wash</b>');buzz(20)}}}
-  else if((state==='play'||state==='done')&&(b.yieldT>0||ah>-12&&ah<70&&Math.abs(b.x-T.x)<15))lat=(Math.sign(b.x-T.x)||Math.sign(b.lat)||1)*(r.w/2-5);
+  else if((state==='play'||state==='done')&&(b.yieldT>0||ah>-12&&ah<Math.max(70,(T.vd-b.vd)*7)&&Math.abs(b.x-T.x)<18)){lat=(Math.sign(b.x-T.x)||Math.sign(b.lat)||1)*(r.w/2-5);b.giving=true}else b.giving=false;
   if(ferryJob()&&!b.big&&b.d<JOBD().stops[0].d-230){const rr=riv(b.d+460,{});b.d+=460;b.x=rr.c+b.lat;b.vx=b.vd=0;b.honked=false}
-  const tx=r.c+lat;{let da=Math.atan2(tx-b.x,-25)-b.a;da=Math.atan2(Math.sin(da),Math.cos(da));b.a+=da*dt*.8}const fx=Math.sin(b.a),fd=Math.cos(b.a);
+  const tx=r.c+lat;{let da=Math.atan2(tx-b.x,b.giving?-14:-25)-b.a;da=Math.atan2(Math.sin(da),Math.cos(da));b.a+=da*dt*(b.giving?1.6:.8)}const fx=Math.sin(b.a),fd=Math.cos(b.a);
   b.vx+=(cv.cx+fx*b.thr-b.vx)*dt*.9;b.vd+=(cv.cd+fd*b.thr-b.vd)*dt*.9;b.x+=b.vx*dt;b.d+=b.vd*dt;b.m.position.set(b.x,Math.sin(runT*1.5+b.d)*.08,-b.d);b.m.rotation.y=-b.a;
   if(Math.random()<dt*8)wake(b.x-fx*(b.half||3),-(b.d-fd*(b.half||3)),b.big?4.5:1.6,b.big?11:5,1.3,.4);if(b.big&&Math.random()<dt*6)wake(b.x+fx*20,-(b.d+fd*20),3,7,1.2,.35)}}
 // crane load: a 6 m pendulum driven by the sideways (centripetal) acceleration of turning and by the rapids
@@ -1296,6 +1301,14 @@ function isJob(){return mode==='job'}
 function ferryJob(){return isJob()&&!!JOBD().ferry}
 function driveJob(){return isJob()&&!!JOBD().logs}
 function searchJob(){return isJob()&&!!JOBD().swimmers}
+// the HUD bar on a job: how much of the job is done, rather than distance down the river
+function jobProgress(){const J=JOBD();if(!DOCKS.length)return 0;
+ if(J.ferry)return stopI/DOCKS.length;
+ if(J.swimmers)return(SWIM.filter(q=>q.got).length+stopI)/(SWIM.length+1);
+ if(J.logs){const L=OB.filter(o=>o.drive);return L.length?L.filter(o=>o.penned).length/L.length:0}
+ if(J.id==='assist')return SH?clamp(1-shipPos().gap/28,0,1):0;
+ if(J.sights)return(TS.i+stopI)/(J.sights.length+1);
+ return T.d/DOCKS[DOCKS.length-1].d}
 function lightJob(){return isJob()&&!!JOBD().light}
 function assistJob(){return isJob()&&JOBD().id==='assist'}
 function tourJob(){return isJob()&&!!JOBD().sights}
@@ -2157,7 +2170,7 @@ $('toGarage').addEventListener('click',goGarage);
 const SPD={kn:[1.944,'kn'],mph:[2.237,'mph'],kmh:[3.6,'km/h']};
 function updateHud(){$('time').textContent=clock(runT);const u=SPD[settings.units]||SPD.kn,v=state==='play'||state==='done'?Math.hypot(T.vx,T.vd):0;$('speed').textContent=Math.round(v*u[0])+' '+u[1];
  $('runCans').textContent=runCans;$('hullI').style.width=hull+'%';$('mHull').classList.toggle('low',hull<35);$('cargoI').style.width=cargo+'%';$('mCargo').classList.toggle('low',cargo<35);
- $('progI').style.width=clamp((isJob()&&DOCKS.length?T.d/DOCKS[DOCKS.length-1].d:T.d/LV.len),0,1)*100+'%';
+ $('progI').style.width=clamp(isJob()?jobProgress():T.d/LV.len,0,1)*100+'%';$('progI').parentNode.classList.toggle('job',isJob());
  const pb=$('progB');pb.hidden=!(ghost&&state==='play'&&!isJob());if(!pb.hidden)pb.style.left=clamp(ghostD/LV.len,0,1)*100+'%';
  $('stL').classList.toggle('on',steerInput()<0);$('stR').classList.toggle('on',steerInput()>0);
  const B=BG[0];show('winch',state==='play'&&!!B&&!B.hip&&!B.cut);if(B)$('winL').textContent='Tow '+Math.round(B.L-6)+' m';
