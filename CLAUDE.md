@@ -14,14 +14,16 @@ Never put one game's files into another game's repo.
 
 | Game | Private repo | Beta copy in this site repo |
 | --- | --- | --- |
-| Swervy | `torquespecstudios/swervy` | `play/index.html` (beta), `swervy/` (game page) |
-| Swoopy Wings | `torquespecstudios/swoopy` | `swoopy-beta/` |
+| Swervy | `torquespecstudios/swervy` (game file `hairpin.html`) | `play/index.html` (beta), `swervy/` (game page) |
+| Swoopy Wings | `torquespecstudios/swoopy` (game file `swoopy.html`) | `swoopy-beta/`, built with that repo's `web/build_beta.py` |
 | Tuggy | `torquespecstudios/tuggy` | `tug/index.html` |
 | Scoopy | `torquespecstudios/scoopy` | `scoopy-beta/` |
 
 Notes:
 - **Tuggy:** the private repo's `index.html` is the same file as `tug/index.html` here. Copy it across unchanged and use the same commit message (e.g. "Tuggy beta v36").
 - **Scoopy:** the private repo holds the full project (`index.html`, README, icons, Capacitor files). `scoopy-beta/index.html` here is the same game with beta-only `<head>` tags added (noindex, Open Graph, manifest) and the offline `lib/three.min.js` fallback line removed. Make game changes in the private repo first, then copy them into `scoopy-beta/index.html`, keeping those head differences. Bump the version label in Settings ("Scoopy beta vN") in both.
-- **Swervy and Swoopy:** mirror each change into the private repo the same way.
+- **Swervy:** `play/index.html` is the private repo's `hairpin.html` with beta-only `<head>` tags added; keep those when copying.
+- **Swoopy:** rebuild `swoopy-beta/` from the private repo with `python3 web/build_beta.py <this repo>/swoopy-beta`.
+- Each private repo also has its own `CLAUDE.md` with the same rule.
 - If you can't push to a game's private repo (for example a cloud session without access to it), say so plainly to the user. Don't skip it silently, and don't push it to a different repo instead.
 - Commit messages follow the existing style: "<Game> beta vN: what changed".
