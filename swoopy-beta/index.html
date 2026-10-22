@@ -191,6 +191,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 #over .disp.t.bad{color:var(--red)}
 #over .dist{font-family:var(--display);font-weight:800;font-size:72px;line-height:1;font-variant-numeric:tabular-nums}
 #over .dist small{display:block;font-size:20px;opacity:.85;letter-spacing:.1em;color:var(--amber)}
+#over .dist small.off{color:var(--mute);opacity:1}
 #over .meta{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;font-weight:700;color:var(--mute);letter-spacing:.06em;max-width:340px}
 #over .meta b{color:var(--ink)}
 .medals{display:flex;gap:16px;margin:4px 0}
@@ -450,7 +451,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v25 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v26 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1595,7 +1596,9 @@ function finishRun(){const nextI=lvl+1,wasOpen=nextI<COURSES.length&&!COURSES[ne
  store.set('cans',cans);store.set('best',bests);store.set('medals',medals);store.set('scores',scores);store.set('stats',stats);
  const got=checkAch();
  const t=$('oT');t.textContent=ok?'Finished!':'Crashed!';t.classList.toggle('bad',!ok);
- $('oTime').innerHTML=ok?clock(result.time)+(nb?'<small>New best!</small>':''):`${fmt(Math.min(CO.len,Math.max(0,T.d)))}<small>of ${fmt(CO.len)} m</small>`;
+ // how far from your best, to the hundredth (a tie reads as matched, not "0.00s")
+ const dt=prevBest?Math.abs(result.time-prevBest).toFixed(2):'0.00',gap=dt!=='0.00';
+ $('oTime').innerHTML=ok?clock(result.time)+(nb?`<small>New best!${gap?` ${dt}s faster`:''}</small>`:prevBest?(gap?`<small class="off">${dt}s off your best</small>`:'<small>Matched your best!</small>'):''):`${fmt(Math.min(CO.len,Math.max(0,T.d)))}<small>of ${fmt(CO.len)} m</small>`;
  const par=parOf(CO,sel),cond=[['Bronze','Finish'],['Silver','Under '+clock(par*1.15)],['Gold',`Under ${clock(par)} · ${ringNeed()} rings`]];
  $('oMed').innerHTML=cond.map(([n,c],i)=>`<div class="medal m${i+1} ${m>i?'on':''}" style="animation-delay:${.15+i*.18}s"><i></i><b>${n}</b>${c}</div>`).join('');
  $('oMeta').innerHTML=`<span><span class="ring"></span> <b>${runRings}/${RINGS.length}</b></span><span><b>${fmt(pts)}</b> pts</span><span>Airframe <b>${Math.round(hull)}%</b></span>`+(spec.airliner?`<span>Cabin <b>${Math.round(cabin)}%</b></span>`:'')+`<span><span class="can"></span> <b>+${pay}</b></span>`+(prevBest&&!nb&&ok?`<span>Best <b>${clock(prevBest)}</b></span>`:'');
