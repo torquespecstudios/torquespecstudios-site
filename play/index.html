@@ -501,10 +501,12 @@ const STRIPE_COLS=[{n:'White',c:'#f4f3ef'},{n:'Black',c:'#121214'},{n:'Gold',c:'
 const LIGHTS=[{n:'LED white',c:'#e8f3ff'},{n:'Warm',c:'#fff0c8'},{n:'Xenon blue',c:'#9fc2ff'},{n:'Amber',c:'#ffbe55'}];
 const GLOWS=[{n:'Off',c:null},{n:'Ice',c:'#36cfff'},{n:'Violet',c:'#b44bff'},{n:'Amber',c:'#ffae2a'},{n:'Red',c:'#ff2a3a'},{n:'Green',c:'#39ff7a'}];
 const BAYS=[{n:'Factory'},{n:'Blue Six'}],HALOS=[{n:'Off'},{n:'On'}];
-const LISTS={bay:BAYS,halo:HALOS,paint:PAINTS,finish:FINISHES,roof:ROOFS,tint:TINTS,rimStyle:RIMS,rimSize:RIMSIZES,wheels:WHEELS,tires:TIRES,caliper:CALIPERS,ride:RIDES,spoiler:SPOILERS,lip:LIPS,skirts:SKIRTS,kit:KITS,stripeStyle:STRIPE_STYLES,stripeColor:STRIPE_COLS,lights:LIGHTS,glow:GLOWS};
+// cabin: street seats come with every car; racing buckets with harnesses, and the full race cabin with a roll cage, are bought looks
+const CABINS=[{n:'Street'},{n:'Racing seats'},{n:'Full race'}];
+const LISTS={bay:BAYS,halo:HALOS,paint:PAINTS,finish:FINISHES,roof:ROOFS,tint:TINTS,rimStyle:RIMS,rimSize:RIMSIZES,wheels:WHEELS,tires:TIRES,caliper:CALIPERS,ride:RIDES,spoiler:SPOILERS,lip:LIPS,skirts:SKIRTS,kit:KITS,stripeStyle:STRIPE_STYLES,stripeColor:STRIPE_COLS,lights:LIGHTS,glow:GLOWS,cabin:CABINS};
 const TABS=[{id:'paint',n:'Paint',opts:[['paint','Paint','sw'],['finish','Finish','chip'],['roof','Roof & pillars','sw'],['tint','Window tint','sw']]},
  {id:'wheels',n:'Wheels',opts:[['rimStyle','Rim style','chip'],['rimSize','Rim size','chip'],['wheels','Rim color','sw'],['tires','Tires','chip'],['caliper','Brake calipers','sw'],['ride','Ride height','chip']]},
- {id:'style',n:'Style',opts:[['lip','Front lip','chip'],['skirts','Side skirts','chip'],['kit','Lip & skirt finish','sw'],['spoiler','Spoiler','chip'],['stripeStyle','Stripes','chip'],['stripeColor','Stripe color','sw'],['lights','Headlights','sw'],['halo','Halo rings','chip'],['glow','Underglow','sw'],['plate','License plate','text']]},{id:'engine',n:'Engine',opts:[]}];
+ {id:'style',n:'Style',opts:[['lip','Front lip','chip'],['skirts','Side skirts','chip'],['kit','Lip & skirt finish','sw'],['spoiler','Spoiler','chip'],['stripeStyle','Stripes','chip'],['stripeColor','Stripe color','sw'],['lights','Headlights','sw'],['halo','Halo rings','chip'],['cabin','Cabin','chip'],['glow','Underglow','sw'],['plate','License plate','text']]},{id:'engine',n:'Engine',opts:[]}];
 const DEF={coupe:[0,0,0],rally:[7,1,0],sedan:[13,3,1],muscle:[2,4,0],suv:[4,0,0],pickup:[15,4,1],super:[12,2,1],hyper:[8,3,1]};
 const PERF=[
  {id:'engine',n:'Engine',lv:['Stock','Street','Sport','Race'],cost:[0,15,35,70],pow:[0,.05,.1,.16]},
@@ -513,7 +515,7 @@ const PERF=[
  {id:'exhaust',n:'Exhaust',lv:['Stock','Headers','Race'],cost:[0,10,25],pow:[0,.03,.05]},
  {id:'tires',n:'Tire compound',lv:['Street','Sport','Semi-slick','Slick'],cost:[0,15,35,60],grip:[0,.06,.12,.18]},
  {id:'susp',n:'Suspension',lv:['Stock','Lowered','Coilovers','Race'],cost:[0,15,35,60],grip:[0,.05,.1,.15]}];
-function defLook(id){const d=DEF[id]||[0,0,0];return{paint:d[0],finish:d[2],roof:0,tint:1,rimStyle:d[1],rimSize:1,wheels:0,tires:0,caliper:0,ride:1,spoiler:0,stripeStyle:id==='muscle'||id==='coupe'?1:0,stripeColor:0,lights:0,glow:0,plate:'SWERVY',bay:0,halo:0,lip:0,skirts:0,kit:0}}
+function defLook(id){const d=DEF[id]||[0,0,0];return{paint:d[0],finish:d[2],roof:0,tint:1,rimStyle:d[1],rimSize:1,wheels:0,tires:0,caliper:0,ride:1,spoiler:0,stripeStyle:id==='muscle'||id==='coupe'?1:0,stripeColor:0,lights:0,glow:0,plate:'SWERVY',bay:0,halo:0,cabin:0,lip:0,skirts:0,kit:0}}
 
 let best=num(store.get('best',0),0),cans=num(store.get('cans',0),0),unlocked=store.get('unlocked',['coupe']),muted=store.get('muted',false)===true;
 unlocked=Array.isArray(unlocked)?unlocked.filter((id,i,a)=>MODELS[id]&&a.indexOf(id)===i):[];if(!unlocked.includes('coupe'))unlocked.unshift('coupe');
@@ -523,7 +525,7 @@ for(const k of['haptics','shake','flip','music'])settings[k]=settings[k]!==false
 const sideH=()=>settings.flip?'right':'left',sideR=()=>settings.flip?'left':'right';
 // premium styling: some looks cost cans, bought once and then usable on every car, so there is always something to save for;
 // a car's factory look is always free, and options a save already used before prices existed stay owned
-const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20]};
+const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140]};
 let owned=new Set((v=>Array.isArray(v)?v.filter(x=>typeof x==='string'):[])(store.get('owned',[]))),pv=null;
 const isOwned=(id,k,i)=>!PRICE[k]||!PRICE[k][i]||owned.has(k+':'+i)||defLook(id)[k]===i;
 let looks=store.get('looks',null);if(looks!==null)looks=obj(looks);const oldCfg=obj(store.get('cfg',{}));
@@ -905,8 +907,12 @@ function buildEngine(M,PF,B,c){const bs=c&&c.bay===1;
  else{add(AZ(cy(.07,.11,.2,22)),PF.intake===1?mt.red:mt.blue,ix,by+.36,iz);add(AZ(cy(.076,.076,.025,22)),mt.chrome,ix,by+.36,iz+.11);
   add(AX(cy(.045,.045,Math.abs(ex-ix),16)),PF.intake===2?mt.carbon:mt.chrome,(ex+ix)/2,topY-.02,(iz+intakeTo)/2)}
  // turbo(s) + intercooler + blow-off valve
- if(PF.turbo){const s=[0,.85,1.15,.9][PF.turbo],sides=PF.turbo===3?[-1,1]:[1];
-  for(const sz of sides){const tx=ex+toward*len*.12,ty=by+.3,tz=sz*(bw/2+.16*s);
+ // the turbo is the hero part under the hood: it sits high beside the block, its turbine housing glows hot, and the
+ // compressor has a polished inlet with a pod filter, so it reads from the garage camera
+ if(PF.turbo){const s=[0,1.05,1.4,1.1][PF.turbo],sides=PF.turbo===3?[-1,1]:[1],hot=std({color:0x8a4a2a,metalness:.8,roughness:.4,emissive:0xff4a10,emissiveIntensity:.55});
+  for(const sz of sides){const tx=ex+toward*len*.12,ty=by+.4,tz=sz*(bw/2+.16*s);
+   add(new THREE.TorusGeometry(.06*s,.03*s,10,22),hot,tx,ty,tz-sz*.04*s);
+   add(AZ(cy(.07*s,.055*s,.12*s,22)),mt.blk,tx,ty+.02,tz+sz*.22*s);add(AZ(cy(.074*s,.074*s,.03*s,22)),mt.chrome,tx,ty+.02,tz+sz*.16*s);
    add(new THREE.TorusGeometry(.085*s,.055*s,12,26),mt.wrap,tx,ty,tz);add(AZ(cy(.075*s,.075*s,.09*s,22)),mt.comp,tx,ty,tz+sz*.07*s);add(AZ(cy(.05*s,.05*s,.04,18)),bs?mt.mani:mt.chrome,tx,ty,tz+sz*.13*s);
    const cx=M.mid?xb0+.12:xb1-.14;add(AX(cy(.035,.035,Math.abs(cx-tx),14)),mt.cpipe,(cx+tx)/2,ty+.13,tz)}
   if(M.mid)add(box(.36,.05,zi*1.2),mt.alu,xb0+.24,topY+.16,0);else add(box(.05,.2,zi*1.5),mt.alu,xb1-.06,fy+.13,0);
@@ -933,7 +939,8 @@ function buildCar(c){
  const std=o=>new THREE.MeshStandardMaterial(o);
  const paint=new THREE.MeshPhysicalMaterial({color:P.c,metalness:F.m,roughness:F.r,clearcoat:F.cc,clearcoatRoughness:.04,envMapIntensity:1.35});
  const roofM=RF==='body'?paint:new THREE.MeshPhysicalMaterial({color:RF,metalness:.3,roughness:.25,clearcoat:1,envMapIntensity:1.3});
- const glass=new THREE.MeshPhysicalMaterial({color:TINTS[c.tint].c,metalness:.25,roughness:.03,clearcoat:1,envMapIntensity:1.8});
+ // the glass is see-through (more for lighter tints) so the cabin shows; it still reflects the sky
+ const glass=new THREE.MeshPhysicalMaterial({color:TINTS[c.tint].c,metalness:.1,roughness:.05,clearcoat:.6,envMapIntensity:.9,transparent:true,opacity:[.24,.5,.76,.36,.36][c.tint]??.36,depthWrite:false});
  const trim=std({color:0x101113,roughness:.5,metalness:.3}),chrome=std({color:0xe8eaee,metalness:1,roughness:.1,envMapIntensity:1.5});
  const liner=std({color:0x0b0b0c,roughness:1,side:THREE.DoubleSide});liner.userData.noClip=true;
  const m={tireGeo:tireGeo(M.wr,M.wr*RIMSIZES[c.rimSize].r,M.tw),tire:std({map:tireTexFor(c.tires),roughness:.88,side:THREE.DoubleSide}),barrel:std({color:0x37383b,metalness:.85,roughness:.35,side:THREE.DoubleSide}),
@@ -961,6 +968,38 @@ function buildCar(c){
  const [ca,cb,,cd,ce]=cab,lift=.04;
  beam(ca[0],ca[1]+.05,cb[0],cb[1]+lift,.085,roofM);beam(cd[0],cd[1]+lift,ce[0],ce[1]+.05,.11,roofM);
  const bx=(ca[0]+ce[0])/2+(M.doors===4?.15:-.05),by=rc.reduce((m,p)=>Math.abs(p.x-bx)<Math.abs(m.x-bx)?p:m,rc[0]).y;beam(bx,M.belt,bx,by+lift,.075,trim);
+ // interior: floor, dash with lit gauges, seats and a steering wheel in every car; Racing seats adds carbon buckets with
+ // red harnesses; Full race adds a roll cage (main hoop with a diagonal, A-pillar bars, roof bars and rear stays).
+ // Sized from each car's cabin outline, so it fits the low hypercar and the tall SUV alike
+ {const CB=c.cabin||0,int=new THREE.Group();model.add(int);
+  const fab=std({color:CB?0xb3201c:0x55585f,roughness:.95}),carpet=std({color:0x060607,roughness:1}),shell=std({color:0x15161a,metalness:.35,roughness:.28}),strap=std({color:0xd11f1f,roughness:.6}),
+   cageM=std({color:0xc8cbd0,metalness:.65,roughness:.32}),dark=std({color:0x0d0e10,roughness:.85});
+  const roofAt=x=>{for(let k=0;k<cab.length-1;k++){const[a0,a1]=cab[k],[b0,b1]=cab[k+1];if((x<=a0&&x>=b0)||(x>=a0&&x<=b0))return a1+(b1-a1)*(x-a0)/((b0-a0)||1)}return M.roofY};
+  const ib=(w,h,d,mat,x,y,z,par=int)=>{const o=new THREE.Mesh(box(w,h,d),mat);o.position.set(x,y,z);par.add(o);return o};
+  // the cabin floor sits just above the body's own top surface under the glass (which rises toward the rear on some
+  // cars), so painted bodywork never shows through the windows
+  const fx2=cab[0][0],rx2=cab[4][0];let belt=M.belt;for(let x=rx2+.05;x<=fx2-.05;x+=.05)belt=Math.max(belt,tA(x));belt+=.012;
+  const seatX=(cab[2][0]+cab[3][0])/2+.05,head=roofAt(seatX)-belt,off=Math.min(.36,cabW*.22);
+  const midX=(fx2+rx2)/2;ib(fx2-rx2-.3,.01,2*cHalf(midX,belt)-.1,carpet,midX,belt+.005,0);
+  // the dash runs from under the windshield back toward the wheel, kept just below the glass
+  const dx=fx2-.42,dTop=Math.min(belt+.1,roofAt(fx2-.2)-.03);ib(.5,dTop-belt,2*cHalf(dx,belt)-.1,dark,dx,(belt+dTop)/2,0);
+  for(const gz of[-.065,.065]){const gg=new THREE.Mesh(new THREE.CircleGeometry(.032,16).rotateY(-Math.PI/2),std({color:0x111111,emissive:0xff9a3a,emissiveIntensity:.8}));gg.position.set(dx-.251,dTop-.035,-off+gz);int.add(gg)}
+  const sh=Math.max(.12,head-.07),sw=.4;
+  for(const sz of[-1,1]){const st=new THREE.Group();st.position.set(seatX,belt-.02,sz*off);st.rotation.z=.18;int.add(st);
+   ib(.07,sh,sw,CB?shell:fab,0,sh/2,0,st);ib(.05,sh*.86,sw*.6,fab,.05,sh*.46,0,st);
+   for(const bz of[-1,1])ib(.12,sh*.72,.06,CB?shell:fab,.05,sh*.4,bz*(sw/2-.02),st);
+   if(!CB)ib(.07,.09,.22,fab,0,sh+.05,0,st);
+   else{for(const hz of[-.075,.075])ib(.008,sh*.92,.045,strap,.085,sh*.5,hz,st);ib(.008,.045,.3,strap,.085,.06,0,st);for(const hz of[-.075,.075]){ib(.1,.012,.045,strap,.03,sh+.004,hz,st);ib(.008,sh*.35,.045,strap,-.04,sh*.82,hz,st)}
+    const bk=new THREE.Mesh(new THREE.CylinderGeometry(.032,.032,.012,14).rotateZ(Math.PI/2),chrome);bk.position.set(.092,.09,0);st.add(bk)}}
+  const wr2=CB===2?.13:.15,wx=seatX+.42,wheel=new THREE.Mesh(new THREE.TorusGeometry(wr2,.018,8,24).rotateY(Math.PI/2),dark);wheel.position.set(wx,Math.min(belt+.12,roofAt(wx)-wr2-.07),-off);wheel.rotation.z=-.4;int.add(wheel);
+  if(CB===2){const hub=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.03,12).rotateZ(Math.PI/2),strap);hub.position.copy(wheel.position);hub.rotation.z=-.4;int.add(hub)}
+  if(CB===2){const tube=(a,b,r=.022)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),10),cageM);o.position.copy(A).add(B).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());int.add(o)};
+   const hx=seatX-.2,hy=roofAt(hx)-.07,hz=cHalf(hx,hy)-.06,bz=cHalf(hx,belt)-.08;
+   for(const sz of[-1,1])tube([hx,belt,sz*bz],[hx,hy,sz*hz]);tube([hx,hy,-hz],[hx,hy,hz]);tube([hx,hy,-hz],[hx,belt+.02,bz]);
+   const ax=fx2-.2,ay=belt+.03,az=cHalf(ax,ay)-.08,tx=cab[1][0]-.08,ty=roofAt(tx)-.07,tz=cHalf(tx,ty)-.06,rx3=rx2+.2,ry=belt+.02;
+   for(const sz of[-1,1]){tube([ax,ay,sz*az],[tx,ty,sz*tz]);tube([tx,ty,sz*tz],[hx,hy,sz*hz]);tube([hx,hy,sz*hz],[rx3,ry,sz*(cHalf(rx3,ry)-.08)])}
+   tube([tx,ty,-tz],[tx,ty,tz])}
+  int.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true}})}
  // stripes follow the panels
  const SS=c.stripeStyle;
  if(SS===3){const sm=new THREE.MeshPhysicalMaterial({color:STRIPE_COLS[c.stripeColor].c,roughness:.3,metalness:.1,clearcoat:1}),ar2=M.wr+.09,y=M.belt-.15;
