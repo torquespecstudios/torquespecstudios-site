@@ -450,7 +450,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v23 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v24 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1512,7 +1512,10 @@ $('rvYes').addEventListener('click',acceptRevive);
 // The share sheet sends the image where supported; otherwise the challenge text is copied and the image can be long-pressed to save.
 let lastRun=null,shareFile=null,shareKind='run';
 const MEDAL_COL=['#6b6f76','#b8733d','#c3c8ce','#f2b33d'];
-function shareText(){if(shareKind==='plane')return`Check out my ${PLANES[sel].name} ${PLANES[sel].type.toLowerCase()} in Swoopy Wings.`;return`I flew ${lastRun.course} in ${clock(lastRun.time)} in the ${lastRun.plane} on Swoopy Wings (${lastRun.rings}/${lastRun.ringsN} rings). Can you beat it?`}
+// where a shared run or photo sends people: the web beta for now; set APP_STORE_URL once the App Store listing exists
+const APP_STORE_URL='',PLAY_URL=APP_STORE_URL||'https://torquespecstudios.com/swoopy-beta/',PLAY_SHORT=APP_STORE_URL?'ON THE APP STORE':'TORQUESPECSTUDIOS.COM/SWOOPY-BETA';
+function shareText(){return shareCopy()+' Play free: '+PLAY_URL}
+function shareCopy(){if(shareKind==='plane')return`Check out my ${PLANES[sel].name} ${PLANES[sel].type.toLowerCase()} in Swoopy Wings.`;return`I flew ${lastRun.course} in ${clock(lastRun.time)} in the ${lastRun.plane} on Swoopy Wings (${lastRun.rings}/${lastRun.ringsN} rings). Can you beat it?`}
 function drawCard(){const L=lastRun,W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),S=L.sky.stops;
  const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,S[0]);bg.addColorStop(.3,S[1]);bg.addColorStop(.5,S[2]);bg.addColorStop(.58,S[3]);bg.addColorStop(.6,'#3d4a33');bg.addColorStop(1,'#1c2218');g.fillStyle=bg;g.fillRect(0,0,W,H);
  // two ridges, then a gold ring with a plane flying through it
@@ -1529,8 +1532,9 @@ function drawCard(){const L=lastRun,W=1080,H=1350,c=document.createElement('canv
  const tags=[];if(L.medal)tags.push([['','BRONZE','SILVER','GOLD'][L.medal],MEDAL_COL[L.medal]]);if(L.best)tags.push(['NEW BEST','#f5f0e6']);
  g.font='800 40px "Barlow",system-ui,sans-serif';let tx=W/2-(tags.reduce((a,t)=>a+g.measureText(t[0]).width+64,0)+20*(tags.length-1))/2;
  for(const[t,col]of tags){const tw=g.measureText(t).width+64;g.fillStyle=col;g.beginPath();if(g.roundRect)g.roundRect(tx,560,tw,70,35);else g.rect(tx,560,tw,70);g.fill();g.fillStyle='#1d1508';g.fillText(t,tx+tw/2,608);tx+=tw+20}
- g.fillStyle='rgba(13,17,23,.78)';g.fillRect(0,H-190,W,190);g.fillStyle='#f2b33d';g.font='800 italic 92px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillText('CAN YOU BEAT IT?',W/2,H-82);
- g.fillStyle='rgba(245,240,230,.6)';g.font='700 26px "Barlow",system-ui,sans-serif';g.letterSpacing='6px';g.fillText('BY TORQUE SPEC STUDIOS',W/2,H-30);g.letterSpacing='0px';return c}
+ g.fillStyle='rgba(13,17,23,.78)';g.fillRect(0,H-190,W,190);g.fillStyle='#f2b33d';g.font='800 italic 92px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillText('CAN YOU BEAT IT?',W/2,H-102);
+ g.fillStyle='#f5f0e6';g.font='800 30px "Barlow",system-ui,sans-serif';g.letterSpacing='3px';g.fillText('PLAY FREE · '+PLAY_SHORT,W/2,H-54);g.letterSpacing='0px';
+ g.fillStyle='rgba(245,240,230,.55)';g.font='700 20px "Barlow",system-ui,sans-serif';g.letterSpacing='6px';g.fillText('BY TORQUE SPEC STUDIOS',W/2,H-20);g.letterSpacing='0px';return c}
 function showShareCard(c,kind){shareKind=kind;$('shareImg').src=c.toDataURL('image/png');$('shareImg').alt=kind==='plane'?'Photo of your plane':'Your Swoopy Wings score card';$('shareMsg').textContent='';shareFile=null;
  c.toBlob(b=>{try{shareFile=new File([b],kind==='plane'?'swoopy-plane.png':'swoopy-run.png',{type:'image/png'})}catch(e){}},'image/png');show('share',1)}
 function openShare(){if(!lastRun)return;showShareCard(drawCard(),'run')}
@@ -1550,7 +1554,8 @@ function snapPhoto(){if(!photo)return;const old=R.getPixelRatio();R.setPixelRati
  g.textAlign='right';g.font='800 italic 64px "Saira Condensed","Arial Narrow",Impact,sans-serif';const w2=g.measureText('PY').width;g.fillStyle='#f5f0e6';g.fillText('SWOO',W-56-w2,ph+82);g.fillStyle='#f2b33d';g.fillText('PY',W-56,ph+82);
  g.font='800 22px "Barlow",system-ui,sans-serif';g.letterSpacing='9px';g.fillText('WINGS',W-48,ph+112);g.letterSpacing='0px';
  g.font='700 26px "Barlow",system-ui,sans-serif';g.fillStyle='#a9a69e';g.fillText(`Pilot level ${level}`,W-56,ph+148);
- g.fillStyle='rgba(245,240,230,.45)';g.font='700 20px "Barlow",system-ui,sans-serif';g.letterSpacing='4px';g.fillText('BY TORQUE SPEC STUDIOS',W-52,ph+182);g.letterSpacing='0px';
+ g.fillStyle='rgba(245,240,230,.45)';g.font='700 20px "Barlow",system-ui,sans-serif';g.letterSpacing='4px';g.fillText('BY TORQUE SPEC STUDIOS',W-52,ph+182);
+ g.textAlign='left';g.fillStyle='#f2b33d';g.font='800 22px "Barlow",system-ui,sans-serif';g.letterSpacing='2px';g.fillText('PLAY FREE · '+PLAY_SHORT,58,ph+188);g.letterSpacing='0px';
  const f=$('phFlash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');chime([1568,2093]);buzz(20);stats.photos=(stats.photos||0)+1;store.set('stats',stats);checkAch();
  setTimeout(()=>showShareCard(c,'plane'),260)}
 $('photoBtn').addEventListener('click',openPhoto);$('phClose').addEventListener('click',closePhoto);$('phSnap').addEventListener('click',snapPhoto);
