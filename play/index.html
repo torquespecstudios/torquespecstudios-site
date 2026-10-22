@@ -18,8 +18,7 @@
 <meta name="apple-mobile-web-app-title" content="Swervy">
 <meta name="theme-color" content="#151a20">
 <link rel="apple-touch-icon" href="../img/swervy-icon.png">
-<link rel="icon" href="../img/favicon.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><script data-goatcounter="https://torquespecstudios.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-</head><body>
+<link rel="icon" href="../img/favicon.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Swervy (beta)</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;800&family=Barlow:wght@500;700&display=swap">
@@ -332,6 +331,9 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .trophy::before{content:"";position:absolute;inset:-11px -4px}
 .chip.lock{border-style:dashed}
 .chip.empty{border-style:dashed;color:var(--mute)}
+/* limited-time event items: an orange edge and a LIMITED tag */
+.chip.evt{border-color:#ff8a1a;border-style:solid}
+.chip.evt::after{content:"LIMITED";position:static;margin-left:6px;font-size:9px;font-weight:800;letter-spacing:.08em;color:#ff8a1a}
 .bdot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
 /* legendary paints: a solid rainbow-edged chip */
 .chip.leg{border:1.5px solid transparent;background:linear-gradient(#1b1f26,#1b1f26) padding-box,linear-gradient(120deg,#ff5ac8,#5ad7ff,#ffd25a) border-box}
@@ -627,7 +629,9 @@ const ROOMS=[{n:'Classic',c:'#f2b33d',floor:[.55,.56,.6],wall:[1,1,1],led:0xf2b3
  {n:'Midnight neon',c:'#ff3fd0',floor:[.4,.36,.55],wall:[1.2,.95,1.7],glow:[.5,.25,.9],led:0xff3fd0,rim:0x2ef2ff,bar:0x9a6cff,s:['#ffe6fb','#5ff6ff','#ff3fd0','#2ef2ff']},
  {n:'Race shop',c:'#e8302a',floor:[.85,.85,.85],wall:[2.4,.7,.6],glow:[1.1,.15,.1],led:0xffffff,rim:0xe8302a,bar:0xffffff,chk:1,s:['#ffffff','#ff4a3a','#ff6a5a','#ff2a1a']},
  {n:'Arctic',c:'#7fd4ff',floor:[4.4,4.6,4.9],wall:[5.4,5.8,6.4],glow:[3.4,3.7,4.1],led:0x7fd4ff,rim:0x7fd4ff,bar:0xcfeaff,s:['#eaf8ff','#7fd4ff','#7fd4ff','#3fa9ff']},
- {n:'Gold vault',c:'#ffcc55',floor:[.42,.34,.24],wall:[3,2.1,.8],glow:[1.6,1.05,.25],led:0xffb020,rim:0xffb020,bar:0xffd27a,s:['#fff1c8','#ffcc55','#ffb84a','#d99a14']}];
+ {n:'Gold vault',c:'#ffcc55',floor:[.42,.34,.24],wall:[3,2.1,.8],glow:[1.6,1.05,.25],led:0xffb020,rim:0xffb020,bar:0xffd27a,s:['#fff1c8','#ffcc55','#ffb84a','#d99a14']},
+ // new items go at the end of each list: owned looks are stored by position
+ {n:'Haunted',ev:'halloween',c:'#7cff3a',floor:[.32,.26,.4],wall:[.9,1.5,.7],glow:[.18,.55,.12],led:0x7cff3a,rim:0xff7a1a,bar:0x9a4cff,s:['#e9ffd8','#ff8a1a','#7cff3a','#ff6a00']}];
 // tire smoke and boost flame colours ('rainbow' cycles through hues); the first of each is the free classic look
 const SMOKES=[{n:'White',c:null},{n:'Red',c:'#ff3b30'},{n:'Blue',c:'#3a8dff'},{n:'Yellow',c:'#ffd23a'},{n:'Purple',c:'#a64dff'},{n:'Black',c:'#2a2a2e'},{n:'Rainbow',c:'rainbow'}];
 const TRAILS=[{n:'Classic',c:null},{n:'Blue flame',c:'#3fa9ff'},{n:'Green',c:'#4dff7a'},{n:'Purple',c:'#b45cff'},{n:'Pink',c:'#ff4fb0'},{n:'Rainbow',c:'rainbow'}];
@@ -650,6 +654,19 @@ function livCracks(g,seed){g.lineJoin='round';g.lineCap='round';for(let k=0;k<26
  for(const[w,col]of[[14,'rgba(255,90,10,.35)'],[7,'rgba(255,120,20,.85)'],[3,'#ffd060']]){g.lineWidth=w;g.strokeStyle=col;g.beginPath();pts.forEach(([a,b],i)=>i?g.lineTo(a,b):g.moveTo(a,b));g.stroke()}}}
 function livShards(g,cols,y0,y1,n,seed){for(let k=0;k<n;k++){const x=livRnd(seed+k)*1024,w=60+livRnd(seed+k+50)*120,yt=y0+livRnd(seed+k+90)*(y1-y0)*.5;g.fillStyle=cols[k%cols.length];
  g.beginPath();g.moveTo(x-w*.6,y1);g.lineTo(x+w*.25,yt);g.lineTo(x+w*.9,y1);g.closePath();g.fill()}}
+// limited-time drops: an item with `ev` shows only while its event runs (month/day ranges, every year), and stays for
+// anyone who bought it. window.__evDate lets tests move the clock.
+const EVENTS={halloween:{n:'Halloween',from:[10,24],to:[11,2]}};
+function eventOn(id){const e=EVENTS[id];if(!e)return false;const d=window.__evDate||new Date(),v=(d.getMonth()+1)*100+d.getDate();return v>=e.from[0]*100+e.from[1]&&v<=e.to[0]*100+e.to[1]}
+const activeEvent=()=>Object.keys(EVENTS).find(eventOn);
+// a look can be shown: it isn't an event item, its event is on, or the player already owns it
+const itemOn=(k,i)=>{const o=LISTS[k]&&LISTS[k][i];return!o||!o.ev||eventOn(o.ev)||owned.has(k+':'+i)};
+// a carved jack-o'-lantern face on each door: two triangle eyes and a jagged grin, lit from inside
+function livPumpkin(g,sd,k){g.save();g.translate(500,300);g.scale(k*1.7,1.1);const lit=g.createRadialGradient(0,0,10,0,0,120);lit.addColorStop(0,'#ffe27a');lit.addColorStop(1,'#ff9a1a');
+ const face=()=>{g.beginPath();for(const sx of[-1,1]){g.moveTo(sx*62,-70);g.lineTo(sx*22,-70);g.lineTo(sx*42,-28);g.closePath()}g.moveTo(-92,-6);
+  const T=[[-70,22],[-52,-4],[-32,30],[-12,0],[12,30],[32,-4],[52,22],[72,-6]];for(const[x,y]of T)g.lineTo(x,y);g.lineTo(92,-6);g.quadraticCurveTo(70,70,0,74);g.quadraticCurveTo(-70,70,-92,-6);g.closePath()};
+ // a thick dark carved edge (the face drawn larger in near-black), then the glowing inside
+ g.fillStyle='#160a02';g.save();g.scale(1.16,1.16);face();g.fill();g.restore();g.fillStyle=lit;face();g.fill();g.restore()}
 const LIVERIES=[{n:'None'},
  {n:'Flames',draw:(g,sd,top)=>top?livFlames(g,1024,380,256,300):livFlames(g,1024,640,290,200)},
  {n:'Sunset fade',draw:(g,sd,top)=>{if(top)return;const gr=g.createLinearGradient(0,205,0,430);gr.addColorStop(0,'rgba(214,36,110,0)');gr.addColorStop(.42,'rgba(214,36,110,1)');gr.addColorStop(1,'rgba(255,128,26,1)');g.fillStyle=gr;g.fillRect(0,205,1024,307)}},
@@ -669,7 +686,8 @@ const LIVERIES=[{n:'None'},
  {n:'Chameleon',leg:1,fx:1,base:'#552a8c',fin:{m:.55,r:.22},sw:['#552a8c','#0f7a74','#d99a14']},
  {n:'Molten',leg:1,fx:2,base:'#0a0909',glow:1.6,fin:{m:.1,r:.72},sw:['#120a07','#ff6a10','#120a07'],draw:(g,sd,top)=>livCracks(g,top?77:11)},
  {n:'Holographic',leg:1,fx:3,base:'#c0c6ce',fin:{m:.75,r:.18},sw:['#ff5ac8','#5ad7ff','#ffd25a']},
- {n:'Liquid gold',leg:1,base:'#d4a537',fin:{m:.95,r:.16},sw:['#8a6417','#ffe08a','#b3841f']}];
+ {n:'Liquid gold',leg:1,base:'#d4a537',fin:{m:.95,r:.16},sw:['#8a6417','#ffe08a','#b3841f']},
+ {n:'Pumpkin',ev:'halloween',base:'#b84305',fin:{m:.1,r:.55},sw:['#e2680f','#ffcc4d','#1a0d04'],draw:(g,sd,top,k)=>{if(top){g.fillStyle='#2f5a17';g.fillRect(0,236,1024,40);return}livPumpkin(g,sd,k)}}];
 function liveryTex(L,M){const k=(1024/M.L)/(250/(M.belt-M.y0));const c=document.createElement('canvas');c.width=1024;c.height=1536;const g=c.getContext('2d');
  for(let i=0;i<3;i++){g.save();g.translate(0,i*512);g.beginPath();g.rect(0,0,1024,512);g.clip();L.draw(g,i===1?-1:1,i===2,k);g.restore()}
  // uploaded premultiplied, like the clouds, so iPhones keep the soft edges clean; the shader un-premultiplies
@@ -698,16 +716,17 @@ for(const k of['haptics','shake','flip','music'])settings[k]=settings[k]!==false
 const sideH=()=>settings.flip?'right':'left',sideR=()=>settings.flip?'left':'right';
 // premium styling: some looks cost cans, bought once and then usable on every car, so there is always something to save for;
 // a car's factory look is always free, and options a save already used before prices existed stay owned
-const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140],livery:[0,200,150,150,200,350,250,300,300,800,900,750,600],smoke:[0,60,60,60,60,60,150],trail:[0,80,80,80,80,200],room:[0,150,200,250,400]};
+const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140],livery:[0,200,150,150,200,350,250,300,300,800,900,750,600,250],smoke:[0,60,60,60,60,60,150],trail:[0,80,80,80,80,200],room:[0,150,200,250,400,300]};
 let owned=new Set((v=>Array.isArray(v)?v.filter(x=>typeof x==='string'):[])(store.get('owned',[]))),pv=null;
 const isOwned=(id,k,i)=>!PRICE[k]||!PRICE[k][i]||owned.has(k+':'+i)||defLook(id)[k]===i;
 // daily deals: four looks the player doesn't own, 25-40% off until midnight. The first is a livery while any are left
 // (the headline skins). Today's list is saved, so buying one doesn't reshuffle the rest.
 const DEAL_OFF=[30,25,35,40];
 function todaysDeals(){const day=todayKey(),sv=obj(store.get('deals',{}));if(sv.day===day&&Array.isArray(sv.list))return sv.list;
- const r=mulberry(dailySeed()^0x5eed),pool=[];for(const k in PRICE)PRICE[k].forEach((p,i)=>{if(p>=40&&!owned.has(k+':'+i))pool.push([k,i])});
+ const r=mulberry(dailySeed()^0x5eed),pool=[];for(const k in PRICE)PRICE[k].forEach((p,i)=>{if(p>=40&&!owned.has(k+':'+i)&&itemOn(k,i))pool.push([k,i])});
  for(let i=pool.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
- const list=[],used=new Set(),liv=pool.find(([k])=>k==='livery');if(liv){list.push(liv);used.add('livery')}
+ const list=[],used=new Set();for(const d of pool)if(LISTS[d[0]][d[1]].ev&&!used.has(d[0])){list.push(d);used.add(d[0])}
+ const liv=!used.has('livery')&&pool.find(([k])=>k==='livery');if(liv){list.push(liv);used.add('livery')}
  for(const d of pool){if(list.length>=4)break;if(!used.has(d[0])){list.push(d);used.add(d[0])}}
  const out=list.map(([k,i],n)=>({k,i,off:DEAL_OFF[n]}));store.set('deals',{day,list:out});return out}
 const dealFor=(k,i)=>todaysDeals().find(d=>d.k===k&&d.i===i);
@@ -1882,7 +1901,7 @@ function dealPreview(k,i){const o=LISTS[k][i];
  else{g.fillStyle='#f2b33d';g.beginPath();g.moveTo(40,82);g.lineTo(52,62);g.lineTo(96,56);g.lineTo(122,38);g.lineTo(170,38);g.lineTo(196,58);g.lineTo(222,64);g.lineTo(222,82);g.closePath();g.fill();
   g.fillStyle='#20242b';for(const x of[78,184]){g.beginPath();g.arc(x,84,15,0,7);g.fill()}g.fillStyle='#0d0e10';for(const x of[78,184]){g.beginPath();g.arc(x,84,11,0,7);g.fill()}}
  return`style="background-image:url(${c.toDataURL()})"`}
-function renderShop(){const ms=new Date().setHours(24,0,0,0)-Date.now(),h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4);$('shopSub').textContent=`New deals in ${h}h ${m}m · try one on before you buy`;
+function renderShop(){const ms=new Date().setHours(24,0,0,0)-Date.now(),h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4);const ev=activeEvent(),E2=ev&&EVENTS[ev];$('shopSub').textContent=E2?`${E2.n} drop: limited looks until ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][E2.to[0]-1]} ${E2.to[1]} · new deals in ${h}h ${m}m`:`New deals in ${h}h ${m}m · try one on before you buy`;
  $('dealList').innerHTML=todaysDeals().map(({k,i,off})=>{const o=LISTS[k][i],got=owned.has(k+':'+i),info=optInfo(k),pv0=dealPreview(k,i);
   return`<button class="deal ${got?'got':''}" data-k="${k}" data-i="${i}" ${got?'disabled':''} aria-label="${o.n}, ${info.label}, ${got?'owned':costOf(k,i)+' cans, '+off+'% off'}"><span class="pv" ${pv0}>${pv0?'':info.label[0]}</span>${got?'':`<span class="off">-${off}%</span>`}
    <b>${o.n}</b><small>${info.label}</small><span class="pr">${got?'Owned ✓':`<s>${PRICE[k][i]}</s><span class="can"></span>${costOf(k,i)}`}</span></button>`}).join('');
@@ -1984,8 +2003,8 @@ function renderGarage(){checkAch();renderAch();$('collN').textContent=`My cars $
   if(kind==='builds')return buildsRow();
   if(kind==='text')return`<div class="opt"><span>${label}</span><input class="plate" id="plateIn" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="License plate text" value="${cfg.plate}"></div>`;
   const list=LISTS[key],cur=list[cfg[key]];
-  const items=list.map((o,i)=>{const lk=!isOwned(cfg.model,key,i),p=lk?costOf(key,i):0,sale=lk&&p<PRICE[key][i],lab=lk?`${o.n}, ${p} cans`:o.n;
-   return kind==='sw'?`<button class="sw ${o.c===null?'none':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" style="${swBg(o)}" aria-label="${lab}" title="${lab}" data-k="${key}" data-i="${i}" ${lk?`data-p="${p}"`:''}></button>`:`<button class="chip ${o.leg?'leg':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" aria-label="${lab}" data-k="${key}" data-i="${i}">${o.n}${lk?` <small class="pz${sale?' sale':''}"><span class="can"></span>${p}</small>`:''}</button>`}).join('');
+  const items=list.map((o,i)=>{if(!itemOn(key,i)&&cfg[key]!==i)return'';const lk=!isOwned(cfg.model,key,i),p=lk?costOf(key,i):0,sale=lk&&p<PRICE[key][i],lab=lk?`${o.n}, ${p} cans`:o.n;
+   return kind==='sw'?`<button class="sw ${o.c===null?'none':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" style="${swBg(o)}" aria-label="${lab}" title="${lab}" data-k="${key}" data-i="${i}" ${lk?`data-p="${p}"`:''}></button>`:`<button class="chip ${o.leg?'leg':''} ${o.ev?'evt':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" aria-label="${lab}" data-k="${key}" data-i="${i}">${o.n}${lk?` <small class="pz${sale?' sale':''}"><span class="can"></span>${p}</small>`:''}</button>`}).join('');
   return`<div class="opt"><span>${label}${kind==='sw'?` <em>${cur.n}</em>`:''}</span><div class="row">${items}</div></div>`}).join('');
  $('opts').querySelectorAll('.row').forEach((r,i)=>{if(keep[i])r.scrollLeft=keep[i]});
  $('opts').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=+b.dataset.i;if(k==='smoke'||k==='trail')fxPrevT=4;if(pv&&pv.k!==k)cancelPreview(false);
