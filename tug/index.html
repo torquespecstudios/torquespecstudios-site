@@ -455,7 +455,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v41 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v42 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1272,7 +1272,8 @@ function collide(){const C=bodyCircles();
 function damage(n,part){if(part==='hull'){hull=Math.max(0,hull-n);if(hull<=0&&state==='play')endRun('sunk')}else{cargo=Math.max(0,cargo-n);if(cargo<=0&&state==='play')endRun('lost')}}
 let rapHit=false;
 const HITLOG=[];
-function hit(v,dmg,x,d,part,who,kind){HITLOG.push({t:+runT.toFixed(1),d:Math.round(d),kind:kind||'bank',part,v:+v.toFixed(2)});if(HITLOG.length>40)HITLOG.shift();if(inRapids)rapHit=true;const k=clamp(v/4,.25,1.6),n=Math.round(dmg*k*(part==='hull'?spec.armor||1:1));if(tourJob())cargo=Math.max(1,cargo-n*.8);(who||T).cool=.45;damage(n,part);
+function hit(v,dmg,x,d,part,who,kind){HITLOG.push({t:+runT.toFixed(1),d:Math.round(d),kind:kind||'bank',part,v:+v.toFixed(2)});if(HITLOG.length>40)HITLOG.shift();if(inRapids)rapHit=true;// a floating log glances off a steel barge: half the knock it gives a hull, so heavy boats that can't dodge aren't ruined by drift
+ const k=clamp(v/4,.25,1.6),n=Math.round(dmg*k*(part==='hull'?spec.armor||1:kind==='log'?.5:1));if(tourJob())cargo=Math.max(1,cargo-n*.8);(who||T).cool=.45;damage(n,part);
  splash(x,-d,10+n,'#ffffff');sfxHit(Math.min(1,k));buzz(n>10?50:25);shake=Math.max(shake,settings.shake?.25+k*.5:0);
  const el=$(part==='hull'?'mHull':'mCargo');el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');
  if(n>=3)popText((part==='hull'?'Hull ':'Cargo ')+'<b>−'+n+'%</b>',true)}
