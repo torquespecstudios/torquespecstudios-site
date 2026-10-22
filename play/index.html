@@ -587,13 +587,24 @@ ground.receiveShadow=true;scene.add(ground);
 // mountains
 const mtns=new THREE.Group();
 {const haze=new THREE.Color(0xd9ac86),snow=new THREE.Color(0xd9d6df);
- function ridge(r,hMin,hMax,top,snowLine,seed){const N=240,g=new THREE.CylinderGeometry(r,r,1,N,2,true),p=g.attributes.position,col=new Float32Array(p.count*3),tc=new THREE.Color(top),c=new THREE.Color();
-  const H=[[2,.3],[3,.22],[5,.18],[8,.12],[13,.08],[21,.06],[34,.04]],f=a=>{let v=0;H.forEach(([k,w],n)=>v+=w*Math.sin(a*k+seed*(n+1)*2.3));return v};
+ // opt.rough adds fine, jagged bumps (a tree line on near hills), opt.haze is how far the colour fades toward the haze
+ function ridge(r,hMin,hMax,top,snowLine,seed,opt={}){const N=opt.N||240,g=new THREE.CylinderGeometry(r,r,1,N,2,true),p=g.attributes.position,col=new Float32Array(p.count*3),tc=new THREE.Color(top),c=new THREE.Color();
+  const H=[[2,.3],[3,.22],[5,.18],[8,.12],[13,.08],[21,.06],[34,.04]],rough=opt.rough||0,hz=opt.haze??.12,f=a=>{let v=0;H.forEach(([k,w],n)=>v+=w*Math.sin(a*k+seed*(n+1)*2.3));if(rough)v+=rough*(.5*Math.sin(a*55+seed)+.35*Math.sin(a*89+seed*2)+.25*Math.sin(a*144+seed*3));return v};
   for(let i=0;i<p.count;i++){const a=Math.atan2(p.getZ(i),p.getX(i)),y0=p.getY(i),n=clamp((f(a)+.55)/1.1,0,1),h=hMin+(hMax-hMin)*Math.pow(n,1.6);
-   if(y0>.4){p.setY(i,h);c.copy(h>snowLine?snow:tc).lerp(haze,.12)}else if(y0>-.1){p.setY(i,h*.6);c.copy(tc)}else{p.setY(i,-30);c.copy(haze)}
+   if(y0>.4){p.setY(i,h);c.copy(h>snowLine?snow:tc).lerp(haze,hz)}else if(y0>-.1){p.setY(i,h*.6);c.copy(tc)}else{p.setY(i,-30);c.copy(haze)}
    col.set([c.r,c.g,c.b],i*3)}
   g.setAttribute('color',new THREE.BufferAttribute(col,3));return new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false}))}
- mtns.add(ridge(1150,60,190,0x9097b4,999,4.1),ridge(880,25,135,0x5d6985,112,1.7));}
+ mtns.add(ridge(1150,60,190,0x9097b4,999,4.1),ridge(880,25,135,0x5d6985,112,1.7));
+ // a third, near layer: low forested hills with a jagged tree line, darker than the ridges behind, so the land
+ // fades in depth (dark near hills, paler far mountains) instead of reading as one flat silhouette
+ const hills=ridge(560,16,74,0x26402f,999,7.3,{N:720,rough:.3,haze:.22});hills.userData.near=true;mtns.add(hills);}
+// clouds: a ring of soft cloud sprites beyond the far ridge, drifting slowly; each region tints and dims them
+const clouds=new THREE.Group();
+{const tex=canvasTex(256,128,(g,w,h)=>{for(let i=0;i<14;i++){const x=40+Math.random()*176,y=58+Math.random()*34-Math.abs(x-128)*.12,r=22+Math.random()*30,gr=g.createRadialGradient(x,y,0,x,y,r);
+  gr.addColorStop(0,'rgba(255,255,255,.55)');gr.addColorStop(.6,'rgba(255,255,255,.28)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,w,h)}});
+ for(let i=0;i<14;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false})),a=i/14*6.283+Math.random()*.3,d=1300+Math.random()*120,sc=320+Math.random()*260;
+  m.position.set(Math.cos(a)*d,250+Math.random()*170,Math.sin(a)*d);m.scale.set(sc,sc*(.32+Math.random()*.12),1);m.userData.o=.6+Math.random()*.4;clouds.add(m)}}
+scene.add(clouds);
 scene.add(mtns);
 
 /* ---------- road ---------- */
@@ -1568,9 +1579,9 @@ $('rand').addEventListener('click',()=>{if(pv){cancelPreview();return}for(const 
 // the drive starts at golden hour and slides into dusk (1.5-2.75km) then night (by 4km): sky, fog, sun, mountains and exposure blend,
 // and the car's headlight beam fades in
 const TOD=[ // [sky stops x5, fog, sun color, sun intensity, hemi intensity, exposure, mountain tint, sun disc opacity]
- {sky:['#21406f','#57709f','#b9988f','#ebbb88','#d9ac86'],fog:'#d9ac86',sun:'#ffcf9a',si:2.4,hi:.35,ex:1.05,mt:'#ffffff',so:1},
- {sky:['#171c40','#3a3466','#8a4f6e','#e07a55','#6e4a55'],fog:'#6e4a55',sun:'#ff8a5a',si:1.3,hi:.26,ex:.85,mt:'#a07c88',so:.6},
- {sky:['#03050c','#0a1024','#16203e','#253055','#121828'],fog:'#121828',sun:'#9fb4ff',si:.3,hi:.15,ex:.58,mt:'#2a3150',so:0}];
+ {sky:['#21406f','#57709f','#b9988f','#ebbb88','#d9ac86'],fog:'#d9ac86',sun:'#ffcf9a',si:2.4,hi:.35,ex:1.05,mt:'#ffffff',so:1,hl:'#ffffff',cl:'#ffffff',co:.85},
+ {sky:['#171c40','#3a3466','#8a4f6e','#e07a55','#6e4a55'],fog:'#6e4a55',sun:'#ff8a5a',si:1.3,hi:.26,ex:.85,mt:'#a07c88',so:.6,hl:'#c99a7a',cl:'#ffb69c',co:.8},
+ {sky:['#03050c','#0a1024','#16203e','#253055','#121828'],fog:'#121828',sun:'#9fb4ff',si:.3,hi:.15,ex:.58,mt:'#2a3150',so:0,hl:'#3b4565',cl:'#3a4468',co:.3}];
 const _c1=new THREE.Color(),_c2=new THREE.Color(),SKY_AT=[0,.28,.46,.56,1];let todNow=-1;
 function mixHex(a,b,f){return _c1.set(a).lerp(_c2.set(b),f)}
 function todMix(t){const i=t<.5?0:1,f=t<.5?t*2:(t-.5)*2;return[TOD[i],TOD[i+1],f]}
@@ -1579,7 +1590,8 @@ function timeOfDay(t){if(Math.abs(t-todNow)<.004)return;todNow=t;const[a,b,f]=to
  const sky=scene.background,g=sky.image.getContext('2d'),h=sky.image.height,gr=g.createLinearGradient(0,0,0,h);
  a.sky.forEach((c,k)=>gr.addColorStop(SKY_AT[k],'#'+mixHex(c,b.sky[k],f).getHexString()));g.fillStyle=gr;g.fillRect(0,0,sky.image.width,h);sky.needsUpdate=true;
  scene.fog.color.copy(mixHex(a.fog,b.fog,f));sun.color.copy(mixHex(a.sun,b.sun,f));sun.intensity=a.si+(b.si-a.si)*f;hemi.intensity=a.hi+(b.hi-a.hi)*f;
- R.toneMappingExposure=a.ex+(b.ex-a.ex)*f;mtns.children.forEach(m=>m.material.color.copy(mixHex(a.mt,b.mt,f)));
+ R.toneMappingExposure=a.ex+(b.ex-a.ex)*f;mtns.children.forEach(m=>m.material.color.copy(m.userData.near?mixHex(a.hl,b.hl,f):mixHex(a.mt,b.mt,f)));
+ {const cc=mixHex(a.cl,b.cl,f),co=a.co+(b.co-a.co)*f;clouds.children.forEach(m=>{m.material.color.copy(cc);m.material.opacity=co*m.userData.o})}
  sunSprite.material.opacity=a.so+(b.so-a.so)*f;sunSprite.visible=sunSprite.material.opacity>.01;headLight.intensity=clamp((t-.3)/.5,0,1)*9}
 /* ---------- speed streaks ---------- */
 // once past ~1/3 of top speed, faint streaks rush outward from the vanishing point; they start well away from the centre so they never cover the car
@@ -1671,7 +1683,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  if(headLight.intensity>0){const fx2=Math.sin(C.a-C.spin),fz2=-Math.cos(C.a-C.spin);headLight.position.set(C.x+fx2*2,1.1+C.y,-C.d+fz2*2);headLight.target.position.set(C.x+fx2*26,0,-C.d+fz2*26)}
  tmpV.set(C.x,0,-C.d-6);sun.target.position.copy(tmpV);sun.position.copy(tmpV).addScaledVector(SUNDIR,80);
  ground.position.set(Math.round(cam.position.x/10)*10,0,Math.round(cam.position.z/10)*10);
- mtns.position.set(cam.position.x,0,cam.position.z);
+ mtns.position.set(cam.position.x,0,cam.position.z);clouds.position.set(cam.position.x,0,cam.position.z);clouds.rotation.y+=dt*.003;
  sunSprite.position.copy(cam.position).addScaledVector(SUNDIR,700);
  timeOfDay(state==='garage'?0:clamp((C.d-START_D-1500)/2500,0,1));updateBiomeGround(state==='garage'?0:C.d-START_D);updateSnowfall(dt,snowFs);
  // audio
