@@ -349,8 +349,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
 .pickh{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:2px 0 -2px}
 /* portrait phones: the whole garage sheet scrolls, so the races and jobs list isn't squeezed into one row above the button */
 @media (max-aspect-ratio:1/1) and (max-width:700px){.sheet{overflow-y:auto;-webkit-overflow-scrolling:touch;height:72%}.sheet>.opts{flex:none;overflow:visible}.drive-wrap{margin-top:auto}}
-</style><script data-goatcounter="https://torquespecstudios.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-</head><body>
+</style></head><body>
 
 <canvas id="gl" aria-hidden="true"></canvas>
 <div id="boot" role="status"><div class="logo disp">Tug<i>gy</i></div><p>Loading the river…</p><i class="bar"></i></div>
@@ -456,7 +455,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v39 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v40 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -610,7 +609,7 @@ const JOBS=[
   desc:'Run the Cedar Point car ferry: four landings across the river below the bridge, cars off and on at each, and the river traffic still coming up.',
   stops:[{kind:'ferry',name:'Mill Creek Landing',d:905,side:-1,on:4},{kind:'ferry',name:'Cedar Point Landing',d:905,side:1,on:3},{kind:'ferry',name:'Mill Creek Landing',d:905,side:-1,on:4},{kind:'ferry',name:'Cedar Point Landing',d:905,side:1,on:0}]},
  // bunkering: the barge starts loaded; a cargo ship lies at anchor mid-river and takes the fuel through her own hose crane
- {id:'bunker',n:'Bunker a Ship',sub:'Job · Ship at anchor',boats:['tug','atb'],start:690,load:97,par:210,pars:{atb:255},pay:150,
+ {id:'bunker',n:'Bunker a Ship',sub:'Job · Ship at anchor',boats:['tug','atb'],start:690,load:97,par:210,pars:{atb:235},pay:150,
   desc:'Take a loaded fuel barge alongside MV Northern Star, at anchor mid-river, and pump her bunkers aboard with the ship\'s hose crane.',
   stops:[{kind:'fuel',dir:'discharge',name:'MV Northern Star',d:935,side:-1,ship:true,lat:-1}]},
  // river tour: slow down at each sight so the passengers can take photos, keep the ride smooth, and land them at the excursion pier
@@ -1252,7 +1251,8 @@ function bodyCircles(){const out=[],fx=Math.sin(T.a),fd=Math.cos(T.a);for(const[
   else for(const o of B.offs||[-4,0,4])out.push({x:B.x+Math.sin(B.a)*o,d:B.d+Math.cos(B.a)*o,r:B.rad||2.4,who:B,part:'cargo'})}return out}
 function collide(){const C=bodyCircles();
  const test=(o,cx,cd,cr,mov)=>{for(const c of C){const dx=c.x-cx,dd=c.d-cd,rr=c.r+cr,d2=dx*dx+dd*dd;if(d2>=rr*rr)continue;const dist=Math.sqrt(d2)||1e-3,nx=dx/dist,nd=dd/dist,pen=rr-dist,W=c.who;
-   W.x+=nx*pen;W.d+=nd*pen;const ovx=o.vx||0,ovd=o.vd||0,vn=(W.vx-ovx)*nx+(W.vd-ovd)*nd;
+   // move the boat's other circles with it, so overlapping obstacle circles (an anchored ship's hull) don't each push it out again
+   W.x+=nx*pen;W.d+=nd*pen;for(const q of C)if(q.who===W){q.x+=nx*pen;q.d+=nd*pen}const ovx=o.vx||0,ovd=o.vd||0,vn=(W.vx-ovx)*nx+(W.vd-ovd)*nd;
    if(vn<0){const k=mov?.6:1.35;W.vx-=nx*vn*k;W.vd-=nd*vn*k;
     // floating things get shoved off to the side of the boat's track, so a wide bow doesn't bulldoze a log down the river
     if(mov&&!o.big){o.vx+=nx*vn*.9;o.vd+=nd*vn*.9;if(o.k!=='boat'){const fx=Math.sin(W.a),fd=Math.cos(W.a),sd=((o.x-W.x)*fd-(o.d-W.d)*fx)>=0?1:-1;o.vx+=fd*sd*2.6;o.vd-=fx*sd*2.6}}
@@ -1468,6 +1468,8 @@ function buildDocks(){SLACK=[];while(dockGroup.children.length){const o=dockGrou
    D.pads=[-6,0,6].map(z=>{const pd=new THREE.Mesh(new THREE.PlaneGeometry(2.8,2.8).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:padTex,transparent:true}));pd.position.set(s*5.6,2.42,z);g.add(pd);return{v:new THREE.Vector3(s*5.6,2.42,z),yaw:null,stackOn:null}});
    for(let i=0;i<4;i++)box(1.2,.8,1.2,new THREE.MeshStandardMaterial({color:0x8b6a42,roughness:.9}),s*(10.5+(i%2)*1.4),2.8+(i>1?.8:0),-15+(i%2)*1.3,g)}}}
  if(tourJob())buildSights();
+ // a clear approach: no rocks or loose logs in the last 110 m before a job's berth, on its side of the river, so swinging in to come alongside isn't a trap
+ if(isJob())for(const D of DOCKS)for(const o of OB){if(o.k!=='rock'&&o.k!=='log'||o.d<D.d-110||o.d>D.d+D.len/2+10)continue;const r=riv(o.d,{});if((o.x-r.c)*D.side>D.face*D.side-18){o.off=true;o.m.visible=false}}
  if(driveJob()){addDriveLogs();for(const o of OB)if(!o.drive&&(o.k==='log'||o.d>DOCKS[0].d-40&&o.d<DOCKS[0].d+40)&&o.d>JOBD().start-20&&o.d<DOCKS[0].d+60){o.off=true;o.m.visible=false}}
  if(searchJob()){buildSwimmers();for(const o of OB)if(SWIM.some(q=>Math.abs(o.d-q.d)<25)){o.off=true;o.m.visible=false}}else SWIM=[];
  dockGroup.updateMatrixWorld(true);
@@ -2300,6 +2302,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  const raw=now-last,dt=Math.min(.05,raw/1000);last=now;perfTick(raw);tick(dt,now/1000);
  R.render(scene,cam);if(!booted)bootDone();requestAnimationFrame(frame)}
 // one step of the game: physics, hazards, effects, camera and audio (the QA scripts call it directly to fast-forward)
+let lastGood=null;
 function tick(dt,t){
  hornT-=dt;
  if(state==='play'){runT+=dt;T.cool-=dt;for(const B of BG)B.cool-=dt;sandCD-=dt;
@@ -2309,7 +2312,10 @@ function tick(dt,t){
   pullJ=0;const thr=thrInput(),fw=boatTick(dt,steerInput(),thr);bargeTick(dt);if(!isJob())recordTick(dt);
   // rolling coal: the diesel smokes black when it is working hard, accelerating a heavy boat or yanked back by the tow line
   {const need=clamp(Math.abs(thr)-Math.abs(fw)/spec.top-.15,0,1)*1.8+(spec.rigid?Math.abs(thr)*.18:0),tow=clamp(pullJ/dt*.06,0,1.2),shove=SH&&SH.push>.02?.2+SH.push*.85:0;coal+=(clamp(Math.max(need,tow,shove),0,1)-coal)*Math.min(1,dt*3);
-   if(coal>.6){stats.coal+=dt;if(!coalPop&&coal>.85&&boatM.userData.stack){coalPop=true;popText('Rolling <b>coal!</b>')}}}if(spec.cannon)cannonTick(dt);hazardsTick(dt);collide();cansTick();if(spec.crane&&!isJob())swingTick(dt,Math.hypot(T.vx,T.vd));
+   if(coal>.6){stats.coal+=dt;if(!coalPop&&coal>.85&&boatM.userData.stack){coalPop=true;popText('Rolling <b>coal!</b>')}}}if(spec.cannon)cannonTick(dt);hazardsTick(dt);collide();
+  // safety net: if the boat is ever pinched so hard its numbers go bad, put it back where it last was, stopped
+  if(Number.isFinite(T.x+T.d+T.a+T.vx+T.vd+T.av))lastGood={x:T.x,d:T.d,a:T.a};else if(lastGood){Object.assign(T,lastGood,{vx:0,vd:0,av:0})}
+  cansTick();if(spec.crane&&!isJob())swingTick(dt,Math.hypot(T.vx,T.vd));
   const r=riv(T.d);if(r.rp>.5&&!inRapids){inRapids=true;rapHit=false;banner('White water','Rapids!','Current ×3')}else if(r.rp<.2&&inRapids){inRapids=false;if(!rapHit){missionEvent('clean');popText('Clean <b>run</b>')}}
   if(coachT>0){coachT-=dt;if(coachT<=0)show('coach',0)}
   if(isJob()){if(T.d>LV.len+40)endRun('missed')}else if(T.d>=LV.len)endRun('finish')}
