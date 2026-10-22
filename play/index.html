@@ -557,6 +557,9 @@ const GLOWS=[{n:'Off',c:null},{n:'Ice',c:'#36cfff'},{n:'Violet',c:'#b44bff'},{n:
 const BAYS=[{n:'Factory'},{n:'Blue Six'}],HALOS=[{n:'Off'},{n:'On'}];
 // cabin: street seats come with every car; racing buckets with harnesses, and the full race cabin with a roll cage, are bought looks
 const CABINS=[{n:'Street'},{n:'Racing seats'},{n:'Full race'}];
+// tire smoke and boost flame colours ('rainbow' cycles through hues); the first of each is the free classic look
+const SMOKES=[{n:'White',c:null},{n:'Red',c:'#ff3b30'},{n:'Blue',c:'#3a8dff'},{n:'Yellow',c:'#ffd23a'},{n:'Purple',c:'#a64dff'},{n:'Black',c:'#2a2a2e'},{n:'Rainbow',c:'rainbow'}];
+const TRAILS=[{n:'Classic',c:null},{n:'Blue flame',c:'#3fa9ff'},{n:'Green',c:'#4dff7a'},{n:'Purple',c:'#b45cff'},{n:'Pink',c:'#ff4fb0'},{n:'Rainbow',c:'rainbow'}];
 // liveries: painted designs projected onto the body. Each draws three 1024×512 regions of one texture: the right side,
 // the left side and the top, in "side space" (x from the rear to the nose; y 150 is the beltline and y 400 the sill on
 // every car, so designs fill the door panels whatever the model; `k` squeezes x so round shapes stay round on the car). The left side shows the texture mirrored, which keeps flames running
@@ -602,10 +605,10 @@ function liveryTex(L,M){const k=(1024/M.L)/(250/(M.belt-M.y0));const c=document.
  const t=new THREE.CanvasTexture(c);t.premultiplyAlpha=true;t.anisotropy=ANISO;t.needsUpdate=true;return t}
 // shared clock for animated paints, and an empty texture for effect paints that have no design to draw
 const LIV_T={value:0};let livBlank=null;const blankLiv=()=>livBlank||(livBlank=Object.assign(new THREE.DataTexture(new Uint8Array(4),1,1,THREE.RGBAFormat),{needsUpdate:true}));
-const LISTS={bay:BAYS,halo:HALOS,paint:PAINTS,finish:FINISHES,roof:ROOFS,tint:TINTS,rimStyle:RIMS,rimSize:RIMSIZES,wheels:WHEELS,tires:TIRES,caliper:CALIPERS,ride:RIDES,spoiler:SPOILERS,lip:LIPS,skirts:SKIRTS,kit:KITS,stripeStyle:STRIPE_STYLES,stripeColor:STRIPE_COLS,lights:LIGHTS,glow:GLOWS,cabin:CABINS,livery:LIVERIES};
+const LISTS={bay:BAYS,halo:HALOS,paint:PAINTS,finish:FINISHES,roof:ROOFS,tint:TINTS,rimStyle:RIMS,rimSize:RIMSIZES,wheels:WHEELS,tires:TIRES,caliper:CALIPERS,ride:RIDES,spoiler:SPOILERS,lip:LIPS,skirts:SKIRTS,kit:KITS,stripeStyle:STRIPE_STYLES,stripeColor:STRIPE_COLS,lights:LIGHTS,glow:GLOWS,cabin:CABINS,livery:LIVERIES,smoke:SMOKES,trail:TRAILS};
 const TABS=[{id:'paint',n:'Paint',opts:[['paint','Paint','sw'],['finish','Finish','chip'],['roof','Roof & pillars','sw'],['tint','Window tint','sw']]},
  {id:'wheels',n:'Wheels',opts:[['rimStyle','Rim style','chip'],['rimSize','Rim size','chip'],['wheels','Rim color','sw'],['tires','Tires','chip'],['caliper','Brake calipers','sw'],['ride','Ride height','chip']]},
- {id:'style',n:'Style',opts:[['livery','Livery','chip'],['lip','Front lip','chip'],['skirts','Side skirts','chip'],['kit','Lip & skirt finish','sw'],['spoiler','Spoiler','chip'],['stripeStyle','Stripes','chip'],['stripeColor','Stripe color','sw'],['lights','Headlights','sw'],['halo','Halo rings','chip'],['cabin','Cabin','chip'],['glow','Underglow','sw'],['plate','License plate','text']]},{id:'engine',n:'Engine',opts:[]}];
+ {id:'style',n:'Style',opts:[['livery','Livery','chip'],['lip','Front lip','chip'],['skirts','Side skirts','chip'],['kit','Lip & skirt finish','sw'],['spoiler','Spoiler','chip'],['stripeStyle','Stripes','chip'],['stripeColor','Stripe color','sw'],['lights','Headlights','sw'],['halo','Halo rings','chip'],['cabin','Cabin','chip'],['glow','Underglow','sw'],['smoke','Tire smoke','sw'],['trail','Boost flame','sw'],['plate','License plate','text']]},{id:'engine',n:'Engine',opts:[]}];
 const DEF={coupe:[0,0,0],rally:[7,1,0],sedan:[13,3,1],muscle:[2,4,0],suv:[4,0,0],pickup:[15,4,1],super:[12,2,1],hyper:[8,3,1]};
 const PERF=[
  {id:'engine',n:'Engine',lv:['Stock','Street','Sport','Race'],cost:[0,15,35,70],pow:[0,.05,.1,.16]},
@@ -614,7 +617,7 @@ const PERF=[
  {id:'exhaust',n:'Exhaust',lv:['Stock','Headers','Race'],cost:[0,10,25],pow:[0,.03,.05]},
  {id:'tires',n:'Tire compound',lv:['Street','Sport','Semi-slick','Slick'],cost:[0,15,35,60],grip:[0,.06,.12,.18]},
  {id:'susp',n:'Suspension',lv:['Stock','Lowered','Coilovers','Race'],cost:[0,15,35,60],grip:[0,.05,.1,.15]}];
-function defLook(id){const d=DEF[id]||[0,0,0];return{paint:d[0],finish:d[2],roof:0,tint:1,rimStyle:d[1],rimSize:1,wheels:0,tires:0,caliper:0,ride:1,spoiler:0,stripeStyle:id==='muscle'||id==='coupe'?1:0,stripeColor:0,lights:0,glow:0,plate:'SWERVY',bay:0,halo:0,cabin:0,livery:0,lip:0,skirts:0,kit:0}}
+function defLook(id){const d=DEF[id]||[0,0,0];return{paint:d[0],finish:d[2],roof:0,tint:1,rimStyle:d[1],rimSize:1,wheels:0,tires:0,caliper:0,ride:1,spoiler:0,stripeStyle:id==='muscle'||id==='coupe'?1:0,stripeColor:0,lights:0,glow:0,plate:'SWERVY',bay:0,halo:0,cabin:0,livery:0,smoke:0,trail:0,lip:0,skirts:0,kit:0}}
 
 let best=num(store.get('best',0),0),cans=num(store.get('cans',0),0),unlocked=store.get('unlocked',['coupe']),muted=store.get('muted',false)===true;
 unlocked=Array.isArray(unlocked)?unlocked.filter((id,i,a)=>MODELS[id]&&a.indexOf(id)===i):[];if(!unlocked.includes('coupe'))unlocked.unshift('coupe');
@@ -624,7 +627,7 @@ for(const k of['haptics','shake','flip','music'])settings[k]=settings[k]!==false
 const sideH=()=>settings.flip?'right':'left',sideR=()=>settings.flip?'left':'right';
 // premium styling: some looks cost cans, bought once and then usable on every car, so there is always something to save for;
 // a car's factory look is always free, and options a save already used before prices existed stay owned
-const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140],livery:[0,200,150,150,200,350,250,300,300,800,900,750,600]};
+const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140],livery:[0,200,150,150,200,350,250,300,300,800,900,750,600],smoke:[0,60,60,60,60,60,150],trail:[0,80,80,80,80,200]};
 let owned=new Set((v=>Array.isArray(v)?v.filter(x=>typeof x==='string'):[])(store.get('owned',[]))),pv=null;
 const isOwned=(id,k,i)=>!PRICE[k]||!PRICE[k][i]||owned.has(k+':'+i)||defLook(id)[k]===i;
 // daily deals: four looks the player doesn't own, 25-40% off until midnight. The first is a livery while any are left
@@ -1297,7 +1300,16 @@ const smoke=[],sparks=[];
 for(let i=0;i<48;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);smoke.push({s,life:0})}
 for(let i=0;i<60;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:sparkTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));s.visible=false;scene.add(s);sparks.push({s,life:0,v:new THREE.Vector3()})}
 let smI=0,spI=0;
-function puff(x,z){const p=smoke[smI++%smoke.length];p.life=1;p.s.visible=true;p.s.position.set(x+(Math.random()-.5)*.3,.35,z+(Math.random()-.5)*.3);p.s.scale.setScalar(.8)}
+// the colour of tire smoke or boost flame right now (rainbow walks round the hue wheel)
+const fxCol=new THREE.Color(),fxV=new THREE.Vector3();let fxPrevT=0;
+function fxColor(o,dflt){if(!o||!o.c)return fxCol.set(dflt);return o.c==='rainbow'?fxCol.setHSL((performance.now()/1600)%1,1,.58):fxCol.set(o.c)}
+// boost flames: two glowing sprites at the tail pipes while boosting, or while a flame is previewed in the garage
+const flames=[0,1].map(()=>{const f=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));f.visible=false;scene.add(f);return f});
+function updFlames(dt){if(fxPrevT>0)fxPrevT-=dt;const on=!!car&&((state==='play'&&boostT>0)||(state==='garage'&&fxPrevT>0&&cfg.trail>0));flames.forEach(f=>f.visible=on);
+ if(state==='garage'&&fxPrevT>0&&cfg.smoke>0&&car&&Math.random()<.35)for(const sd of[-1,1]){fxV.set(car.M.rwx,.3,sd*(car.M.W/2-.12));car.model.localToWorld(fxV);puff(fxV.x,fxV.z)}
+ if(!on)return;const col=fxColor(TRAILS[cfg.trail],'#ff9a2e');
+ flames.forEach((f,i)=>{fxV.set(-car.M.L/2-.25-Math.random()*.2,.36,(i?1:-1)*car.M.W*.2);car.model.localToWorld(fxV);f.position.copy(fxV);const k=.75+Math.random()*.5;f.scale.set(k*1.7,k*1.1,1);f.material.color.copy(col)})}
+function puff(x,z){const p=smoke[smI++%smoke.length];p.life=1;p.s.visible=true;const S=SMOKES[cfg.smoke];p.s.material.color.copy(fxColor(S,'#ffffff'));p.tint=!!(S&&S.c);p.s.position.set(x+(Math.random()-.5)*.3,.35,z+(Math.random()-.5)*.3);p.s.scale.setScalar(.8)}
 function burst(x,y,z,n,spd,col){for(let i=0;i<n;i++){const p=sparks[spI++%sparks.length];p.life=.7+Math.random()*.4;p.s.visible=true;p.s.position.set(x,y,z);p.s.material.color.set(col);p.v.set((Math.random()-.5)*spd,Math.random()*spd*.7,(Math.random()-.5)*spd);p.s.scale.setScalar(.35)}}
 const skidN=700,skidMesh=new THREE.InstancedMesh(new THREE.PlaneGeometry(.22,.62).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0x101012,transparent:true,opacity:.45,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}),skidN);
 skidMesh.frustumCulled=false;scene.add(skidMesh);let skI=0;const ZERO=new THREE.Matrix4().makeScale(0,0,0);
@@ -1806,7 +1818,7 @@ function celebrateUnlock(M){const el=$('unlockFx');el.innerHTML=`<small>New car 
 
 /* ---------- garage UI ---------- */
 let tab='paint',plateT=0;
-function swBg(o){return o.c==='carbon'?'background:repeating-conic-gradient(#3a3d44 0 25%,#141619 0 50%) 0 0/8px 8px':o.c==='body'?'background:'+PAINTS[cfg.paint].c:o.c?'background:'+o.c:''}
+function swBg(o){return o.c==='rainbow'?'background:conic-gradient(#ff3b30,#ffd23a,#4dff7a,#3a8dff,#a64dff,#ff3b30)':o.c==='carbon'?'background:repeating-conic-gradient(#3a3d44 0 25%,#141619 0 50%) 0 0/8px 8px':o.c==='body'?'background:'+PAINTS[cfg.paint].c:o.c?'background:'+o.c:''}
 // the garage pills share one row with the logo, so very large totals are shortened (123k, 9.99M); exact numbers stay elsewhere
 function fmtShort(n){n=Math.floor(n);return n<1e4?fmt(n):n<1e5?(Math.floor(n/100)/10).toFixed(1)+'k':n<1e6?Math.floor(n/1e3)+'k':(n/1e6).toFixed(n<1e7?2:1)+'M'}
 function renderGarage(){checkAch();renderAch();$('shopDot').hidden=store.get('dealsSeen','')===todayKey();
@@ -1827,7 +1839,7 @@ function renderGarage(){checkAch();renderAch();$('shopDot').hidden=store.get('de
    return kind==='sw'?`<button class="sw ${o.c===null?'none':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" style="${swBg(o)}" aria-label="${lab}" title="${lab}" data-k="${key}" data-i="${i}" ${lk?`data-p="${p}"`:''}></button>`:`<button class="chip ${o.leg?'leg':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" aria-label="${lab}" data-k="${key}" data-i="${i}">${o.n}${lk?` <small class="pz${sale?' sale':''}"><span class="can"></span>${p}</small>`:''}</button>`}).join('');
   return`<div class="opt"><span>${label}${kind==='sw'?` <em>${cur.n}</em>`:''}</span><div class="row">${items}</div></div>`}).join('');
  $('opts').querySelectorAll('.row').forEach((r,i)=>{if(keep[i])r.scrollLeft=keep[i]});
- $('opts').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=+b.dataset.i;if(pv&&pv.k!==k)cancelPreview(false);
+ $('opts').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=+b.dataset.i;if(k==='smoke'||k==='trail')fxPrevT=4;if(pv&&pv.k!==k)cancelPreview(false);
   if(isOwned(cfg.model,k,i)){if(pv)cancelPreview(false);cfg[k]=i;saveCfg();rebuildCar();renderGarage();return}
   // a locked look is tried on first; the Drive button turns into its Buy button until the player buys or backs out
   if(!pv)pv={k,prev:cfg[k]};cfg[k]=i;rebuildCar();renderGarage()});
@@ -1884,7 +1896,7 @@ function drawFx(dt,sf){const k=state==='play'&&!RM.matches?(boostT>0?1:clamp((sf
  const w=fxC.width,h=fxC.height,cx=w/2,cy=h*.4,D=Math.hypot(w,h)*.55;fxG.clearRect(0,0,w,h);fxG.lineCap='round';
  for(const s of STREAKS){s.r+=s.v*dt*(1+k*1.5);if(s.r>1.1){s.r=.35+Math.random()*.15;s.a=Math.random()*Math.PI*2}
   const c=Math.cos(s.a),n=Math.sin(s.a),r0=s.r*D,r1=(s.r+s.len*(1+k))*D,al=(.1+.3*k)*Math.min(1,(s.r-.35)*4);
-  fxG.strokeStyle=`rgba(255,248,232,${al})`;fxG.lineWidth=1.5+k*2;fxG.beginPath();fxG.moveTo(cx+c*r0,cy+n*r0);fxG.lineTo(cx+c*r1,cy+n*r1);fxG.stroke()}}
+  const tc=boostT>0&&cfg.trail>0?fxColor(TRAILS[cfg.trail]):null;fxG.strokeStyle=tc?`rgba(${tc.r*255|0},${tc.g*255|0},${tc.b*255|0},${Math.min(1,al*1.6)})`:`rgba(255,248,232,${al})`;fxG.lineWidth=1.5+k*2;fxG.beginPath();fxG.moveTo(cx+c*r0,cy+n*r0);fxG.lineTo(cx+c*r1,cy+n*r1);fxG.stroke()}}
 // true when the player can afford a locked car or an upgrade on the car they drive, so the Garage button gets a dot
 function canSpend(){if(ORDER.some(id=>!unlocked.includes(id)&&cans>=MODELS[id].price))return true;const P=perfFor(lastDriven);return PERF.some(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1])}
 
@@ -1940,7 +1952,8 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  const t=now/1000;MT.boost.map.offset.y=-((t*1.6)%1);// chevrons stream forward
  for(const[,ch]of chunks)for(const k of ch.cans)if(!k.got){k.m.position.y=1+Math.sin(t*2.5+k.ph)*.15;k.m.rotation.y=t*1.6+k.ph;k.r.material.opacity=.4+Math.sin(t*4+k.ph)*.15}
  // particles
- for(const p of smoke){if(p.life<=0)continue;p.life-=dt*.9;p.s.position.y+=dt*.7;p.s.scale.setScalar(.8+(1-p.life)*3.2);p.s.material.opacity=Math.max(0,p.life)*.32;if(p.life<=0)p.s.visible=false}
+ for(const p of smoke){if(p.life<=0)continue;p.life-=dt*.9;p.s.position.y+=dt*.7;p.s.scale.setScalar(.8+(1-p.life)*3.2);p.s.material.opacity=Math.max(0,p.life)*(p.tint?.5:.32);if(p.life<=0)p.s.visible=false}
+ updFlames(dt);
  for(const p of sparks){if(p.life<=0)continue;p.life-=dt;p.v.y-=14*dt;p.s.position.addScaledVector(p.v,dt);if(p.s.position.y<.05){p.s.position.y=.05;p.v.y*=-.4}p.s.material.opacity=Math.max(0,p.life);if(p.life<=0)p.s.visible=false}
  // camera
  if(state==='garage'&&car.engineOn){const B=car.bay,ctr=car.engine.localToWorld(new THREE.Vector3((B.xb0+B.xb1)/2,B.fy+.3,0)),fw=new THREE.Vector3(1,0,0).transformDirection(car.model.matrixWorld),sd=new THREE.Vector3(0,0,1).transformDirection(car.model.matrixWorld);
