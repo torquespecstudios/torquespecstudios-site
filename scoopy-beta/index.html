@@ -4,7 +4,7 @@
 <!-- SCOOPY by Torque Spec Studios: game 4 of the family, built on the Swervy codebase (same single-file layout, save store,
      HUD, menus, audio engine and native iOS hooks) so all the games look and feel like one family -->
 <title>Scoopy (beta)</title>
-<meta name="description" content="Scoopy is a free one-tap excavator game by Torque Spec Studios. Tap to swing lanes, scoop the dirt, load the trucks and dodge the hazards on the job site.">
+<meta name="description" content="Scoopy is a free one-tap excavator game by Torque Spec Studios. Tap left or right to swing lanes, scoop the dirt, load the trucks and dodge the hazards on the job site.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -306,6 +306,12 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .mcard.ready .mt{color:var(--amber)}
 @keyframes glow{50%{box-shadow:0 0 0 3px rgba(255,194,26,.35)}}
 @media (prefers-reduced-motion:reduce){.mcard.ready,.medal.on,.part.just{animation:none}}
+/* left and right tap zones: big chevrons at the screen edges, faint until tapped */
+.steer{position:fixed;top:50%;transform:translateY(-50%);font-family:var(--display);font-weight:800;font-size:84px;line-height:1;color:var(--ink);opacity:.28;pointer-events:none;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+#stL{left:max(10px,env(safe-area-inset-left,0px))}#stR{right:max(10px,env(safe-area-inset-right,0px))}
+.steer.hit{animation:stHit .35s ease-out}
+@keyframes stHit{0%{opacity:.9;color:var(--amber);transform:translateY(-50%) scale(1.25)}100%{opacity:.28;transform:translateY(-50%)}}
+@media (prefers-reduced-motion:reduce){.steer.hit{animation:none}}
 /* boot screen: covers the scene until the first 3D frame is drawn (slow phones compile shaders on first launch), then fades out */
 #boot{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#1b1712;color:var(--ink);transition:opacity .35s ease}
 #boot .logo{font-size:64px}
@@ -354,13 +360,14 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
   <div class="meter" id="bucketM"><div class="lab">Bucket <b id="bucketN">0/3</b></div><div class="bpips" id="bPips"></div></div>
   <div class="meter" id="fuelM"><div class="lab">Diesel <b id="fuelN">100%</b></div><div class="fbar"><i id="fuelBar"></i></div></div>
 </div>
+<div class="steer" id="stL" hidden>‹</div><div class="steer" id="stR" hidden>›</div>
 <div id="tchip" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 6h11v4h3.6a2 2 0 0 1 1.7 1l2.4 3.8a2 2 0 0 1 .3 1V18h-2a2.5 2.5 0 0 1-5 0H9a2.5 2.5 0 0 1-5 0H2V6zm13 6v2.5h4.6L18 12h-3zM6.5 17a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm10 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg><span id="tchipT">Truck</span><i class="tt" id="tchipBar"></i></div>
 
 <div class="center" id="ready" hidden>
   <div class="lvl" id="readyL">House Pad</div>
   <p class="goal" id="readyGoal"></p>
   <div class="disp" id="readyT">Tap to start the job</div>
-  <p id="readyS">Tap to swing lanes<br>Scoop dirt · load the trucks</p>
+  <p id="readyS">Tap left or right to swing lanes<br>Scoop dirt · load the trucks</p>
   <div class="mlist" id="rMissions"></div>
 </div>
 
@@ -375,7 +382,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
   <div class="card" role="dialog" aria-label="How to play">
     <h2 class="disp">How to play</h2>
     <div class="help">
-      <b>Swinging lanes</b><p>Tap anywhere (or Space) to swing one lane. At the edge the swing turns around, so taps sweep left, right, left. The yellow arrows beside your tracks show where the next tap goes.</p>
+      <b>Swinging lanes</b><p>Tap the left side of the screen to swing one lane left, and the right side to swing one lane right (or use ← → or A D).</p>
       <b>Scooping</b><p>Drive over dirt piles and the bucket scoops them by itself. Piles in a line build a combo up to x5. The bucket meter is bottom left: with a full bucket, another pile spills, costs 100 points and breaks the combo.</p>
       <b>Loading trucks</b><p>A haul truck backs up on the left or right haul road. Sit in the lane next to it and you swing over and dump automatically. Six scoops fill a truck: +500 and fuel cans. Trucks only wait so long.</p>
       <b>Hazards</b><p>Cones, survey stakes, open trenches and the foreman's pickup wreck you. Spray-painted marks are buried utility lines: hitting one ends the job, even with a hard hat.</p>
@@ -424,7 +431,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 <div class="center" id="count" hidden>
   <div class="disp" id="countN">3</div>
-  <p id="countS">Get ready · tap to swing lanes</p>
+  <p id="countS">Get ready · tap left or right</p>
 </div>
 
 <div class="center" id="settings" hidden>
@@ -438,7 +445,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next job</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Scoopy beta v1 · by Torque Spec Studios</p>
+    <p class="ver">Scoopy beta v2 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -661,7 +668,7 @@ const MT={
  lath:std('#d9b88a',.9),pink:std('#ff2e8e',.6,0,{emissive:0xff1a7a,emissiveIntensity:.45,side:THREE.DoubleSide}),
  can:std('#ffc21a',.35,.35,{emissive:0x402800}),canDk:std('#2b2b2b',.5,.4),hat:std('#f6f6f2',.3,.05),hatBand:std('#ff7a1a',.5),cup:std('#f4efe6',.5),sleeve:std('#8a5a32',.8),lid:std('#2a1d14',.5),
  white:std('#f1f1ee',.45,.1),red:std('#c8321e',.5,.15),orange:std('#ef6a1c',.55,.15),steel:std('#5b5f66',.45,.6),dark:std('#1d1f22',.85,.1),
- glass:std('#1a2a3a',.08,.6,{envMapIntensity:1.2}),tire:std('#161616',.95),hub:std('#9a9ea4',.4,.7),
+ glass:std('#1a2a3a',.08,.6,{envMapIntensity:1.2}),cabGlass:std('#7fa3be',.08,.55,{envMapIntensity:1.5}),tire:std('#161616',.95),hub:std('#9a9ea4',.4,.7),
  beacon:new THREE.MeshBasicMaterial({color:0xffa31a}),ring:c=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false}),
  wood:std('#c79a62',.9),woodD:std('#8a6238',.9),fence:std('#151515',.95,0,{side:THREE.DoubleSide}),blue:std('#2a6fd6',.5),green:std('#2f6b3a',.6),leaf:std('#4f7a34',.95,0,{flatShading:true}),leafD:std('#3a5f2a',.95,0,{flatShading:true}),
  siding:std('#e8e1d2',.8),roof:std('#5a5550',.85),orangeFence:std('#ff6a10',.7,0,{side:THREE.DoubleSide,transparent:true,opacity:.85})};
@@ -708,7 +715,9 @@ function buildMachine(id){const M=MACHINES[id],root=new THREE.Group(),pc=PAINTS[
  // rear warning chevrons on the counterweight
  {const ch=canvasTex(128,32,(g,w,h)=>{for(let x=-32;x<w+32;x+=24){g.fillStyle='#1d1d1d';g.beginPath();g.moveTo(x,h);g.lineTo(x+12,h);g.lineTo(x+24,0);g.lineTo(x+12,0);g.fill()}});const pl=add(house,new THREE.PlaneGeometry(2.0,.3),new THREE.MeshStandardMaterial({map:ch,transparent:true,roughness:.6}),0,.62,1.685);pl.castShadow=false}
  add(house,box(.97,1.32,1.2),body,-.56,.96,-.42);
- add(house,box(.99,.7,1.08),MT.glass,-.56,1.2,-.48);
+ // cab windows: thin panes set into each face, leaving body-coloured pillars and a sill around them
+ add(house,box(.8,.52,.02),MT.cabGlass,-.56,1.24,-1.03);add(house,box(.8,.4,.02),MT.cabGlass,-.56,1.3,.19);
+ for(const x of[-1.055,-.065])add(house,box(.02,.52,.98),MT.cabGlass,x,1.24,-.43);
  add(house,box(1.04,.07,1.28),trim,-.56,1.65,-.42);
  add(house,new THREE.CylinderGeometry(.06,.07,.55,8),MT.dark,.62,1.25,.75);
  const bc=add(house,new THREE.CylinderGeometry(.08,.1,.14,10),MT.beacon,-.3,1.76,-.2);bc.castShadow=false;
@@ -965,7 +974,7 @@ const mult=()=>Math.min(T.COMBO_MAX,Math.max(1,C.combo)),coffeeX=()=>C.coffeeT>0
 function score(){return Math.max(0,Math.floor((C.d-T.START_D+bonus)*spec.mult))}
 
 function show(id,on){$(id).hidden=!on}
-function applyView(){const w=innerWidth,h=innerHeight;if(state==='yard'){if(w>=860&&w>=h)cam.setViewOffset(w,h,w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*.26,w,h)}else cam.clearViewOffset()}
+function applyView(){const w=innerWidth,h=innerHeight;if(state==='yard'){if(w>=860&&w>=h)cam.setViewOffset(w,h,w*.16,h*.04,w,h);else cam.setViewOffset(w,h,0,h*.2,w,h)}else cam.clearViewOffset()}
 function hideRunUI(){show('combo',0);document.querySelectorAll('.pop').forEach(e=>e.remove());show('mtoast',0);show('region',0);show('unlockFx',0);show('toBest',0);show('paused',0);show('count',0);show('pauseBtn',0);show('coach',0);show('tchip',0);show('newBest',0);show('revive',0);counting=0;coachT=0}
 function goYard(){state='yard';viewMach=cfg.mach;spec=specFor(viewMach);rebuildMachine(viewMach);resetWorld();hideRunUI();show('hud',0);show('bhud',0);show('ready',0);show('over',0);show('yard',1);renderYard();applyView();checkDaily()}
 function goReady(snap){viewMach=cfg.mach;spec=specFor(cfg.mach);if(mach.M!==MACHINES[cfg.mach]||mach.paint!==paintOf(cfg.mach))rebuildMachine(cfg.mach);
@@ -973,7 +982,7 @@ function goReady(snap){viewMach=cfg.mach;spec=specFor(cfg.mach);if(mach.M!==MACH
  const J=job();$('readyL').textContent=`Job ${cfg.job+1} · ${J.n}`;$('readyGoal').innerHTML=`Load <b>${J.goal} trucks</b> to finish the job · ${MEDALS[medals[J.id]]?'best medal '+MEDALS[medals[J.id]].toLowerCase():'no medal yet'}`;
  refreshMissions();renderMissions('rMissions');show('rMissions',!tut);applyView();updateHud();
  if(snap){cam.position.set(0,12,-C.d+12);lookT.set(0,0,-C.d-6)}}
-function startRun(){state='play';show('ready',0);show('pauseBtn',1);runBest=bests[job().id];beatBest=false;cause='';if(tut)coach('Tap to <b>swing lanes</b>')}
+function startRun(){state='play';show('ready',0);show('pauseBtn',1);runBest=bests[job().id];beatBest=false;cause='';if(tut)coach('Tap the <b>left</b> or <b>right</b> side to swing lanes')}
 
 /* ---------- spawning ---------- */
 // rows of site objects are spawned ~190 m ahead. Hazard rows always leave one lane open, and that open lane moves at most
@@ -1144,7 +1153,7 @@ function finishRun(){show('hud',0);show('bhud',0);hideRunUI();const J=job(),sc=s
  if(nb&&prevBest>0)maybeAskReview()}
 const TIPS=['Lines of three piles build a <b>combo</b>. Keep scooping to keep it going.','A full truck pays <b>+500</b>. Stay beside it until it pulls away.',
  'With a full bucket, <b>skip the piles</b>: each extra one costs you 100.','<b>Spray paint</b> marks a buried line. Even a hard hat can\'t save you there.',
- 'The yellow arrows by your tracks show which way the <b>next tap</b> swings.','<b>Coffee</b> doubles every point for a few seconds.',
+ 'Tap the <b>left</b> or <b>right</b> half of the screen to swing that way, one lane per tap.','<b>Coffee</b> doubles every point for a few seconds.',
  '<b>Hydraulics</b> upgrades dump faster and make trucks wait longer.','The <b>Marsh Buggy</b> floats straight over open trenches.'];
 function pickTip(){const J=job();if(!medals[J.id]){const left=J.goal-C.trucks;return C.trucks>0?`<b>${left}</b> more truck${left>1?'s':''} to finish ${J.n} and unlock the <b>${MACHINES[J.unlock].n}</b>.`:TIPS[1]}
  const nx=JOBS[cfg.job+1];if(nx&&medals[J.id]===1&&Math.random()<.4)return`<b>${nx.n}</b> is open. Pick it in the Yard.`;
@@ -1272,11 +1281,13 @@ function updateHud(){if(!C)return;$('score').innerHTML=fmt(score())+'<small>pts<
  $('runCans').textContent=runCans}
 
 /* ---------- input ---------- */
-// one tap swings the machine one lane; at the edge the swing direction flips, so taps sweep left, right, left across the site
-function press(){audioInit();if(state==='ready'){startRun();return}if(state!=='play')return;
- let n=C.lane+C.dir;if(n<0||n>2){C.dir=-C.dir;n=C.lane+C.dir}C.lane=n;if(C.lane===0||C.lane===2)C.dir=C.lane===0?1:-1;
+// tap the left half of the screen to swing one lane left, the right half to swing one lane right
+// (the first tap on the start screen just starts the job)
+function press(dir){audioInit();if(state==='ready'){startRun();return}if(state!=='play'||!dir)return;
+ flashSide(dir);const n=C.lane+dir;if(n<0||n>2){buzz(4);return}C.lane=n;
  sfx('swing');buzz(8);if(tut&&tutS===0){tutS=1}}
-canvas.addEventListener('pointerdown',e=>{e.preventDefault();if(state==='yard'){drag={x:e.clientX};return}press()});
+function flashSide(dir){const el=$(dir<0?'stL':'stR');el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit')}
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();if(state==='yard'){drag={x:e.clientX};return}press(e.clientX<innerWidth/2?-1:1)});
 let drag=null;
 window.addEventListener('pointermove',e=>{if(drag){orbA-=(e.clientX-drag.x)*.008;drag.x=e.clientX}});
 const up=()=>{drag=null};window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
@@ -1287,10 +1298,10 @@ window.addEventListener('blur',()=>{drag=null;pause()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
 window.addEventListener('keydown',e=>{
  if(e.code==='Escape'||e.code==='KeyP'){if(!$('settings').hidden){show('settings',0);return}if(state==='play')pause();else if(state==='paused'&&!counting)resume();return}
- if(e.code!=='Space'&&e.code!=='ArrowLeft'&&e.code!=='ArrowRight')return;
+ const dir={ArrowLeft:-1,KeyA:-1,ArrowRight:1,KeyD:1}[e.code]||0;if(e.code!=='Space'&&!dir)return;
  if(state==='over'){if(e.code==='Space'){e.preventDefault();if(!e.repeat)$('retry').click()}return}
  if(state==='yard'&&e.code==='Space'){e.preventDefault();if(!e.repeat)$('drive').click();return}
- if(state!=='ready'&&state!=='play')return;e.preventDefault();if(!e.repeat)press()});
+ if(state!=='ready'&&state!=='play')return;e.preventDefault();if(!e.repeat)press(dir)});
 document.addEventListener('touchmove',e=>{if(!e.target.closest('.sheet'))e.preventDefault()},{passive:false});
 $('pauseBtn').addEventListener('click',e=>{e.stopPropagation();pause()});
 $('resume').addEventListener('click',resume);
@@ -1391,12 +1402,13 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  // pickups bob and spin; the foreman's light bar flashes
  for(const o of OBJS){if(o.done)continue;const b=o.m.userData.b;if(b){b.position.y=1+Math.sin(t*2.5+o.d)*.12;b.rotation.y=t*1.6+o.d}if(o.bar)o.bar.material.color.setHSL(.09,1,Math.sin(t*14)>0?.62:.25)}
  // next-swing chevrons
- {const nl=C.lane+C.dir,show_=state==='play'||state==='ready';chev.visible=show_&&nl>=0&&nl<=2&&C.swingA<.2;if(chev.visible){const s=mach.M.scale;chev.position.set(C.x+C.dir*1.6*s,.03,-C.d+.6);chev.rotation.y=C.dir>0?0:Math.PI;chev.material.opacity=.45+.3*Math.sin(t*6)}}
+ // the left / right tap hints show while you can steer
+ {const sv=state==='ready'||state==='play'||(state==='paused'&&counting>0);if($('stL').hidden===sv){show('stL',sv);show('stR',sv)}}
  // particles
  for(const p of dust){if(p.life<=0)continue;p.life-=dt*.9;p.s.position.addScaledVector(p.v,dt);p.s.scale.setScalar(p.sz*(.8+(1-p.life)*2.6));p.s.material.opacity=Math.max(0,p.life)*.42;if(p.life<=0)p.s.visible=false}
  for(const p of clods){if(p.life<=0)continue;p.life-=dt;p.v.y-=14*dt;p.s.position.addScaledVector(p.v,dt);if(p.s.position.y<.05){p.s.position.y=.05;p.v.y*=-.3;p.v.x*=.6;p.v.z*=.6}p.s.material.opacity=Math.min(1,p.life*2);if(p.life<=0)p.s.visible=false}
  // camera
- if(state==='yard'){if(!drag)orbA+=dt*.2;const s=mach.M.scale,rr=(cam.aspect<1?14:11)*s;cam.fov=cam.aspect<1?50:38;cam.position.set(C.x+Math.sin(orbA)*rr,3.6*s+1.2,-C.d+Math.cos(orbA)*rr);cam.lookAt(C.x,1.5*s,-C.d)}
+ if(state==='yard'){if(!drag)orbA+=dt*.2;const s=mach.M.scale,rr=(cam.aspect<1?16:11)*s;cam.fov=cam.aspect<1?50:38;cam.position.set(C.x+Math.sin(orbA)*rr,3.6*s+1.2,-C.d+Math.cos(orbA)*rr);cam.lookAt(C.x,1.5*s,-C.d)}
  else{
   // chase cam, high and behind: far enough back that all three lanes (and a truck alongside) fit on a phone held upright
   const tanH=Math.tan(55*Math.PI/360)*cam.aspect,dist=clamp(4.4/tanH,10.5,19),cx=C.x*.55,k=state==='ready'?Math.min(1,dt*3):Math.min(1,dt*8);
