@@ -175,6 +175,9 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 #coach{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 200px);transform:translateX(-50%);width:max-content;max-width:calc(100% - 180px);padding:12px 20px;border-radius:14px;background:var(--glass);border:1px solid var(--hair);font-weight:700;font-size:16px;text-align:center;pointer-events:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 #coach b{color:var(--amber)}
 @media (max-width:500px){#coach{max-width:calc(100% - 32px)}}
+/* phones held upright: lesson tips and coaching sit just under the top meters, between the pause and sound buttons, instead of
+   in the lower middle, where the thumb drags to fly and (on shorter Android screens) the box covered the river and rings ahead */
+@media (pointer:coarse) and (max-width:600px) and (min-aspect-ratio:0/1) and (max-aspect-ratio:3/4){#coach{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max-width:calc(100% - 150px);padding:9px 14px;font-size:15px;text-wrap:balance}}
 /* weather overlays: storm gloom, cloud white-out and lightning flashes */
 #wx,#cloudFx,#flash{position:fixed;inset:0;pointer-events:none;opacity:0}
 #wx{background:radial-gradient(ellipse at center,rgba(20,26,36,.25),rgba(12,16,24,.85))}
@@ -478,7 +481,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v37 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v38 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
