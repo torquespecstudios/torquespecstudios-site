@@ -471,7 +471,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v36 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v37 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1571,7 +1571,7 @@ function drawCard(){const L=lastRun,W=1080,H=1350,c=document.createElement('canv
  g.font='800 34px "Barlow",system-ui,sans-serif';g.fillStyle='#f5f0e6';g.fillText((L.sub+' · '+L.course).toUpperCase(),W/2,264);
  g.font='800 italic 230px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.shadowColor='rgba(0,0,0,.35)';g.shadowBlur=30;g.fillText(clock(L.time),W/2,450);g.shadowBlur=0;
  g.font='700 44px "Barlow",system-ui,sans-serif';g.fillText(`${L.plane} · ${L.rings}/${L.ringsN} rings`,W/2,520);
- const tags=[];if(L.medal)tags.push([['','BRONZE','SILVER','GOLD'][L.medal],MEDAL_COL[L.medal]]);if(L.best)tags.push(['NEW BEST','#f5f0e6']);
+ const tags=[];if(L.medal)tags.push([['','BRONZE','SILVER','GOLD'][L.medal],MEDAL_COL[L.medal]]);if(L.best)tags.push([L.gain>=.05?`NEW BEST BY ${L.gain.toFixed(1)}S`:'NEW BEST','#f5f0e6']);
  g.font='800 40px "Barlow",system-ui,sans-serif';let tx=W/2-(tags.reduce((a,t)=>a+g.measureText(t[0]).width+64,0)+20*(tags.length-1))/2;
  for(const[t,col]of tags){const tw=g.measureText(t).width+64;g.fillStyle=col;g.beginPath();if(g.roundRect)g.roundRect(tx,560,tw,70,35);else g.rect(tx,560,tw,70);g.fill();g.fillStyle='#1d1508';g.fillText(t,tx+tw/2,608);tx+=tw+20}
  g.fillStyle='rgba(13,17,23,.78)';g.fillRect(0,H-190,W,190);g.fillStyle='#f2b33d';g.font='800 italic 92px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillText('CAN YOU BEAT IT?',W/2,H-102);
@@ -1998,7 +1998,7 @@ window.addEventListener('resize',resize);
 try{new ResizeObserver(()=>resize()).observe(document.documentElement)}catch(e){}
 
 // test hook for the QA scripts in qa/ (drives the plane and reads the state)
-window.__sky={shareText:()=>shareText(),get state(){return state},get T(){return T},get hull(){return hull},get runT(){return runT},get cans(){return cans},get runCans(){return runCans},get runRings(){return runRings},get pts(){return pts},get level(){return level},get xp(){return xp},get missions(){return missions},setMissions:m=>{missions=m;store.set('missions',m)},setBest:(k,t)=>{bests[k]=t;delete medals[k]},checkDaily,get throttle(){return throttle},
+window.__sky={shareText:()=>shareText(),cardURL:()=>drawCard().toDataURL('image/png'),get state(){return state},get T(){return T},get hull(){return hull},get runT(){return runT},get cans(){return cans},get runCans(){return runCans},get runRings(){return runRings},get pts(){return pts},get level(){return level},get xp(){return xp},get missions(){return missions},setMissions:m=>{missions=m;store.set('missions',m)},setBest:(k,t)=>{bests[k]=t;delete medals[k]},checkDaily,get throttle(){return throttle},
  crs:d=>{const o=crs(d,{});return o},groundAt,lanePos,input:v=>{botIn=v},setThrottle,start:()=>{goReady();startCount()},garage:goGarage,select:id=>{sel=id;rebuildPlane();resetWorld();renderGarage()},course:i=>{loadCourse(i);resetWorld();renderGarage()},
  setCans:n=>{cans=n;store.set('cans',n);renderGarage()},unlockAll:()=>{unlocked=ORDER.slice();store.set('unlocked',unlocked);renderGarage()},
  rings:()=>RINGS.map(r=>({x:r.x,y:r.y,d:r.d,got:r.got})),obs:()=>OBS.map(o=>({k:o.k,x:o.x,d:o.d,y0:o.y0,y1:o.y1})),level:()=>CO,get courses(){return COURSES.filter(c=>!c.soon).length},get sel(){return sel},get renderer(){return R},
