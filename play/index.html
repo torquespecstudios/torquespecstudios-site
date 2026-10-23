@@ -2193,8 +2193,18 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  if(state==='play')missionEvent('tick');
  if(state==='play'&&(hudT+=dt)>.05){hudT=0;updateHud();checkAch()}
  drawFx(dt,sf);
- R.render(scene,cam);if(!booted)bootDone();requestAnimationFrame(frame)}
+ if(!booted)warmShaders();R.render(scene,cam);if(!booted)bootDone();requestAnimationFrame(frame)}
 // the first rendered frame means the shaders are compiled: fade out the loading screen and log how long startup took
+// shader warm-up, once behind the loading screen: draw one throwaway frame with the road pieces, a smoke and a spark
+// sprite, the boost flames and a tiny mesh for every shared world material visible, so the GPU compiles their shaders
+// now rather than when the player first taps Drive (a visible freeze) or meets boost pads and road rocks mid-run (stutters)
+function warmShaders(){const tmp=new THREE.Group(),geo=new THREE.BoxGeometry(.05,.05,.05),back=[];
+ // the best-distance flag makes its own materials, so a real one is placed in view for the warm-up and cleared after
+ const bd0=bestDist;bestDist=Math.max(bestDist,100);placeBestFlag();bestDist=bd0;if(bestFlag){bestFlag.position.set(C.x,0,-C.d-6);bestFlag.traverse(o=>o.frustumCulled=false)}
+ for(const m of Object.values(MT))if(m&&m.isMaterial){const o=new THREE.Mesh(geo,m);o.position.set(C.x,.3,-C.d);o.frustumCulled=false;o.castShadow=true;tmp.add(o)}
+ scene.add(tmp);for(const[,ch]of chunks){back.push([ch.grp,ch.grp.visible]);ch.grp.visible=true}
+ for(const o of[smoke[0].s,sparks[0].s,...flames]){back.push([o,o.visible]);o.visible=true;o.frustumCulled=false}
+ try{R.render(scene,cam)}catch(e){}back.forEach(([o,v])=>o.visible=v);for(const o of[smoke[0].s,sparks[0].s,...flames])o.frustumCulled=true;scene.remove(tmp);geo.dispose();placeBestFlag(true)}
 let booted=false;function bootDone(){booted=true;const b=$('boot');b.classList.add('gone');setTimeout(()=>b.remove(),400);console.log('[swervy] first frame '+Math.round(performance.now())+' ms')}
 
 function resize(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);fxC.width=w;fxC.height=h;cam.aspect=w/h;applyView();cam.updateProjectionMatrix()}
