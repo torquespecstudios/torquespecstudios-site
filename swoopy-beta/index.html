@@ -61,7 +61,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 @keyframes splitIn{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
 .split small{display:block;margin-top:2px;font-family:var(--body);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
 .split.ahead{color:var(--teal)}.split.behind{color:var(--red)}
-#runRings.gold{color:var(--amber)}
+#runRings.gold,#over #oMeta b.gold{color:var(--amber)}
 .hud-r{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .pill{display:flex;align-items:center;gap:7px;background:var(--glass);border:1px solid var(--hair);border-radius:999px;padding:6px 12px;font-weight:700;font-variant-numeric:tabular-nums;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .meter{font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:6px 11px}
@@ -360,7 +360,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
   .sheet{height:auto;position:absolute;right:max(16px,var(--safe-area-inset-right,env(safe-area-inset-right,0px)));top:84px;bottom:16px;width:380px;max-height:none;border-radius:20px;border:1px solid var(--hair);padding-left:18px;padding-right:18px}
   .drive-wrap{padding-bottom:16px}
 }
-@media (prefers-reduced-motion:reduce){#ready p,#warn{animation:none}}
+@media (prefers-reduced-motion:reduce){#ready p,#warn,.split{animation:none}}
 /* landscape phones: a compact results screen, buttons in one row */
 @media (max-height:500px) and (min-aspect-ratio:1/1){#over{gap:5px}#over .disp.t{font-size:40px}#over .dist{font-size:44px}#over .dist small{font-size:15px}#over .tip,#over .mlist{display:none}#over .medals{gap:10px;margin:0}#over .medal{width:76px;font-size:0;gap:2px}#over .medal i{width:24px;height:24px}#over .medal b{font-size:11px}#over .btns{grid-template-columns:1.6fr 1fr 1fr;width:min(520px,100%);margin-top:6px}#over #retry{grid-column:auto;font-size:22px}#over .btns.solo #toGarage{grid-column:auto}#over .oach{font-size:12px}}
 </style></head><body>
@@ -484,7 +484,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v46 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v47 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1688,7 +1688,7 @@ function finishRun(){const nextI=lvl+1,wasOpen=nextI<COURSES.length&&!COURSES[ne
  $('oTime').innerHTML=ok?clock(result.time)+(nb?`<small>New best!${gap?` ${dt}s faster`:''}</small>`:prevBest?(gap?`<small class="off">${dt}s off your best</small>`:'<small>Matched your best!</small>'):''):`${fmt(Math.min(CO.len,Math.max(0,T.d)))}<small>of ${fmt(CO.len)} m</small>`;
  const par=parOf(CO,sel),cond=[['Bronze','Finish'],['Silver',`Under ${clock(par*1.15)} · ${silverNeed()} rings`],['Gold',`Under ${clock(par)} · ${ringNeed()} rings`]];
  $('oMed').innerHTML=cond.map(([n,c],i)=>`<div class="medal m${i+1} ${m>i?'on':''}" style="animation-delay:${.15+i*.18}s"><i></i><b>${n}</b>${c}</div>`).join('');
- $('oMeta').innerHTML=`<span><span class="ring"></span> <b>${runRings}/${RINGS.length}</b></span><span><b>${fmt(pts)}</b> pts</span><span>Airframe <b>${Math.round(hull)}%</b></span>`+(spec.airliner?`<span>Cabin <b>${Math.round(cabin)}%</b></span>`:'')+`<span><span class="can"></span> <b>+${pay}</b></span>`+(prevBest&&!nb&&ok?`<span>Best <b>${clock(prevBest)}</b></span>`:'');
+ $('oMeta').innerHTML=`<span><span class="ring"></span> <b${runRings>=ringNeed()?' class="gold"':''}>${runRings}/${RINGS.length}</b></span><span><b>${fmt(pts)}</b> pts</span><span>Airframe <b>${Math.round(hull)}%</b></span>`+(spec.airliner?`<span>Cabin <b>${Math.round(cabin)}%</b></span>`:'')+`<span><span class="can"></span> <b>+${pay}</b></span>`+(prevBest&&!nb&&ok?`<span>Best <b>${clock(prevBest)}</b></span>`:'');
  const opened=nextI<COURSES.length&&!COURSES[nextI].soon&&!wasOpen&&courseOpen(nextI);
  $('oAch').hidden=!got.length&&!opened&&!isDaily;$('oAch').innerHTML=(isDaily?`Daily challenge done · cans ×2!`+(got.length||opened?'<br>':''):'')+(opened?`New course unlocked: ${COURSES[nextI].n}!`+(got.length?'<br>':''):'')+got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
  soClose(ok,m);
