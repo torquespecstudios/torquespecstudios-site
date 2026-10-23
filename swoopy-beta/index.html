@@ -62,6 +62,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .split small{display:block;margin-top:2px;font-family:var(--body);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
 .split.ahead{color:var(--teal)}.split.behind{color:var(--red)}
 #runRings.gold,#over #oMeta b.gold{color:var(--amber)}
+#readyTip .goal{display:block;margin-top:8px;color:var(--amber);font-weight:700;letter-spacing:.04em}
 .hud-r{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .pill{display:flex;align-items:center;gap:7px;background:var(--glass);border:1px solid var(--hair);border-radius:999px;padding:6px 12px;font-weight:700;font-variant-numeric:tabular-nums;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .meter{font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:6px 11px}
@@ -484,7 +485,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v47 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v48 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1378,6 +1379,8 @@ function goGarage(){if(tut){tut=null;show('coach',0)}state='garage';resetWorld()
 function goReady(){if(photo)closePhoto();tut=null;if(fresh&&fresh===sel){fresh='';store.set('fresh','')}if(!unlocked.includes(sel)){sel='bush';store.set('sel',sel);rebuildPlane()}
  state='ready';resetWorld();hideRunUI();show('garage',0);show('over',0);show('hud',1);show('ready',1);
  {const dp=dailyPick();$('readyL').textContent=(dp.course===lvl&&dp.plane===sel&&!dailyDoneToday()?'Daily challenge · ×2 cans · ':CO.sub+' · ')+CO.n}$('readyTip').innerHTML=spec.airliner?(spec.jet?'Flat out it turns <b>wide</b>: throttle back for bends. Keep it <b>smooth</b> for the passengers.':'Passengers aboard: gentle banks and smooth climbs keep the <b>Cabin</b> meter up, and a smooth flight pays more.'):spec.glider?'No engine: <b>dive</b> to gain speed, and fly into the swirling <b>thermals</b> to climb for free.':spec.scoop?'<b>Skim the river</b> to fill the tank, then fly low over a <b>wildfire</b> to drop it: <b>+250</b>.':spec.stunt?'Tap <b>ROLL</b> (or Space) for a barrel roll: <b>+150</b> if you don\'t hit anything.':spec.float?'Your floats can <b>skim the river</b>: touch down gently on the water for big points.':spec.dust?'A crop duster: <b>low passes</b> score double.':spec.jet?'Very fast, very wide turns. <b>Throttle back</b> before the canyon bends.':spec.cargo?'A <b>22 m wingspan</b>: thread the bridge piers carefully. Finishing pays ×1.6.':'Fly through the <b>gold rings</b> and stay low for bonus points. Ease off the <b>throttle</b> for tight turns.';
+ // the goal for this course and plane, before you take off: gold's time and rings, or your best once you've won it
+ {const k=CO.id+'_'+sel,won=num(medals[k],0)===3,b=num(bests[k],0);$('readyTip').innerHTML+=`<span class="goal">${won?`Gold ✓ · best <b>${clock(b)}</b>`:`Gold: under <b>${clock(parOf(CO,sel))}</b> · <b>${ringNeed()}</b> rings`}</span>`}
  refreshMissions();renderMissions('rMissions');
  $('readyS').innerHTML=TOUCH?'Drag to fly · throttle on the right':'← → bank · ↑ ↓ climb · Q E throttle';
  applyView();updateHud();snapCam()}
