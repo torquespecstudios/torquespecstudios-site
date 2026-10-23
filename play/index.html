@@ -18,7 +18,7 @@
 <meta name="apple-mobile-web-app-title" content="Swervy">
 <meta name="theme-color" content="#151a20">
 <link rel="apple-touch-icon" href="../img/swervy-icon.png">
-<link rel="icon" href="../img/favicon.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><script data-goatcounter="https://torquespecstudios.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<link rel="icon" href="../img/favicon.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Swervy (beta)</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;800&family=Barlow:wght@500;700&display=swap">
@@ -962,6 +962,14 @@ const _q=new THREE.Quaternion(),_e=new THREE.Euler(),_p=new THREE.Vector3(),_s=n
 function M4(x,y,z,ry,sx,sy,sz){_e.set(0,ry,0);_q.setFromEuler(_e);_p.set(x,y,z);_s.set(sx,sy==null?sx:sy,sz==null?sx:sz);return new THREE.Matrix4().compose(_p,_q,_s)}
 // cols (optional): a colour per instance, multiplied with the material colour, so no two trees or rocks look identical
 function inst(geo,mat,ms,cast,cols){if(!ms.length)return null;const m=new THREE.InstancedMesh(geo,mat,ms.length);ms.forEach((x,i)=>m.setMatrixAt(i,x));if(cols){cols.forEach((c,i)=>m.setColorAt(i,c));m.instanceColor.needsUpdate=true}m.instanceMatrix.needsUpdate=true;m.castShadow=cast;m.receiveShadow=true;m.frustumCulled=false;return m}
+// a wreck shouldn't play out behind a pine: while the crash cam watches, trees standing between it and the car (or around the
+// camera itself) are hidden. The four parts of a pine share one instance index; chunks are rebuilt every run, so nothing is restored
+const _hm=new THREE.Matrix4(),_hv=new THREE.Vector3(),HIDE_M=new THREE.Matrix4().makeScale(0,0,0);let hideT=0;
+function hideBlockers(){const ax=cam.position.x,az=cam.position.z,dx=C.x-ax,dz=-C.d-az,L=dx*dx+dz*dz;if(L<1)return;
+ for(const[,ch]of chunks){const parts=ch.inst.filter(m=>m.geometry===G.coneA||m.geometry===G.coneB||m.geometry===G.coneC||m.geometry===G.trunk),a=parts.find(m=>m.geometry===G.coneA);if(!a)continue;let hit=false;
+  for(let i=0;i<a.count;i++){a.getMatrixAt(i,_hm);_hv.setFromMatrixPosition(_hm);const r=1.8*Math.hypot(_hm.elements[0],_hm.elements[2])+.4,t=Math.max(0,Math.min(1,((_hv.x-ax)*dx+(_hv.z-az)*dz)/L));
+   if(t<.95&&Math.hypot(ax+dx*t-_hv.x,az+dz*t-_hv.z)<r){for(const m of parts)m.setMatrixAt(i,HIDE_M);hit=true}}
+  if(hit)for(const m of parts)m.instanceMatrix.needsUpdate=true}}
 
 const G={
  post:new THREE.BoxGeometry(.12,.95,.12).translate(0,.475,0),refl:new THREE.BoxGeometry(.135,.12,.135).translate(0,.8,0),
@@ -2176,7 +2184,9 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  else if(state==='garage'){if(!drag&&!photo)orbA+=dt*.22;if(unlockSpin>0){unlockSpin-=dt;orbA+=dt*2.4*Math.min(1,unlockSpin)}lookT.set(C.x,.6,-C.d);cam.fov=showroom.visible?(cam.aspect<1?60:40):(cam.aspect<1?46:34);const hh=Math.tan(cam.fov*Math.PI/360)*Math.min(cam.aspect,1.6),dist=Math.max(cam.aspect<1?8:10.5,(cam.aspect<1?3.2:5)/hh);const pd=Math.min(dist*(photo?photo.zoom:1),showroom.visible?SHOW_R-1.4:1e9),pp=photo?photo.pitch:.16;cam.position.set(C.x+Math.sin(orbA)*pd,.9+pd*pp,-C.d+Math.cos(orbA)*pd);cam.lookAt(C.x,.6,-C.d)}
  else{
   const k=state==='ready'?Math.min(1,dt*3):Math.min(1,dt*8);
-  if(state==='crash'||state==='over'||state==='revive'){desired.copy(cam.position);desired.y=Math.max(desired.y,4.4);cam.position.lerp(desired,Math.min(1,dt*2));lookD.set(C.x,.6,-C.d);lookT.lerp(lookD,Math.min(1,dt*4))}
+  // the crash cam holds its spot but drifts back over the road and up a little, so it never ends up parked inside a
+  // roadside pine (the car usually leaves the road, and the chase cam had followed it out over the verge)
+  if(state==='crash'||state==='over'||state==='revive'){const rc=road(Math.max(0,-cam.position.z)),hw=rc.w/2-.6;if((hideT-=dt)<=0){hideT=.2;hideBlockers()}desired.copy(cam.position);desired.x=rc.c+clamp(desired.x-rc.c,-hw,hw);desired.y=Math.max(desired.y,5.2);cam.position.lerp(desired,Math.min(1,dt*2));lookD.set(C.x,.6,-C.d);lookT.lerp(lookD,Math.min(1,dt*4))}
   // chase cam turns toward where the road is heading (a point mostly on the road ahead) so bends stay in view
   else{const ahead=14+C.v*.3,ra=road(C.d+ahead),yaw=Math.atan2((ra.c-C.x)*.75,ahead);
   camYaw+=(yaw-camYaw)*Math.min(1,dt*4);const sy=Math.sin(camYaw),cy=Math.cos(camYaw);
