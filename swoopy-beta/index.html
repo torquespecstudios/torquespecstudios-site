@@ -476,7 +476,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v32 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v33 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1460,9 +1460,14 @@ function boxTick(){const P=contactPoints();
    const m=Math.min(pu,pv,py0,py1),fresh=T.cool<=0;
    if(m===py1){T.y+=py1;T.vy=Math.max(T.vy,4)}else if(m===py0){T.y-=py0;T.vy=Math.min(T.vy,-4)}
    else if(m===pu){const s=Math.sign(u)||1,k=pu+1.5;T.x+=o.cs*s*k;T.d-=o.sn*s*k;if(fresh){T.a+=s*.3;T.bank*=.3;T.wx=s*8}}
+   else if(i>0){// a wingtip into the face of something is a glancing blow: slide toward the side the body is on, don't stop dead
+    // (a jumbo between two sea stacks had a tip in each and was knocked backwards for 10 s)
+    const s=Math.sign((T.x-o.x)*o.cs-(T.d-o.d)*o.sn)||1,k=Math.min(4,o.su+p.r-s*u+1.5);T.x+=o.cs*s*k;T.d-=o.sn*s*k;if(fresh){T.bank*=.3;T.wx=s*8}}
    else{// head-on: knocked back and also aside, so you don't fly into the same thing again
     // escape toward the side the plane's centre is on (a wingtip can be past the rock's middle)
-    const s=Math.sign((T.x-o.x)*o.cs-(T.d-o.d)*o.sn)||1;T.d-=Math.sign(Math.cos(T.a))*(pv+1);T.x+=o.cs*s*2;T.d-=o.sn*s*2;if(fresh){T.v*=.6;T.a+=s*.25;T.bank*=.3;T.wx=s*8}}
+    const s=Math.sign((T.x-o.x)*o.cs-(T.d-o.d)*o.sn)||1;T.d-=Math.sign(Math.cos(T.a))*(pv+1);T.x+=o.cs*s*2;T.d-=o.sn*s*2;if(fresh){T.v*=.6;T.a+=s*.25;T.bank*=.3;T.wx=s*8;
+     // flying across the course into it (a big jet cutting back to the line): swing the nose back toward the course so you slide past instead of nosing in again
+     const h=crs(T.d,{}).h,rel=Math.atan2(Math.sin(T.a-h),Math.cos(T.a-h));if(Math.abs(rel)>.35)T.a=h+rel*.4}}
    if(!fresh)continue;
    // something that just hit you (and anything within 25 m of it: a sea stack is several boxes) still knocks you off,
    // but can't damage you again for 2 s. A big jet scraping round a stack used to take 4-7 hits in a row
