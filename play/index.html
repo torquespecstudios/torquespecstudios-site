@@ -32,6 +32,8 @@
 }
 [hidden]{display:none!important}
 html,body{height:100%;margin:0;overflow:hidden;background:#151a20;color:var(--ink);font-family:var(--body);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+/* quick taps through the menus must never double-tap zoom the page (it did in Safari and the web beta); pinch zoom stays */
+html{touch-action:manipulation}
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
