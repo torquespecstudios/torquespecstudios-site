@@ -61,6 +61,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 @keyframes splitIn{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
 .split small{display:block;margin-top:2px;font-family:var(--body);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
 .split.ahead{color:var(--teal)}.split.behind{color:var(--red)}
+#runRings.gold{color:var(--amber)}
 .hud-r{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .pill{display:flex;align-items:center;gap:7px;background:var(--glass);border:1px solid var(--hair);border-radius:999px;padding:6px 12px;font-weight:700;font-variant-numeric:tabular-nums;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .meter{font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:6px 11px}
@@ -483,7 +484,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v45 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v46 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1942,7 +1943,7 @@ $('toGarage').addEventListener('click',goGarage);
 const SPD={mph:[2.237,'mph'],kmh:[3.6,'km/h'],kn:[1.944,'kn']};
 let agl=0;
 function updateHud(){$('time').textContent=clock(runT);const u=SPD[settings.units]||SPD.mph,v=state==='play'||state==='done'?T.v:0;$('speed').textContent=Math.round(v*u[0])+' '+u[1]+' · '+Math.max(0,Math.round(agl))+' m';
- $('runCans').textContent=runCans;$('runRings').textContent=runRings+'/'+RINGS.length;$('hullI').style.width=hull+'%';show('mTank',!!spec.scoop);show('mCabin',!!spec.airliner);$('cabinI').style.width=cabin+'%';$('mCabin').classList.toggle('low',cabin<40);$('tankI').style.width=tank*100+'%';$('mHull').classList.toggle('low',hull<35);
+ $('runCans').textContent=runCans;$('runRings').textContent=runRings+'/'+RINGS.length;$('runRings').classList.toggle('gold',runRings>=ringNeed());$('hullI').style.width=hull+'%';show('mTank',!!spec.scoop);show('mCabin',!!spec.airliner);$('cabinI').style.width=cabin+'%';$('mCabin').classList.toggle('low',cabin<40);$('tankI').style.width=tank*100+'%';$('mHull').classList.toggle('low',hull<35);
  $('score').innerHTML=skimOn>0?`<b>${fmt(pts)}</b> pts · skimming`:lowT>.3?`<b>${fmt(pts)}</b> pts · low pass${spec.dust?' ×2':''}`:`<b>${fmt(pts)}</b> pts`;$('score').classList.toggle('low',lowT>.3||skimOn>0);
  $('progI').style.width=clamp(T.d/CO.len,0,1)*100+'%';
  const bt=num(bests[CO.id+'_'+sel],0),pb=$('progB');pb.hidden=!bt||state!=='play';if(bt)pb.style.left=clamp(runT/bt,0,1)*100+'%';
