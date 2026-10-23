@@ -471,7 +471,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v35 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v36 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1555,7 +1555,9 @@ const MEDAL_COL=['#6b6f76','#b8733d','#c3c8ce','#f2b33d'];
 // where a shared run or photo sends people: the web beta for now; set APP_STORE_URL once the App Store listing exists
 const APP_STORE_URL='',PLAY_URL=APP_STORE_URL||'https://torquespecstudios.com/swoopy-beta/',PLAY_SHORT=APP_STORE_URL?'ON THE APP STORE':'TORQUESPECSTUDIOS.COM/SWOOPY-BETA';
 function shareText(){return shareCopy()+' Play free: '+PLAY_URL}
-function shareCopy(){if(shareKind==='plane')return`Check out my ${PLANES[sel].name} ${PLANES[sel].type.toLowerCase()} in Swoopy Wings.`;return`I flew ${lastRun.course} in ${clock(lastRun.time)} in the ${lastRun.plane} on Swoopy Wings (${lastRun.rings}/${lastRun.ringsN} rings). Can you beat it?`}
+function shareCopy(){if(shareKind==='plane')return`Check out my ${PLANES[sel].name} ${PLANES[sel].type.toLowerCase()} in Swoopy Wings.`;// the brag first: a gold medal and how much a new best beat the old one by
+ const L=lastRun,gold=L.medal===3?' for gold':'',gain=L.gain>=.05?` That's a new best by ${L.gain.toFixed(1)} s.`:'';
+ return`I flew ${L.course} in ${clock(L.time)}${gold} in the ${L.plane} on Swoopy Wings (${L.rings}/${L.ringsN} rings).${gain} Can you beat it?`}
 function drawCard(){const L=lastRun,W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),S=L.sky.stops;
  const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,S[0]);bg.addColorStop(.3,S[1]);bg.addColorStop(.5,S[2]);bg.addColorStop(.58,S[3]);bg.addColorStop(.6,'#3d4a33');bg.addColorStop(1,'#1c2218');g.fillStyle=bg;g.fillRect(0,0,W,H);
  // two ridges, then a gold ring with a plane flying through it
@@ -1645,7 +1647,7 @@ function finishRun(){const nextI=lvl+1,wasOpen=nextI<COURSES.length&&!COURSES[ne
  $('oAch').hidden=!got.length&&!opened&&!isDaily;$('oAch').innerHTML=(isDaily?`Daily challenge done · cans ×2!`+(got.length||opened?'<br>':''):'')+(opened?`New course unlocked: ${COURSES[nextI].n}!`+(got.length?'<br>':''):'')+got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
  soClose(ok,m);
  $('oTip').innerHTML=pickTip(ok,m);renderMissions('oMissions');
- lastRun=ok?{time:result.time,course:CO.n,sub:CO.sub,plane:PLANES[sel].name,type:PLANES[sel].type,medal:m,rings:runRings,ringsN:RINGS.length,pts,best:nb,sky:SKY}:null;
+ lastRun=ok?{time:result.time,course:CO.n,sub:CO.sub,plane:PLANES[sel].name,type:PLANES[sel].type,medal:m,rings:runRings,ringsN:RINGS.length,pts,best:nb,gain:nb&&prevBest?prevBest-result.time:0,sky:SKY}:null;
  show('shareBtn',ok);$('oBtns').classList.toggle('solo',!ok);$('toGarage').classList.toggle('nudge',canSpend());
  state='over';clearTimeout(banner.t);show('region',0);show('hud',0);show('over',1);showXP(xr);if(m===3&&m>prevM)chime([523,659,784,1047,1319])}
 // "So close!": as in Swervy, a near miss is named on the results screen, with a bar that ends at the target, because it's the
@@ -1996,7 +1998,7 @@ window.addEventListener('resize',resize);
 try{new ResizeObserver(()=>resize()).observe(document.documentElement)}catch(e){}
 
 // test hook for the QA scripts in qa/ (drives the plane and reads the state)
-window.__sky={get state(){return state},get T(){return T},get hull(){return hull},get runT(){return runT},get cans(){return cans},get runCans(){return runCans},get runRings(){return runRings},get pts(){return pts},get level(){return level},get xp(){return xp},get missions(){return missions},setMissions:m=>{missions=m;store.set('missions',m)},setBest:(k,t)=>{bests[k]=t;delete medals[k]},checkDaily,get throttle(){return throttle},
+window.__sky={shareText:()=>shareText(),get state(){return state},get T(){return T},get hull(){return hull},get runT(){return runT},get cans(){return cans},get runCans(){return runCans},get runRings(){return runRings},get pts(){return pts},get level(){return level},get xp(){return xp},get missions(){return missions},setMissions:m=>{missions=m;store.set('missions',m)},setBest:(k,t)=>{bests[k]=t;delete medals[k]},checkDaily,get throttle(){return throttle},
  crs:d=>{const o=crs(d,{});return o},groundAt,lanePos,input:v=>{botIn=v},setThrottle,start:()=>{goReady();startCount()},garage:goGarage,select:id=>{sel=id;rebuildPlane();resetWorld();renderGarage()},course:i=>{loadCourse(i);resetWorld();renderGarage()},
  setCans:n=>{cans=n;store.set('cans',n);renderGarage()},unlockAll:()=>{unlocked=ORDER.slice();store.set('unlocked',unlocked);renderGarage()},
  rings:()=>RINGS.map(r=>({x:r.x,y:r.y,d:r.d,got:r.got})),obs:()=>OBS.map(o=>({k:o.k,x:o.x,d:o.d,y0:o.y0,y1:o.y1})),level:()=>CO,get courses(){return COURSES.filter(c=>!c.soon).length},get sel(){return sel},get renderer(){return R},
