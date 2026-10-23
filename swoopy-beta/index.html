@@ -483,7 +483,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v43 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v44 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1507,7 +1507,8 @@ function hit(k,dmg,x,y,d,label,wet){lastHit=label;const n=Math.round(dmg*k*spec.
 function ringsTick(){for(const g of RINGS){if(g.got||g.miss)continue;const v=(T.x-g.x)*Math.sin(g.h)+(T.d-g.d)*Math.cos(g.h);if(v<0)continue;
   const u=(T.x-g.x)*Math.cos(g.h)-(T.d-g.d)*Math.sin(g.h),dy=T.y-g.y;
   if(Math.hypot(u,dy)<6.2&&v<12){g.got=true;g.fx=.001;runRings++;stats.rings++;ringCombo++;maxCombo=Math.max(maxCombo,ringCombo);if(spec.glider)T.v=Math.min(spec.top,T.v+1.5);const mult=Math.min(3,1+Math.floor((ringCombo-1)/3));pts+=100*mult;boostT=1.3;
-   sfxRing(ringCombo);buzz(12);burst(g.x,g.y,-g.d,16,10,'#ffd36a',.7,0);if(mult>1)popText(`Ring <b>×${mult}</b>`);missionEvent('ring')}
+   sfxRing(ringCombo);buzz(12);burst(g.x,g.y,-g.d,16,10,'#ffd36a',.7,0);// the ring that meets gold's ring count gets its own pop (gold also needs the gold time)
+   if(runRings===ringNeed()){popText('Gold rings <b>✓</b>');chime([1175,1568])}else if(mult>1)popText(`Ring <b>×${mult}</b>`);missionEvent('ring')}
   else if(v>4){g.miss=true;ringCombo=0}}}
 function cansTick(){for(const c of CANS){if(c.got||Math.abs(c.d-T.d)>8)continue;if(Math.hypot(c.x-T.x,c.y-T.y,c.d-T.d)<3.2){c.got=true;c.m.visible=false;runCans++;stats.cans++;sfxCan(1+runCans%3);missionEvent('can');spray(c.x,c.y,-c.d,0,2,0,2.2,'#ffc04a',.5,3,0,.9)}}}
 function birdsTick(dt,t){for(const F of FLOCKS){if(Math.abs(F.d-T.d)>420)continue;
