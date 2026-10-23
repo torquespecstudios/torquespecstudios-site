@@ -1313,17 +1313,10 @@ function hazardsTick(dt){for(const o of OB){if(o.hitCD>0)o.hitCD-=dt;if(o.k==='s
   // compare positions across the river (from each one's own centre line), not raw map x: round a bend the two differ by metres
   else{const rel=(b.x-r.c)-(T.x-riv(T.d).c);if((state==='play'||state==='done')&&(b.yieldT>0||ah>-12&&ah<Math.max(70,(T.vd-b.vd)*7)&&Math.abs(rel)<18)){lat=(Math.sign(rel)||Math.sign(b.lat)||1)*(r.w/2-5);b.giving=true}else b.giving=false}
   if(ferryJob()&&!b.big&&b.d<JOBD().stops[0].d-230){const rr=riv(b.d+460,{});b.d+=460;b.x=rr.c+b.lat;b.vx=b.vd=0;b.honked=false}
-<<<<<<< HEAD
   // stay in the water: clear of the banks where the river narrows, and of docks, landings and the start pier
   if(!b.big){const sd=Math.sign(lat)||1,lim=r.w/2-b.r-1.5-Math.max(dockClear(b.d,sd),dockClear(b.d-25,sd));if(Math.abs(lat)>lim)lat=sd*Math.max(0,lim)}
   const tx=r.c+lat;{let da=Math.atan2(tx-b.x,b.giving?-14:-25)-b.a;da=Math.atan2(Math.sin(da),Math.cos(da));b.a+=da*dt*(b.giving?1.6:.8)}const fx=Math.sin(b.a),fd=Math.cos(b.a);
   b.vx+=(cv.cx+fx*b.thr-b.vx)*dt*.9;b.vd+=(cv.cd+fd*b.thr-b.vd)*dt*.9;b.x+=b.vx*dt;b.d+=b.vd*dt;if(!b.big){const rr=riv(b.d,CUR),off=b.x-rr.c,sd=Math.sign(off)||1,lim=rr.w/2-b.r-.5-dockClear(b.d,sd);if(Math.abs(off)>lim){b.x=rr.c+sd*Math.max(0,lim);if(b.vx*sd>0)b.vx*=-.2}}b.m.position.set(b.x,Math.sin(runT*1.5+b.d)*.08,-b.d);b.m.rotation.y=-b.a;
-=======
-  const tx=r.c+lat;{// racing, giving way is a decisive sheer toward the bank, so they're clear whichever side they chose; on a job you're
-  // slowing for a berth, and a sheer would swing them across your barge, so they keep the gentle drift
-  const sheer=b.giving&&!isJob();let da=Math.atan2(tx-b.x,sheer?-8:b.giving?-14:-25)-b.a;da=Math.atan2(Math.sin(da),Math.cos(da));b.a+=da*dt*(sheer?2.6:b.giving?1.6:.8)}const fx=Math.sin(b.a),fd=Math.cos(b.a);
-  b.vx+=(cv.cx+fx*b.thr-b.vx)*dt*.9;b.vd+=(cv.cd+fd*b.thr-b.vd)*dt*.9;b.x+=b.vx*dt;b.d+=b.vd*dt;b.m.position.set(b.x,Math.sin(runT*1.5+b.d)*.08,-b.d);b.m.rotation.y=-b.a;
->>>>>>> origin/main
   if(Math.random()<dt*8)wake(b.x-fx*(b.half||3),-(b.d-fd*(b.half||3)),b.big?4.5:1.6,b.big?11:5,1.3,.4);if(b.big&&Math.random()<dt*6)wake(b.x+fx*20,-(b.d+fd*20),3,7,1.2,.35)}}
 // crane load: a 6 m pendulum driven by the sideways (centripetal) acceleration of turning and by the rapids
 function swingTick(dt,spd){const r=riv(T.d),lat=T.av*spd+r.rp*Math.sin(runT*3.1)*2.2;SW.v+=(-9.8/6*Math.sin(SW.a)-.55*SW.v-lat/6)*dt;SW.a+=SW.v*dt;
