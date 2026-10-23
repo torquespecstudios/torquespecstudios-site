@@ -452,7 +452,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next job</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Scoopy beta v9 · by Torque Spec Studios</p>
+    <p class="ver">Scoopy beta v10 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -512,7 +512,7 @@ const rand=(a,b)=>a+Math.random()*(b-a);
 const num=(v,d,min=0)=>typeof v==='number'&&Number.isFinite(v)?Math.max(min,v):d;
 const obj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
 // native plugins when running as the iOS app (Capacitor); all undefined in a browser
-const NATIVE=(p=>({prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,review:p&&p.InAppReview,app:p&&p.App}))(window.Capacitor&&window.Capacitor.Plugins);
+const NATIVE=(p=>({prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,fs:p&&p.Filesystem,review:p&&p.InAppReview,app:p&&p.App}))(window.Capacitor&&window.Capacitor.Plugins);
 const store={get(k,d){try{const v=localStorage.getItem('sc1_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){const j=JSON.stringify(v);try{localStorage.setItem('sc1_'+k,j)}catch(e){}if(NATIVE.prefs)NATIVE.prefs.set({key:'sc1_'+k,value:j}).catch(()=>{})}};
 
 /* ---------- data ---------- */
@@ -1253,7 +1253,7 @@ $('achBtn').addEventListener('click',()=>{renderAch();show('achPanel',1)});$('ac
 
 /* ---------- share card ---------- */
 // a 1080x1350 branded card; the native share sheet sends the image where supported, otherwise the text is copied
-let shareFile=null;
+let shareFile=null,shareData=null;
 function drawCard(){const r=lastRun,J=JOBS[r.jobI],W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
  const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,J.sky[0]);bg.addColorStop(.38,J.sky[2]);bg.addColorStop(.5,J.sky[3]);bg.addColorStop(.51,'#b58a5c');bg.addColorStop(1,'#7a5434');g.fillStyle=bg;g.fillRect(0,0,W,H);
  g.fillStyle='rgba(95,122,74,.85)';g.beginPath();g.moveTo(0,690);for(let x=0;x<=W;x+=60)g.lineTo(x,660-Math.abs(Math.sin(x*.006)*60)-Math.sin(x*.017)*20);g.lineTo(W,700);g.lineTo(0,700);g.fill();
@@ -1273,10 +1273,12 @@ function drawCard(){const r=lastRun,J=JOBS[r.jobI],W=1080,H=1350,c=document.crea
 function shareText(){return`I loaded ${lastRun.trucks} truck${lastRun.trucks===1?'':'s'} on ${lastRun.job} and scored ${fmt(lastRun.sc)} pts in Scoopy. Can you beat it?`+(SHARE_URL?' '+SHARE_URL:'')}
 // the link in shares: the web beta in a browser, the Play listing on Android, and the App Store link once Apple assigns the app's ID
 const SHARE_URL=(()=>{try{const p=window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform();return p==='android'?'https://play.google.com/store/apps/details?id=com.torquespecstudios.scoopy':p==='ios'?'':'https://torquespecstudios.com/scoopy-beta/'}catch(e){return''}})();
-function openShare(){if(!lastRun)return;const c=drawCard();$('shareImg').src=c.toDataURL('image/png');$('shareMsg').textContent='';shareFile=null;c.toBlob(b=>{try{shareFile=new File([b],'scoopy-run.png',{type:'image/png'})}catch(e){}},'image/png');show('share',1)}
+function openShare(){if(!lastRun)return;const c=drawCard(),url=c.toDataURL('image/png');$('shareImg').src=url;shareData=url.split(',')[1];$('shareMsg').textContent='';shareFile=null;c.toBlob(b=>{try{shareFile=new File([b],'scoopy-run.png',{type:'image/png'})}catch(e){}},'image/png');show('share',1)}
 $('shareBtn').addEventListener('click',openShare);
 $('shareGo').addEventListener('click',async()=>{const text=shareText();
- if(NATIVE.share){NATIVE.share.share({title:'Scoopy',text}).catch(()=>{});return}
+ // in the app: the native share sheet needs a real file, so the score card is written to the app's cache first (as Swervy does)
+ if(NATIVE.share){let files;if(NATIVE.fs&&shareData)try{const r=await NATIVE.fs.writeFile({path:'scoopy-run.png',data:shareData,directory:'CACHE'});files=[r.uri]}catch(e){}
+  NATIVE.share.share(Object.assign({title:'Scoopy',text,dialogTitle:'Share your run'},files?{files}:{})).catch(()=>{});return}
  try{if(shareFile&&navigator.canShare&&navigator.canShare({files:[shareFile]})){await navigator.share({files:[shareFile],text,title:'Scoopy'});return}if(navigator.share){await navigator.share({text,title:'Scoopy'});return}}catch(e){if(e&&e.name==='AbortError')return}
  try{await navigator.clipboard.writeText(text);$('shareMsg').textContent='Challenge copied. Long-press the card to save it.'}catch(e){$('shareMsg').textContent='Long-press the card to save it.'}});
 $('shareClose').addEventListener('click',()=>show('share',0));
