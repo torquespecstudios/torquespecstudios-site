@@ -2144,8 +2144,12 @@ function canSpend(){if(ORDER.some(id=>!unlocked.includes(id)&&cans>=MODELS[id].p
 
 /* ---------- loop ---------- */
 const tmpV=new THREE.Vector3(),desired=new THREE.Vector3(),lookD=new THREE.Vector3();
-let last=performance.now(),hudT=0;
+let last=performance.now(),hudT=0,lastDraw=0;
 function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
+ // menus redraw at ~30fps (every other frame at 60Hz, every fourth at 120Hz): the turntable and backdrops move gently, and it
+ // halves GPU work and battery drain while a player browses the garage or reads a result. Dragging the car round, photo mode
+ // and unlock spins keep the full rate; skipped frames fold into the next frame's dt
+ if((state==='garage'||state==='over'||state==='paused')&&!drag&&!photo&&!(unlockSpin>0)&&now-lastDraw<31){requestAnimationFrame(frame);return}lastDraw=now;
  const rawMs=now-last,dt=Math.min(.05,rawMs/1000);last=now;perfTick(rawMs,dt);LIV_T.value+=dt;
  const sf=Math.min(1,(C.d-START_D)/SFD);
  if(state==='play'){
