@@ -1798,7 +1798,9 @@ $('toGarage').addEventListener('click',goGarage);
 // otherwise the challenge text is copied and the image can be long-pressed to save
 let lastRun=null,shareFile=null,shareData=null,shareKind='run';
 // set this to the App Store link (https://apps.apple.com/app/id…) once App Store Connect assigns one; every share then carries it
-const APP_STORE_URL='';
+// the store link in shares, per platform: Play's link is fixed by the app ID; fill in the App Store link once Apple assigns the app's ID
+const STORE_URLS={ios:'',android:'https://play.google.com/store/apps/details?id=com.torquespecstudios.swervy'};
+const APP_STORE_URL=(()=>{try{return STORE_URLS[window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()]||''}catch(e){return''}})();
 function shareText(){if(shareKind==='garage')return`My Swervy garage: ${unlocked.length}/${ORDER.length} cars. Can you collect them all?`+(APP_STORE_URL?' '+APP_STORE_URL:'');
  if(shareKind==='car'){const M=MODELS[cfg.model];return`Check out my ${M.name} in Swervy.`+(APP_STORE_URL?' Build yours: '+APP_STORE_URL:'')}
  const reached=lastRun.region?` and reached ${REGIONS[lastRun.region].n}`:'',link=APP_STORE_URL?' '+APP_STORE_URL:'';
