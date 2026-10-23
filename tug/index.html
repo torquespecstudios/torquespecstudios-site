@@ -267,6 +267,9 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .tab::before,.seg button::before{content:"";position:absolute;inset:-5px 0}
 .pill::before{content:"";position:absolute;inset:-4px}
 .trophy::before{content:"";position:absolute;inset:-11px -4px}
+.linkbtn{position:relative}.linkbtn::before{content:"";position:absolute;inset:-9px -6px}
+/* the trophy list is long on a phone: Done stays pinned at the bottom of the card instead of 39 trophies down */
+#achClose{position:sticky;bottom:0;box-shadow:0 -12px 18px rgba(13,17,23,.55)}
 .drive-wrap{position:sticky;bottom:0;padding-top:6px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 14px);background:linear-gradient(transparent,rgba(13,17,23,.9) 30%);display:flex;gap:10px}
 .drive-wrap .btn{font-size:24px;padding:14px 16px}
 #drive{flex:1}
@@ -295,7 +298,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .btn.ready{animation:goPulse 1.4s ease-in-out infinite}
 @keyframes goPulse{0%,100%{box-shadow:0 0 0 0 rgba(242,179,61,.6)}50%{box-shadow:0 0 0 10px rgba(242,179,61,0)}}
 #winch{pointer-events:auto;gap:6px;padding:4px 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
-#winch button{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.12);font-weight:800;touch-action:none}
+#winch button{width:40px;height:40px;font-size:15px;border-radius:50%;background:rgba(255,255,255,.12);font-weight:800;touch-action:none}
 #winch button.held{background:var(--amber);color:#1d1508}
 #ops{position:fixed;left:0;right:0;bottom:0;max-height:57%;overflow-y:auto;overscroll-behavior:contain;background:var(--glass);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);border-top:1px solid var(--hair);border-radius:20px 20px 0 0;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 14px) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;pointer-events:auto;z-index:4}
 @media (min-width:860px) and (min-aspect-ratio:1/1){#ops{left:auto;right:16px;top:84px;bottom:16px;width:410px;max-height:none;border-radius:20px;border:1px solid var(--hair)}}
@@ -458,7 +461,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v46 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v47 · by Torque Spec Studios</p>
   </div>
 </div>
 
