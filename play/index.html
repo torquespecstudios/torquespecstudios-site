@@ -18,7 +18,7 @@
 <meta name="apple-mobile-web-app-title" content="Swervy">
 <meta name="theme-color" content="#151a20">
 <link rel="apple-touch-icon" href="../img/swervy-icon.png">
-<link rel="icon" href="../img/favicon.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><script data-goatcounter="https://torquespecstudios.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<link rel="icon" href="../img/favicon.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Swervy (beta)</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;800&family=Barlow:wght@500;700&display=swap">
@@ -223,7 +223,9 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #ready .modes .chip{white-space:nowrap}
 @media (max-width:360px){#ready .modes{gap:6px}#ready .modes .chip{padding:8px 10px;font-size:13px}}
 #ready .raceRow[hidden]{display:none}
-#ready p{margin:0;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:14px;text-wrap:balance;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:pulse 1.3s ease-in-out infinite}
+#ready p{margin:0;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:14px;text-wrap:balance;text-shadow:0 1px 3px rgba(0,0,0,.9),0 2px 12px rgba(0,0,0,.7);animation:pulseSoft 1.3s ease-in-out infinite}
+/* the how-to-steer line only dips a little, so it stays readable over a bright cloud */
+@keyframes pulseSoft{50%{opacity:.78}}
 @keyframes pulse{50%{opacity:.45}}
 
 #over{background:radial-gradient(ellipse at center,rgba(10,12,16,.55),rgba(10,12,16,.85));pointer-events:auto;overflow-y:auto;overscroll-behavior:contain;justify-content:flex-start;padding-top:max(14px,env(safe-area-inset-top,0px));padding-bottom:max(14px,env(safe-area-inset-bottom,0px));box-sizing:border-box}
@@ -795,6 +797,9 @@ const pmrem=new THREE.PMREMGenerator(R);scene.environment=pmrem.fromEquirectangu
 // lights
 const hemi=new THREE.HemisphereLight(0xbfd0f0,0x3b3322,.35);scene.add(hemi);
 const SUNDIR=new THREE.Vector3(-.4,.55,-.73).normalize();
+// in the showroom the key light hangs almost straight overhead, like a studio's: the low outdoor sun glinted off the polished
+// floor across a sixth of the turntable spin and threw a long jagged shadow
+const SHOWDIR=new THREE.Vector3(.08,1,.12).normalize();
 const sun=new THREE.DirectionalLight(0xffcf9a,2.4);
 sun.castShadow=true;sun.shadow.mapSize.set(PHONE?1024:2048,PHONE?1024:2048);
 Object.assign(sun.shadow.camera,{left:-24,right:24,top:24,bottom:-24,near:1,far:160});
@@ -2185,7 +2190,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  // world follows camera
  // headlight beam sits at the car's nose and points along its heading
  if(headLight.intensity>0){const fx2=Math.sin(C.a-C.spin),fz2=-Math.cos(C.a-C.spin);headLight.position.set(C.x+fx2*2,1.1+C.y,-C.d+fz2*2);headLight.target.position.set(C.x+fx2*26,0,-C.d+fz2*26)}
- tmpV.set(C.x,0,-C.d-6);sun.target.position.copy(tmpV);sun.position.copy(tmpV).addScaledVector(SUNDIR,80);
+ tmpV.set(C.x,0,-C.d-6);sun.target.position.copy(tmpV);sun.position.copy(tmpV).addScaledVector(showroom.visible?SHOWDIR:SUNDIR,80);
  ground.position.set(Math.round(cam.position.x/10)*10,0,Math.round(cam.position.z/10)*10);
  mtns.position.set(cam.position.x,0,cam.position.z);clouds.position.set(cam.position.x,0,cam.position.z);clouds.rotation.y+=dt*.003;
  sunSprite.position.copy(cam.position).addScaledVector(SUNDIR,700);
