@@ -192,6 +192,8 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 /* center prompts */
 .center{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #ready{justify-content:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 96px)}
+/* narrow phones: start below the HUD's right-hand column (cans, rings, airframe) and keep the course label clear of the sound button; a two-line label ran under both */
+@media (max-width:520px){#ready{padding-top:calc(env(safe-area-inset-top,0px) + 128px)}#ready .lvl{max-width:calc(100vw - 130px);text-wrap:balance}}
 #ready .lvl{font-weight:700;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);text-shadow:0 1px 3px rgba(0,0,0,.9),0 2px 12px rgba(0,0,0,.6)}
 #ready .disp{font-size:clamp(34px,9vw,56px);line-height:.95;text-shadow:0 3px 18px rgba(0,0,0,.5)}
 #ready p{margin:0;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:14px;text-wrap:balance;text-shadow:0 1px 3px rgba(0,0,0,.9),0 2px 12px rgba(0,0,0,.6);animation:pulse 1.3s ease-in-out infinite}
@@ -476,7 +478,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v36 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v37 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1185,6 +1187,8 @@ function finishGap(){if(!ghost||!settings.ghost)return'';const g=ghost.t||ghostT
  return Math.abs(dt)<.05?'Dead level with your ghost':dt<0?`${(-dt).toFixed(1)} s ahead of your ghost`:`${dt.toFixed(1)} s behind your ghost`}
 function splitTick(){if(!ghost||!settings.ghost)return;const q=Math.floor(T.d/CO.len*4);if(q<=splitQ||q<1||q>3)return;splitQ=q;const g=ghostTimeAt(T.d);if(g==null)return;
  const dt=runT-g,el=$('split');el.textContent=(Math.abs(dt)<.05?'±0.0':(dt<0?'−':'+')+Math.abs(dt).toFixed(1))+' s';el.className='split '+(dt<0?'ahead':dt>=.05?'behind':'');
+ // you're watching the canyon, not the HUD: a rising pair of notes when you're ahead, a falling pair when behind
+ if(dt<=-.05){chime([880,1175]);buzz(12)}else if(dt>=.05)chime([587,440]);
  show('split',0);void el.offsetWidth;show('split',1);clearTimeout(splitTick.t);splitTick.t=setTimeout(()=>show('split',0),2800)}
 function ghostShow(){if(!ghost||!settings.ghost||(state!=='play'&&state!=='done')){ghostM.visible=false;return}const P=ghost.p,f=runT/.1,i=Math.floor(f);if(i>=P.length-1){ghostM.visible=false;return}
  const a=P[i],b=P[i+1],t=f-i,L=k=>a[k]+(b[k]-a[k])*t;ghostM.position.set(L(0),L(1),-L(2));ghostM.rotation.set(L(5),-L(3),L(4),'YXZ');ghostM.visible=true;for(const pr of ghostM.userData.props)pr.rotation.z+=.8}
@@ -1318,7 +1322,7 @@ function playStep(s,t){const b=s%16,ch=CHORDS[(s>>4)%4],fly=state==='play'||stat
  if(fly){if(b===0||b===10){const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(48,t+.12);env(g,t,.45,.002,.28);o.connect(g);g.connect(musicBus);o.start(t);o.stop(t+.32)}
   if(b===4||b===12)noiseHit(t,1800,.16,.14);
   if(b%2===0)noiseHit(t,7500,b%4===2?.05:.03,.035)}}
-document.addEventListener('visibilitychange',()=>{if(!AC)return;document.hidden?AC.suspend():AC.resume()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)try{speechSynthesis.cancel()}catch(e){}if(!AC)return;document.hidden?AC.suspend():AC.resume()});
 function audioUnlock(){audioInit();if(AC&&AC.state!=='running')AC.resume()}
 for(const ev of['pointerup','touchend','click','keydown'])window.addEventListener(ev,audioUnlock,{capture:true,passive:true});
 function env(g,t,peak,a,d){g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(.001,t+a+d)}
@@ -1555,9 +1559,13 @@ $('rvYes').addEventListener('click',acceptRevive);
 // The share sheet sends the image where supported; otherwise the challenge text is copied and the image can be long-pressed to save.
 let lastRun=null,shareFile=null,shareKind='run';
 const MEDAL_COL=['#6b6f76','#b8733d','#c3c8ce','#f2b33d'];
-// where a shared run or photo sends people: the web beta for now; set APP_STORE_URL once the App Store listing exists
-const APP_STORE_URL='',PLAY_URL=APP_STORE_URL||'https://torquespecstudios.com/swoopy-beta/',PLAY_SHORT=APP_STORE_URL?'ON THE APP STORE':'TORQUESPECSTUDIOS.COM/SWOOPY-BETA';
-function shareText(){return shareCopy()+' Play free: '+PLAY_URL}
+// where a shared run or photo sends people: the web beta in a browser, the Play listing on Android, and the App Store
+// listing on iPhone (set APP_STORE_URL once Apple assigns the app's ID; until then iPhone shares carry no link)
+const PLATFORM=(()=>{try{return window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()||'web'}catch(e){return'web'}})(),
+ APP_STORE_URL='',
+ PLAY_URL=PLATFORM==='android'?'https://play.google.com/store/apps/details?id=com.torquespecstudios.swoopy':PLATFORM==='ios'?APP_STORE_URL:'https://torquespecstudios.com/swoopy-beta/',
+ PLAY_SHORT=PLATFORM==='android'?'ON GOOGLE PLAY':PLATFORM==='ios'?'ON THE APP STORE':'TORQUESPECSTUDIOS.COM/SWOOPY-BETA';
+function shareText(){return shareCopy()+(PLAY_URL?' Play free: '+PLAY_URL:'')}
 function shareCopy(){if(shareKind==='plane')return`Check out my ${PLANES[sel].name} ${PLANES[sel].type.toLowerCase()} in Swoopy Wings.`;return`I flew ${lastRun.course} in ${clock(lastRun.time)} in the ${lastRun.plane} on Swoopy Wings (${lastRun.rings}/${lastRun.ringsN} rings). Can you beat it?`}
 function drawCard(){const L=lastRun,W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),S=L.sky.stops;
  const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,S[0]);bg.addColorStop(.3,S[1]);bg.addColorStop(.5,S[2]);bg.addColorStop(.58,S[3]);bg.addColorStop(.6,'#3d4a33');bg.addColorStop(1,'#1c2218');g.fillStyle=bg;g.fillRect(0,0,W,H);
