@@ -1766,14 +1766,23 @@ function finishRun(){show('revive',0);show('hud',0);
 function controlText(){$('readyT').textContent='Tap to start';$('readyS').innerHTML='Tap to steer '+sideH()+'<br>Let go to swing '+sideR();$('countS').textContent='Get ready · tap to steer '+sideH()}
 const TIPS=['Short taps make small corrections. Long holds turn hard.','Hairpins come in chains, so be ready to swing back.','Fuel cans add points <b>and</b> cash.','The road gets narrower and faster the further you go.','Watch the next bend, not your car.'];
 // the Wrecked screen points at the next goal when there is one, otherwise gives a driving tip
+// the tip after a run points at the nearest goal the player can actually reach: something to buy now, then (for the first
+// runs) how to drive, then a goal a few runs away. A far-off price is never offered (a first run used to be told
+// "420 more cans for today's livery deal" with 10 cans in hand)
+const EARLY_TIPS=['Short taps make small corrections. Long holds turn hard.','Watch the next bend, not your car.','Fuel cans add points <b>and</b> cash. Swing through them!'];
 function pickTip(){const can=ORDER.find(id=>!unlocked.includes(id)&&cans>=MODELS[id].price);if(can)return`You can unlock the <b>${MODELS[can].name}</b> in the Garage!`;
  const P=perfFor(lastDriven),up=PERF.find(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1]);if(up){const n=up.n.toLowerCase();return`You can afford ${/^[aeiou]/.test(n)?'an':'a'} <b>${n}</b> upgrade in the Garage's Engine tab.`}
- // today's deals: point the player at one they can afford, or say how close the livery deal is
+ // today's deals: point the player at one they can afford
  const dl=todaysDeals().filter(d=>!owned.has(d.k+':'+d.i)),aff=dl.find(d=>cans>=costOf(d.k,d.i));
  if(aff&&Math.random()<.7)return`Today's deal: <b>${LISTS[aff.k][aff.i].n}</b> is ${aff.off}% off and you can afford it. Tap <b>Deals</b> in the Garage.`;
- const lv=dl.find(d=>d.k==='livery');if(lv&&!aff&&Math.random()<.35)return`<b>${fmt(costOf(lv.k,lv.i)-cans)}</b> more cans for today's <b>${LISTS.livery[lv.i].n}</b> livery deal (${lv.off}% off).`;
- const nx=REGIONS[regionSeen+1];if(nx&&!dailyMode&&Math.random()<.6)return`<b>${nx.n}</b> starts at ${km(nx.d)} km. Your first visit pays <b>+${nx.rw}</b> cans.`;
- const lock=ORDER.find(id=>!unlocked.includes(id));if(lock&&Math.random()<.4)return`<b>${fmt(MODELS[lock].price-cans)}</b> more cans to unlock the ${MODELS[lock].name}.`;
+ const runs=stats.runs;if(runs<=EARLY_TIPS.length&&!dailyMode)return EARLY_TIPS[Math.max(0,runs-1)];
+ // "a few runs away": about four runs at this player's average haul
+ const rate=Math.max(30,stats.cans/Math.max(1,runs)),near=g=>g>0&&g<=rate*4,goals=[];
+ const lv=dl.find(d=>d.k==='livery');if(lv&&!aff&&near(costOf(lv.k,lv.i)-cans))goals.push(`<b>${fmt(costOf(lv.k,lv.i)-cans)}</b> more cans for today's <b>${LISTS.livery[lv.i].n}</b> livery deal (${lv.off}% off).`);
+ const lock=ORDER.find(id=>!unlocked.includes(id));if(lock&&near(MODELS[lock].price-cans))goals.push(`<b>${fmt(MODELS[lock].price-cans)}</b> more cans to unlock the ${MODELS[lock].name}.`);
+ // the next region once the player's best has got at least halfway there
+ const nx=REGIONS[regionSeen+1];if(nx&&!dailyMode&&bestDist>=nx.d*.5)goals.push(`<b>${nx.n}</b> starts at ${km(nx.d)} km. Your first visit pays <b>+${nx.rw}</b> cans.`);
+ if(goals.length&&Math.random()<.75)return goals[Math.random()*goals.length|0];
  return TIPS[Math.random()*TIPS.length|0]}
 function updateHud(){$('score').innerHTML=fmt(score())+'<small>pts</small>';$('combo').hidden=!(state==='play'&&combo>1);if(combo>1){$('comboN').textContent='x'+combo;$('comboBar').style.width=Math.max(0,comboT/COMBO_T*56)+'px'}
  const tb=$('toBest'),left=Math.ceil(runBest-(C.d-START_D));tb.hidden=!(state==='play'&&runBest>=40);
