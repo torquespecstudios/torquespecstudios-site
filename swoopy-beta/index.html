@@ -476,7 +476,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v33 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v34 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1614,7 +1614,9 @@ const MEDAL_N=['','Bronze','Silver','Gold'];
 // a banner as you enter each new kind of terrain
 const SEC_BANNER={canyon:['Stay below the rim','Canyon!'],valley:['Open country','River valley'],slot:['Wings level','Slot canyon!'],desert:['Big sky country','The mesas']};
 const ringNeed=()=>Math.ceil(RINGS.length*.8);
-function medalFor(ok,time){if(!ok)return 0;const par=parOf(CO,sel);if(time<=par&&runRings>=ringNeed())return 3;if(time<=par*1.15)return 2;return 1}
+// silver needs a third of the rings too, so holding the stick back and flying over the whole course at the ceiling (no rings) is only a bronze
+const silverNeed=()=>Math.ceil(RINGS.length/3);
+function medalFor(ok,time){if(!ok)return 0;const par=parOf(CO,sel);if(time<=par&&runRings>=ringNeed())return 3;if(time<=par*1.15&&runRings>=silverNeed())return 2;return 1}
 /* ---------- daily challenge ---------- */
 // like Swervy's Daily Road: every day picks one open course and one owned plane; the first finish of it that day pays double
 function dailyPick(){const t=new Date(),k=t.getFullYear()*372+t.getMonth()*31+t.getDate(),r=mulberry(k*2654435761>>>0),open=COURSES.map((c,i)=>i).filter(i=>!COURSES[i].soon&&courseOpen(i)),own=ORDER.filter(id=>unlocked.includes(id));
@@ -1638,7 +1640,7 @@ function finishRun(){const nextI=lvl+1,wasOpen=nextI<COURSES.length&&!COURSES[ne
  // how far from your best, to the hundredth (a tie reads as matched, not "0.00s")
  const dt=prevBest?Math.abs(result.time-prevBest).toFixed(2):'0.00',gap=dt!=='0.00';
  $('oTime').innerHTML=ok?clock(result.time)+(nb?`<small>New best!${gap?` ${dt}s faster`:''}</small>`:prevBest?(gap?`<small class="off">${dt}s off your best</small>`:'<small>Matched your best!</small>'):''):`${fmt(Math.min(CO.len,Math.max(0,T.d)))}<small>of ${fmt(CO.len)} m</small>`;
- const par=parOf(CO,sel),cond=[['Bronze','Finish'],['Silver','Under '+clock(par*1.15)],['Gold',`Under ${clock(par)} · ${ringNeed()} rings`]];
+ const par=parOf(CO,sel),cond=[['Bronze','Finish'],['Silver',`Under ${clock(par*1.15)} · ${silverNeed()} rings`],['Gold',`Under ${clock(par)} · ${ringNeed()} rings`]];
  $('oMed').innerHTML=cond.map(([n,c],i)=>`<div class="medal m${i+1} ${m>i?'on':''}" style="animation-delay:${.15+i*.18}s"><i></i><b>${n}</b>${c}</div>`).join('');
  $('oMeta').innerHTML=`<span><span class="ring"></span> <b>${runRings}/${RINGS.length}</b></span><span><b>${fmt(pts)}</b> pts</span><span>Airframe <b>${Math.round(hull)}%</b></span>`+(spec.airliner?`<span>Cabin <b>${Math.round(cabin)}%</b></span>`:'')+`<span><span class="can"></span> <b>+${pay}</b></span>`+(prevBest&&!nb&&ok?`<span>Best <b>${clock(prevBest)}</b></span>`:'');
  const opened=nextI<COURSES.length&&!COURSES[nextI].soon&&!wasOpen&&courseOpen(nextI);
@@ -1653,7 +1655,7 @@ function finishRun(){const nextI=lvl+1,wasOpen=nextI<COURSES.length&&!COURSES[ne
 // a crash in the last 40% says how far the finish was. The gap to your best is already under the time.
 function soClose(ok,m){const el=$('oClose');let msg='',f=0;
  if(!ok){const d=Math.min(CO.len,Math.max(0,T.d));if(d>=CO.len*.6){msg=`So close! <b>${fmt(Math.ceil((CO.len-d)/10)*10)} m</b> from the finish`;f=d/CO.len}}
- else{const par=parOf(CO,sel),tgt=m===1?par*1.15:m===2&&runRings>=ringNeed()?par:0,gap=tgt?result.time-tgt:0;
+ else{const par=parOf(CO,sel),tgt=m===1&&runRings>=silverNeed()?par*1.15:m===2&&runRings>=ringNeed()?par:0,gap=tgt?result.time-tgt:0;
   if(tgt&&gap>0&&gap<=3){msg=`So close! <b>${gap.toFixed(1)} s</b> off ${m===1?'Silver':'Gold'}`;f=tgt/result.time}}
  el.hidden=!msg;if(!msg)return;el.innerHTML=`${msg}<div class="xpbar"><i></i><u></u></div>`;const bar=el.querySelector('i');requestAnimationFrame(()=>requestAnimationFrame(()=>bar.style.width=Math.round(f*100)+'%'))}
 function canSpend(){if(ORDER.some(id=>!unlocked.includes(id)&&cans>=PLANES[id].price))return true;const P=perfFor(sel);return UPG.some(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1])}
