@@ -485,7 +485,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v49 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v50 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1505,8 +1505,9 @@ function boxTick(){const P=contactPoints();
  for(const b of BRIDGES){if(b.got||T.d<b.d)continue;b.got=true;if(state==='play'&&T.y<b.y&&hull>0){underRun++;stats.under++;bonus(100,'Under the bridge!');missionEvent('under')}}}
 function bonus(n,label){pts+=n;popText(`${label} <b>+${n}</b>`);buzz(15)}
 function hit(k,dmg,x,y,d,label,wet){lastHit=label;
- // the Viper only turns tight off full throttle: the first knock flat out says so (sloppy pilots finished 9/35 flat out, 29/35 at ¾)
- if(sel==='jet'&&throttle>.9&&!jetWarned&&state==='play'){jetWarned=true;setWarn('Throttle back!');warnT=1.8}const n=Math.round(dmg*k*spec.tough);if(spec.airliner)cabin=Math.max(0,cabin-8);T.cool=.55;rollHit=true;hull=Math.max(0,hull-n);ringCombo=0;
+ // the jets (Viper, Mach Dart) only turn tight off full throttle: the first knock flat out says so
+ // (sloppy pilots: Viper 9/35 flat out, 29/35 at ¾; Mach Dart 11/35 and 28/35)
+ if(spec.jet&&throttle>.9&&!jetWarned&&state==='play'){jetWarned=true;setWarn('Throttle back!');warnT=1.8}const n=Math.round(dmg*k*spec.tough);if(spec.airliner)cabin=Math.max(0,cabin-8);T.cool=.55;rollHit=true;hull=Math.max(0,hull-n);ringCombo=0;
  burst(x,y,-d,10+n,wet?6:8,wet?'#ffffff':'#d8c9b0',wet?.9:.6);sfxHit(Math.min(1,k));buzz(n>12?60:30);shake=Math.max(shake,settings.shake?.35+k*.5:0);
  const el=$('mHull');el.classList.remove('hit');void el.offsetWidth;el.classList.add('hit');
  popText(`${label} <b>−${n}%</b>`,true);if(hull<=0&&state==='play')endRun('crash')}
@@ -1721,7 +1722,7 @@ const CRASH_TIPS={'Wall!':'The <b>walls</b> got you. Ease off the throttle befor
  'Mid-air!':'Other <b>traffic</b> shares the sky. Look ahead and slide aside early.','Lightning!':'The sky <b>glows</b> just before lightning strikes. Steer away from the glow.',
  'Bridge!':'Fly <b>under</b> bridges in the middle of the span, where there\'s the most room.','Hangar!':'Line up with the <b>hangar door</b> early and keep the wings level through Bay 1.',
  'Hoodoo!':'The <b>hoodoos</b> stand just off the ring line. Stay on the rings and they\'ll slip past your wingtip.'};
-function crashTip(){if(sel==='jet'&&throttle>.9&&lastHit&&!['Bird strike!','Lightning!','Pull up!','Splash!','Mid-air!'].includes(lastHit))return'Flat out, the Viper turns <b>wide</b>. Ease the <b>throttle</b> back to about ¾ through the bends and it holds the line.';const t=CRASH_TIPS[lastHit];if(t)return t;const n=lastHit.replace(/!$/,'').toLowerCase();return lastHit&&lastHit!=='Hit!'?`The <b>${n}</b> got you. Follow the <b>rings</b>: they mark the safe line.`:''}
+function crashTip(){if(spec.jet&&throttle>.9&&lastHit&&!['Bird strike!','Lightning!','Pull up!','Splash!','Mid-air!'].includes(lastHit))return`Flat out, the ${PLANES[sel].name} turns <b>wide</b>. Ease the <b>throttle</b> back to about ¾ through the bends and it holds the line.`;const t=CRASH_TIPS[lastHit];if(t)return t;const n=lastHit.replace(/!$/,'').toLowerCase();return lastHit&&lastHit!=='Hit!'?`The <b>${n}</b> got you. Follow the <b>rings</b>: they mark the safe line.`:''}
 function pickTip(ok,m){if(!ok&&crashTip())return crashTip();const b=ORDER.find(id=>!unlocked.includes(id)&&cans>=PLANES[id].price);if(b)return`You can unlock the <b>${PLANES[b].name}</b> ${PLANES[b].type.toLowerCase()} in the Hangar!`;
  if(!ok)return'Canyon walls, towers and the ground all damage the plane. Follow the <b>rings</b> for the safe line.';
  const P=perfFor(sel),up=UPG.find(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1]);if(up)return`You can afford ${/^[aeiou]/i.test(up.n)?'an':'a'} <b>${up.n.toLowerCase()}</b> upgrade in the Hangar.`;
