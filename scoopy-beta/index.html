@@ -452,7 +452,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next job</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Scoopy beta v8 · by Torque Spec Studios</p>
+    <p class="ver">Scoopy beta v9 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1029,7 +1029,9 @@ function spawnRow(d){const J=job(),dist=d-T.START_D,warm=dist<110||(tut&&dist<24
   else if(r<pd+.075&&dist>200)row.objs.push(addObj(makeCoffee(),'coffee',dz,lane,.8,.6))}
  // the foreman's pickup drives down a lane toward you
  if(!warm&&!foreman&&dist>260&&Math.random()<J.foreman)spawnForeman(d)}
-function spawnForeman(d){const lane=Math.random()*3|0,P=buildPickup();foreman=addObj(P.root,'foreman',d+20,lane,1.0,2.5,{v:7,bar:P.bar,honked:false});
+// the pickup drives down an outside lane: in the middle it split the two free lanes, and when the open lane switched sides
+// you had to cut across its path to reach it (a trap with no way out when it was close)
+function spawnForeman(d){const lane=Math.random()<.5?0:2,P=buildPickup();foreman=addObj(P.root,'foreman',d+20,lane,1.0,2.5,{v:7,bar:P.bar,honked:false});
  // rows already spawned ahead that would leave no way past the pickup lose one of their blocking hazards
  for(const row of ROWS){if(row.d<C.d+10)continue;const cover=new Set([...row.blocked,lane]);if(cover.size<3)continue;const l=row.blocked.find(b=>b!==lane);row.blocked=row.blocked.filter(b=>b!==l);
   for(const o of row.objs)if(o.lane===l&&o.t!=='pile'&&!o.done){o.done=true;scene.remove(o.m);freeTree(o.m)}}}
