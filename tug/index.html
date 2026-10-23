@@ -471,7 +471,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v46 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v47 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -512,6 +512,19 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
+// phone app only (Capacitor): saves are mirrored to the native Preferences store, which iOS doesn't clear the way it can clear web storage.
+// If web storage comes up empty but a native backup exists, restore it and reload once before the game reads its save.
+// Ghost-boat traces (tr1_ghost_*) are left out of the backup: they are the bulky part, and losing one only loses the ghost.
+(function(){var C=window.Capacitor,P=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Preferences;if(!P)return;
+ var mine=function(k){return k.indexOf('tr1_')===0&&k.indexOf('tr1_ghost_')!==0};
+ // a web save exists: back the whole save up to native storage, then carry on
+ try{var have=Object.keys(localStorage).filter(mine);
+  if(have.length){have.forEach(function(k){P.set({key:k,value:localStorage.getItem(k)}).catch(function(){})});return}
+  if(sessionStorage.getItem('tr1_restored'))return}catch(e){return}
+ P.keys().then(function(r){var ks=r.keys.filter(mine);if(!ks.length)return;
+  return Promise.all(ks.map(function(k){return P.get({key:k}).then(function(v){if(v.value!=null)localStorage.setItem(k,v.value)})})).then(function(){sessionStorage.setItem('tr1_restored','1');location.reload()})}).catch(function(){})})();
+</script>
+<script>
 (function(){
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -520,7 +533,10 @@ const fmt=n=>Math.round(n).toLocaleString('en-US');
 // saved values are validated on load: a corrupt or out-of-date save falls back to safe defaults instead of breaking the game
 const num=(v,d,min=0)=>typeof v==='number'&&Number.isFinite(v)?Math.max(min,v):d;
 const obj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
-const store={get(k,d){try{const v=localStorage.getItem('tr1_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('tr1_'+k,JSON.stringify(v))}catch(e){}}};
+// native plugins when running as the phone app (Capacitor); all undefined in a browser
+const NATIVE=(C=>{const p=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins;return{prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,fs:p&&p.Filesystem,review:p&&p.InAppReview,app:p&&p.App}})(window.Capacitor);
+// every save also goes to the native backup in the app, except the bulky ghost traces
+const store={get(k,d){try{const v=localStorage.getItem('tr1_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){const j=JSON.stringify(v);try{localStorage.setItem('tr1_'+k,j)}catch(e){}if(NATIVE.prefs&&k.indexOf('ghost_')!==0)NATIVE.prefs.set({key:'tr1_'+k,value:j}).catch(()=>{})}};
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const clock=s=>{s=Math.round(s*10)/10;const m=Math.floor(s/60),r=s-m*60;return m+':'+(r<10?'0':'')+r.toFixed(1)};
 
@@ -659,6 +675,10 @@ let spec=specFor(sel);
 /* ---------- renderer & scene ---------- */
 const canvas=$('gl');
 const R=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+// the phone can drop the GPU context after a long time in the background: pause, and when it comes back reload the page
+// (every save is already written), so the player never returns to a black screen
+canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();try{pause()}catch(err){}});
+canvas.addEventListener('webglcontextrestored',()=>location.reload());
 const PHONE=Math.min(screen.width,screen.height)<820;
 // resolution: capped by device and graphics setting, and lowered or raised on the fly by the frame-time monitor (as in Swervy)
 let prMax=1.5,prNow=1.5;function prCap(){return Math.min(window.devicePixelRatio||1,(typeof settings!=='undefined'&&settings.quality==='low')?1:PHONE?1.5:2)}
@@ -750,7 +770,7 @@ const puffTex=radial('rgba(255,255,255,1)','rgba(255,255,255,0)');
 function lamp(color,size,par,x,y,z){const g=new THREE.Group(),b=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),new THREE.MeshBasicMaterial({color})),sp=new THREE.Sprite(new THREE.SpriteMaterial({map:puffTex,color,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,opacity:.85}));
  sp.scale.set(size,size,1);g.add(b,sp);g.position.set(x,y,z);g.userData.sp=sp;if(par)par.add(g);return g}
 function buildValley(){
- while(valley.children.length){const o=valley.children.pop();o.traverse(m=>{if(m.geometry)m.geometry.dispose()})}
+ while(valley.children.length)freeObj(valley.children.pop());
  const rows=RS.n;
  // ground: one height-field strip; columns are mirrored around the river
  {const cols=BANK.length*2,pos=new Float32Array(rows*cols*3),col=new Float32Array(rows*cols*3),uv=new Float32Array(rows*cols*2),idx=[];
@@ -810,6 +830,12 @@ const MAT={rock:new THREE.MeshStandardMaterial({color:0x6b6a64,roughness:.85,fla
  sand:new THREE.MeshStandardMaterial({color:0xb59c6c,roughness:1}),dark:new THREE.MeshStandardMaterial({color:0x1b1d21,roughness:.6}),
  can:new THREE.MeshStandardMaterial({color:0xd8321f,roughness:.35,metalness:.3,emissive:0x5a0a00}),cap:new THREE.MeshStandardMaterial({color:0xf2b33d,roughness:.4,metalness:.5}),
  foam:new THREE.MeshBasicMaterial({map:foamTex,transparent:true,depthWrite:false,opacity:.75})};
+// teardown for a rebuilt part of the scene: frees each mesh's own geometry, an instanced mesh's per-instance GPU buffers and
+// the materials that build made for itself; shared shapes (keep), shared materials and cached textures stay
+let KEEPMAT=null;
+function freeObj(o,keep){if(!KEEPMAT)KEEPMAT=new Set([...Object.values(MAT),waterMat,glassMat,tireMat,ropeMat,orangeEnd,hoseMat,HCM,AIDA,AIDG,AIDT]);
+ o.traverse(m=>{if(m.geometry&&!m.isSprite&&!(keep&&keep.has(m.geometry)))m.geometry.dispose();if(m.isInstancedMesh)m.dispose();
+  if(m.material)for(const x of[].concat(m.material))if(!KEEPMAT.has(x)&&!Object.values(cmats).includes(x))x.dispose()})}
 const GEO={rock:new THREE.IcosahedronGeometry(1,1),log:new THREE.CylinderGeometry(.42,.48,1,10).rotateZ(Math.PI/2),foam:new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2),
  sandbar:new THREE.SphereGeometry(1,24,10,0,Math.PI*2,0,Math.PI/2),can:new THREE.CylinderGeometry(.32,.32,.8,14),cap:new THREE.CylinderGeometry(.1,.1,.18,8)};
 let OB=[],SAND=[],CANS=[],BOATSX=[];
@@ -865,7 +891,7 @@ function cullWorld(){const lo=T.d-70,hi=T.d+(ENV==='fog'?170:320);
 function placeHazards(){
  // free the old river's own geometry (shared shapes stay)
  if(!SHARED.size)Object.values(GEO).forEach(g=>SHARED.add(g));
- while(hazards.children.length){const o=hazards.children.pop();o.traverse(m=>{if(m.geometry&&!SHARED.has(m.geometry))m.geometry.dispose()})}OB=[];SAND=[];CANS=[];BOATSX=[];
+ while(hazards.children.length)freeObj(hazards.children.pop(),SHARED);OB=[];SAND=[];CANS=[];BOATSX=[];
  const rnd=mulberry(LV.seed*104729);
  for(const bd of LV.bridges)addBridge(bd,laneAt(bd));
  let d=95,nextSand=200,nextCans=60;
@@ -1103,7 +1129,8 @@ const navLights=[],spot=new THREE.SpotLight(0xfff1d6,0,130,.36,.55,1.2);scene.ad
 const beam=new THREE.Mesh(new THREE.ConeGeometry(6,46,24,1,true).translate(0,-23,0).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xfff1d6,transparent:true,opacity:.045,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));beam.visible=false;scene.add(beam);
 function navSet(){for(const n of navLights)n.visible=NIGHT;spot.intensity=NIGHT?3.2:0;beam.visible=NIGHT}
 function addNavLights(m){navLights.length=0;const bo=spec.bow*.55,bw=spec.bw+.2,y=spec.rigid?3:2.3;navLights.push(lamp(0xff3a2a,1.5,m,-bw,y,-bo),lamp(0x3aff6a,1.5,m,bw,y,-bo),lamp(0xffffff,2,m,0,spec.rigid?6.5:4.6,0));navSet()}
-function rebuildBoat(){while(boatRoot.children.length){const o=boatRoot.children.pop();o.traverse(m=>{if(m.geometry&&m.geometry!==ropeGeo)m.geometry.dispose()})}
+const ROPEKEEP=new Set([ropeGeo]);
+function rebuildBoat(){while(boatRoot.children.length)freeObj(boatRoot.children.pop(),ROPEKEEP);
  spec=specFor(sel);const col=PAINTS[paintFor(sel)].c;boatM={tug:buildTug,bigmo:buildBigMo,jetski:buildJetSki,airboat:buildAirboat,pilot:buildPilot,speed:buildSpeedboat,crew:buildCrew,fire:buildFire,ferry:buildFerry,stern:buildStern,atb:buildATB,crane:buildCrane,push:buildPush}[spec.build](col);boatRoot.add(boatM);addNavLights(boatM);bargeM=[];ropeSegs=[];
  for(let i=0;i<(rescueJob()||lightJob()?0:spec.barges);i++){const b=fuelJob()?buildFuelBarge():buildBarge(i);boatRoot.add(b);bargeM.push(b);const segs=[];for(let k=0;k<10;k++){const s=new THREE.Mesh(ropeGeo,ropeMat);s.castShadow=true;boatRoot.add(s);segs.push(s)}ropeSegs.push(segs)}}
 
@@ -1165,7 +1192,7 @@ function audioTick(){if(!AC)return;const at=AC.currentTime,on=state==='play'||st
  const r=riv(T.d);wat.g.gain.setTargetAtTime(state==='play'||state==='done'?.05+v*.01+r.rp*.12:state==='garage'?.03:.04,at,.3);wat.f.frequency.setTargetAtTime(700+v*60+r.rp*900,at,.3)}
 function setMute(m){muted=m;store.set('muted',m);$('mute').style.opacity=m?.45:1;$('mute').setAttribute('aria-pressed',!m);if(AC)master.gain.value=m||!settings.sound?0:1}
 $('mute').addEventListener('click',e=>{e.stopPropagation();audioInit();setMute(!muted)});setMute(muted);
-function buzz(ms){if(!settings.haptics)return;try{const ua=navigator.userActivation;if(navigator.vibrate&&(!ua||ua.hasBeenActive))navigator.vibrate(ms)}catch(e){}}
+function buzz(ms){if(!settings.haptics)return;if(NATIVE.haptics){NATIVE.haptics.impact({style:ms>=50?'HEAVY':ms>=25?'MEDIUM':'LIGHT'}).catch(()=>{});return}try{const ua=navigator.userActivation;if(navigator.vibrate&&(!ua||ua.hasBeenActive))navigator.vibrate(ms)}catch(e){}}
 
 /* ---------- game state ---------- */
 // T is the player's boat, BG the barges; positions are (x, d), velocities (vx, vd) over the ground
@@ -1315,7 +1342,9 @@ function hazardsTick(dt){for(const o of OB){if(o.hitCD>0)o.hitCD-=dt;if(o.k==='s
   if(ferryJob()&&!b.big&&b.d<JOBD().stops[0].d-230){const rr=riv(b.d+460,{});b.d+=460;b.x=rr.c+b.lat;b.vx=b.vd=0;b.honked=false}
   // stay in the water: clear of the banks where the river narrows, and of docks, landings and the start pier
   if(!b.big){const sd=Math.sign(lat)||1,lim=r.w/2-b.r-1.5-Math.max(dockClear(b.d,sd),dockClear(b.d-25,sd));if(Math.abs(lat)>lim)lat=sd*Math.max(0,lim)}
-  const tx=r.c+lat;{let da=Math.atan2(tx-b.x,b.giving?-14:-25)-b.a;da=Math.atan2(Math.sin(da),Math.cos(da));b.a+=da*dt*(b.giving?1.6:.8)}const fx=Math.sin(b.a),fd=Math.cos(b.a);
+  const tx=r.c+lat;{// racing, giving way is a decisive sheer toward the bank, so they're clear whichever side they chose; on a job you're
+  // slowing for a berth, and a sheer would swing them across your barge, so they keep the gentle drift
+  const sheer=b.giving&&!isJob();let da=Math.atan2(tx-b.x,sheer?-8:b.giving?-14:-25)-b.a;da=Math.atan2(Math.sin(da),Math.cos(da));b.a+=da*dt*(sheer?2.6:b.giving?1.6:.8)}const fx=Math.sin(b.a),fd=Math.cos(b.a);
   b.vx+=(cv.cx+fx*b.thr-b.vx)*dt*.9;b.vd+=(cv.cd+fd*b.thr-b.vd)*dt*.9;b.x+=b.vx*dt;b.d+=b.vd*dt;if(!b.big){const rr=riv(b.d,CUR),off=b.x-rr.c,sd=Math.sign(off)||1,lim=rr.w/2-b.r-.5-dockClear(b.d,sd);if(Math.abs(off)>lim){b.x=rr.c+sd*Math.max(0,lim);if(b.vx*sd>0)b.vx*=-.2}}b.m.position.set(b.x,Math.sin(runT*1.5+b.d)*.08,-b.d);b.m.rotation.y=-b.a;
   if(Math.random()<dt*8)wake(b.x-fx*(b.half||3),-(b.d-fd*(b.half||3)),b.big?4.5:1.6,b.big?11:5,1.3,.4);if(b.big&&Math.random()<dt*6)wake(b.x+fx*20,-(b.d+fd*20),3,7,1.2,.35)}}
 // crane load: a 6 m pendulum driven by the sideways (centripetal) acceleration of turning and by the rapids
@@ -1441,8 +1470,8 @@ function buildSights(){const J=JOBD(),wood=new THREE.MeshStandardMaterial({color
   else{const mill=box(9,7,8,new THREE.MeshStandardMaterial({color:0x8d3b2a,roughness:.85}),sg.side*5,4.5,0,g);const rf=box(9.6,.3,9,MAT.dark,sg.side*5,8.2,0,g);
    const wh=new THREE.Group();wh.position.set(-sg.side*.6,3,0);g.add(wh);for(const sd of[-1,1]){const rim=new THREE.Mesh(new THREE.TorusGeometry(2.8,.15,6,20).rotateY(Math.PI/2),wood);rim.position.x=sd*.6;wh.add(rim)}
    for(let k=0;k<12;k++){const a=k/12*Math.PI*2,pd=box(1.4,.12,.8,wood,0,Math.sin(a)*2.4,Math.cos(a)*2.4,wh);pd.rotation.x=-a}JOBD().millWheel=wh}}}
-function buildDocks(){SLACK=[];while(dockGroup.children.length){const o=dockGroup.children.pop();o.traverse(m=>{if(m.geometry&&m.geometry!==GEO.foam)m.geometry.dispose()})}DOCKS=[];
- for(const o of OB)if(o.drive)hazards.remove(o.m);OB=OB.filter(o=>o.k!=='ship'&&!o.drive);for(const o of OB){o.off=false;o.m.visible=true}for(const sb of SAND){sb.off=false;sb.m.visible=sb.f.visible=true}for(const b of BOATSX){b.off=false;b.m.visible=true}
+function buildDocks(){SLACK=[];while(dockGroup.children.length)freeObj(dockGroup.children.pop(),SHARED);DOCKS=[];
+ for(const o of OB)if(o.drive){hazards.remove(o.m);freeObj(o.m,SHARED)}OB=OB.filter(o=>o.k!=='ship'&&!o.drive);for(const o of OB){o.off=false;o.m.visible=true}for(const sb of SAND){sb.off=false;sb.m.visible=sb.f.visible=true}for(const b of BOATSX){b.off=false;b.m.visible=true}
  if(!isJob())return;
  const wood=new THREE.MeshStandardMaterial({color:0x6b5038,roughness:.9}),deckM=new THREE.MeshStandardMaterial({color:0x8a8478,roughness:.95}),tankM=new THREE.MeshStandardMaterial({color:0xe9e7e1,roughness:.5,metalness:.2}),
   berthM=new THREE.MeshBasicMaterial({color:0xf2b33d,transparent:true,opacity:.22,depthWrite:false}),lampM=new THREE.MeshBasicMaterial({color:0xffc04a});
@@ -2060,7 +2089,11 @@ function finishRun(){if(isJob())return finishJob();const ok=result.kind==='finis
  $('oMeta').innerHTML=`<span>Hull <b>${Math.round(hull)}%</b></span>`+(spec.cargo?`<span>Cargo <b>${Math.round(cargo)}%</b></span>`:'')+`<span><span class="can"></span> <b>+${pay}</b>${ENV==='night'?' (night ×1.25)':''}</span>`+(prevBest&&!nb&&ok?`<span>Best <b>${clock(prevBest)}</b></span>`:'');
  $('oAch').hidden=!got.length;$('oAch').innerHTML=got.length>2?`${TROPHY} ${got.length} trophies unlocked · +${got.reduce((t,g)=>t+g[1],0)} <span class="can"></span>`:got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
  $('oTip').innerHTML=pickTip(ok,m,pay-runCans);$('toGarage').classList.toggle('nudge',canSpend());
- state='over';clearTimeout(banner.t);show('region',0);toastQ=[];toastBusy=false;show('mtoast',0);show('hud',0);show('over',1);if(m===3&&m>prevM)chime([523,659,784,1047,1319]);afterRun(ok,m,nb)}
+ state='over';clearTimeout(banner.t);show('region',0);toastQ=[];toastBusy=false;show('mtoast',0);show('hud',0);show('over',1);if(m===3&&m>prevM)chime([523,659,784,1047,1319]);afterRun(ok,m,nb);if(nb||m===3&&m>prevM)maybeAskReview()}
+// app only: after a new best time or a first gold, once a player has 8+ runs, ask for a rating with the store's own prompt
+// (at most every 120 days; iOS and Android add their own limits and may show nothing). Never a custom "rate us" dialog.
+function maybeAskReview(){const RV=NATIVE.review;if(!RV||stats.runs<8)return;if(Date.now()-num(store.get('reviewAsked',0),0)<120*864e5)return;
+ store.set('reviewAsked',Date.now());setTimeout(()=>RV.requestReview().catch(()=>{}),1500)}
 /* ---------- revive ---------- */
 // once per race, a sinking or a lost tow can be undone for 60 cans: the crew patches the hull (back to 40%) or rigs a new line
 // to the barge (cargo back to 35%), and the run carries on from where it was after a countdown
@@ -2086,7 +2119,7 @@ function finishJob(){const J=JOBD(),ok=result.kind==='job',key='job_'+J.id+'_'+s
  $('oMeta').innerHTML=`<span>Hull <b>${Math.round(hull)}%</b></span>`+(J.logs?`<span>Logs <b>${OB.filter(o=>o.drive&&o.penned).length} of ${J.logs.length}</b></span>`:spec.cargo||J.sights||J.notow||J.id==='assist'?`<span>${J.sights?'Comfort':J.id==='assist'?'Ship':J.notow?'Tow':'Cargo'} <b>${Math.round(cargo)}%</b></span>`:'')+(J.id==='fuel'?`<span>Spills <b>${fmt(spill)} bbl</b></span>`:'')+(J.sights?`<span>Sights <b>${TS.seen}/${J.sights.length}</b></span><span>Tips <b>${TS.tips}</b></span>`:'')+`${skip?`<span>Unfinished stops <b>${skip}</b></span>`:''}<span>Slips <b>${errs}</b></span><span><span class="can"></span> <b>+${pay}</b>${fine?` (fine −${fine})`:''}</span>`;
  $('oAch').hidden=!got.length;$('oAch').innerHTML=got.length>2?`${TROPHY} ${got.length} trophies unlocked · +${got.reduce((t,g)=>t+g[1],0)} <span class="can"></span>`:got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
  $('oTip').innerHTML=errs?'<b>Slips:</b> '+jobLog.errs.slice(0,3).join(' · ')+(errs>3?' …':''):ok?(m<3?`Gold needs no slips and <b>${clock(jobPar(J))}</b> or better.`:'A clean job. The dock crew are impressed.'):'Take the river slowly on a job: there is no prize for speed if the cargo is lost.';
- $('toGarage').classList.toggle('nudge',canSpend());state='over';clearTimeout(banner.t);show('region',0);toastQ=[];toastBusy=false;show('mtoast',0);show('hud',0);show('over',1);if(m===3&&m>prevM)chime([523,659,784,1047,1319]);afterRun(ok,m,nb)}
+ $('toGarage').classList.toggle('nudge',canSpend());state='over';clearTimeout(banner.t);show('region',0);toastQ=[];toastBusy=false;show('mtoast',0);show('hud',0);show('over',1);if(m===3&&m>prevM)chime([523,659,784,1047,1319]);afterRun(ok,m,nb);if(nb||m===3&&m>prevM)maybeAskReview()}
 function canSpend(){if(ORDER.some(id=>!unlocked.includes(id)&&cans>=BOATS[id].price))return true;const P=perfFor(sel);return UPG.some(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1])}
 const TIPS=['Fuel cans mark the <b>safe channel</b> through each section.','In the rapids the current is about <b>three times</b> as strong.','Sandbars are the pale patches: they slow you right down.','Logs drift with the current, so aim where they <b>will</b> be.','Buoys bend out of the way, but still dent the hull.'];
 function pickTip(ok,m,bonus){const b=ORDER.find(id=>!unlocked.includes(id)&&cans>=BOATS[id].price);if(b)return`You can unlock the <b>${BOATS[b].name}</b> ${BOATS[b].type.toLowerCase()} in the Garage!`;
@@ -2153,7 +2186,7 @@ const GDT=.2;let rec=[],recT=0,ghost=null,ghostM=null,ghostFor='';
 const ghostKey=()=>'ghost_'+LV.id+'_'+sel;
 function ghostMat(){return new THREE.MeshBasicMaterial({color:0xcfe9ff,transparent:true,opacity:.28,depthWrite:false})}
 function loadGhost(){ghost=null;if(ghostM)ghostM.visible=false;if(isJob())return;const g=store.get(ghostKey(),null);if(!g||!Array.isArray(g.p)||g.p.length<9)return;ghost=g;
- if(ghostFor!==sel||!ghostM){if(ghostM){scene.remove(ghostM);ghostM.traverse(m=>{if(m.geometry)m.geometry.dispose()})}ghostM={tug:buildTug,bigmo:buildBigMo,jetski:buildJetSki,airboat:buildAirboat,pilot:buildPilot,speed:buildSpeedboat,crew:buildCrew,fire:buildFire,ferry:buildFerry,stern:buildStern,atb:buildATB,crane:buildCrane,push:buildPush}[spec.build]('#ffffff');
+ if(ghostFor!==sel||!ghostM){if(ghostM){scene.remove(ghostM);freeObj(ghostM)}ghostM={tug:buildTug,bigmo:buildBigMo,jetski:buildJetSki,airboat:buildAirboat,pilot:buildPilot,speed:buildSpeedboat,crew:buildCrew,fire:buildFire,ferry:buildFerry,stern:buildStern,atb:buildATB,crane:buildCrane,push:buildPush}[spec.build]('#ffffff');
   const mat=ghostMat();ghostM.traverse(m=>{if(m.isMesh)m.material=mat;if(m.isSprite)m.visible=false;m.castShadow=false});scene.add(ghostM);ghostFor=sel}
  ghostM.visible=true;placeGhost(0)}
 function placeGhost(t){if(!ghost||!ghostM)return;const p=ghost.p,n=p.length/3,f=t/GDT,i=Math.min(n-2,Math.floor(f)),u=Math.min(1,f-i);
@@ -2179,11 +2212,15 @@ function drawCard(){const r=lastShare,W=1080,H=1350,c=document.createElement('ca
  if(r.medal){const C=['','#b8733d','#c3c8ce','#f2b33d'][r.medal];g.fillStyle=C;g.beginPath();g.arc(W/2,610,42,0,7);g.fill();g.fillStyle='#f5f0e6';g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=12;g.font='800 30px "Barlow",system-ui,sans-serif';g.fillText(['','BRONZE','SILVER','GOLD'][r.medal],W/2,692);g.shadowBlur=0}
  g.fillStyle='rgba(13,17,23,.78)';g.fillRect(0,H-190,W,190);g.fillStyle='#f2b33d';g.font='800 italic 92px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillText('CAN YOU BEAT IT?',W/2,H-82);
  g.fillStyle='rgba(245,240,230,.6)';g.font='700 26px "Barlow",system-ui,sans-serif';g.fillText('BY TORQUE SPEC STUDIOS',W/2,H-30);return c}
-let shareFile=null;
-function openShare(){if(!lastShare)return;const c=drawCard();$('shareImg').src=c.toDataURL('image/jpeg',.9);$('shareMsg').textContent='';shareFile=null;
+let shareFile=null,shareData=null;
+function openShare(){if(!lastShare)return;const c=drawCard(),url=c.toDataURL('image/jpeg',.9);$('shareImg').src=url;shareData=url.split(',')[1];$('shareMsg').textContent='';shareFile=null;
  c.toBlob(b=>{if(b)shareFile=new File([b],'tuggy.jpg',{type:'image/jpeg'})},'image/jpeg',.9);show('share',1)}
 $('shareBtn').addEventListener('click',()=>{audioInit();openShare()});$('shareClose').addEventListener('click',()=>show('share',0));
-$('shareGo').addEventListener('click',async()=>{const text=shareText();try{if(shareFile&&navigator.canShare&&navigator.canShare({files:[shareFile]})){await navigator.share({files:[shareFile],text});return}if(navigator.share){await navigator.share({text});return}}catch(e){if(e&&e.name==='AbortError')return}
+$('shareGo').addEventListener('click',async()=>{const text=shareText();
+ // in the app: the native share sheet needs a real file, so the card is written to the app's cache first
+ if(NATIVE.share){try{let files;if(NATIVE.fs&&shareData)try{const r=await NATIVE.fs.writeFile({path:'tuggy.jpg',data:shareData,directory:'CACHE'});files=[r.uri]}catch(e){}
+  await NATIVE.share.share(Object.assign({title:'Tuggy',text,dialogTitle:'Share your run'},files?{files}:{}))}catch(e){}return}
+ try{if(shareFile&&navigator.canShare&&navigator.canShare({files:[shareFile]})){await navigator.share({files:[shareFile],text});return}if(navigator.share){await navigator.share({text});return}}catch(e){if(e&&e.name==='AbortError')return}
  try{await navigator.clipboard.writeText(text);$('shareMsg').textContent='Copied the challenge. Long-press the card to save it.'}catch(e){$('shareMsg').textContent='Long-press the card to save it.'}});
 
 /* ---------- captain XP, missions, daily reward ---------- */
@@ -2286,9 +2323,20 @@ $('pauseBtn').addEventListener('click',e=>{e.stopPropagation();pause()});$('horn
 $('restart').addEventListener('click',()=>{show('paused',0);goReady()});$('pGarage').addEventListener('click',()=>{show('paused',0);goGarage()});
 window.addEventListener('blur',()=>{drag=null;ptrs.clear();keyL=keyR=false;pause()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
+// silence everything while the app is in the background (switching apps, locking the phone), as the other games do
+document.addEventListener('visibilitychange',()=>{if(!AC)return;document.hidden?AC.suspend():AC.resume()});
 const LKEYS=['ArrowLeft','KeyA'],RKEYS=['ArrowRight','KeyD'];
+// Escape / P on a keyboard, and the Android back button: close the open panel, otherwise pause or resume a run
+function backStep(){for(const id of['help','share','achPanel','settings'])if(!$(id).hidden){show(id,0);return true}if(state==='play'||state==='count'||state==='moored'){pause();return true}if(state==='paused'){resume();return true}return false}
+// Android back button (app only): the Escape steps above, then the daily reward, a revive offer and the start or results screen
+// go back to the garage, and from the garage the app goes to the background. It never quits mid-run (the system default would)
+if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{if(backStep())return;
+ if(!$('daily').hidden){show('daily',0);return}
+ if(state==='revive'){$('rvNo').click();return}
+ if(state==='ready'||state==='over'){goGarage();return}
+ if(state==='garage')NATIVE.app.minimizeApp()});
 window.addEventListener('keydown',e=>{
- if(e.code==='Escape'||e.code==='KeyP'){for(const id of['help','share','achPanel','settings'])if(!$(id).hidden){show(id,0);return}if(state==='play'||state==='count'||state==='moored')pause();else if(state==='paused')resume();return}
+ if(e.code==='Escape'||e.code==='KeyP'){backStep();return}
  // crane controls while moored at the work pier
  if(state==='moored'&&OPS&&OPS.kind==='fuel'){const m=HKEYS[e.code];if(m){e.preventDefault();HOLD[m]=true}else if(e.code==='Space'&&!e.repeat){e.preventDefault();fuelAct('hose')}return}
  if(state==='moored'&&OPS&&OPS.kind==='ferry'){if(e.code==='ArrowUp'){e.preventDefault();HOLD.fRu=true}else if(e.code==='ArrowDown'){e.preventDefault();HOLD.fRd=true}else if(!e.repeat){if(e.code==='KeyG')ferryAct('gate');if(e.code==='KeyF')ferryAct('off');if(e.code==='KeyR')ferryAct('on');if(e.code==='Space'){e.preventDefault();ferryAct('cast')}}return}
