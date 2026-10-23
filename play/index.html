@@ -1540,6 +1540,8 @@ function coachTip(el,html,key){if(store.get(key,false)||!el||$('ctip'))return fa
  t.style.left=x+'px';t.style.top=(below?r.bottom+12:r.top-th-12)+'px';t.classList.add(below?'below':'above');t.style.setProperty('--ax',(r.left+r.width/2-x)+'px');
  store.set(key,true);const off=()=>{t.remove();removeEventListener('pointerdown',off,true);clearTimeout(t.k)};setTimeout(()=>addEventListener('pointerdown',off,true),250);t.k=setTimeout(off,8000);return true}
 function gTips(){if(state!=='garage'||photo||pv||!$('pick').hidden||!$('daily').hidden||!$('shop').hidden||!$('coll').hidden)return;
+ // an affordable upgrade comes first, so the garage agrees with the results tip that sent the player here; the looks tip waits a visit
+ {const ed=$('tabs').querySelector('[data-t="engine"] .dot');if(ed&&coachTip(ed.parentNode,'<b>Upgrade ready:</b> spend your cans on speed, grip and longer boosts.','tipEngine'))return}
  if(stats.runs>=2&&tab!=='style'&&coachTip($('tabs').querySelector('[data-t="style"]'),'<b>New looks:</b> liveries, smoke and garage themes. Try any on free.','tipStyle'))return;
  if([...owned].some(k=>/^(livery|room|smoke|trail):/.test(k)))coachTip($('photoBtn'),'<b>Show it off:</b> take a photo and share it.','tipPhoto')}
 function goReady(snap){setEngineView(false);if(pv){cfg[pv.k]=pv.prev;pv=null;rebuildCar()}if(!unlocked.includes(cfg.model)){selectModel(lastDriven);rebuildCar()}
@@ -1654,7 +1656,9 @@ function checkDaily(){if(!store.get('tutDone',false))return;const now=new Date()
  $('dSub').textContent=streak>1?`You've played ${streak} days in a row. Come back tomorrow for +${DAILY[(idx+1)%7]}.`:`Come back tomorrow for +${DAILY[1]}. Miss a day and the streak resets.`;
  $('dDays').innerHTML=DAILY.map((a,i)=>`<div class="day ${i<idx?'got':''} ${i===idx?'today':''} ${i===6?'big':''}"><span>Day ${i+1}</span><b>${a}</b><span class="can"></span></div>`).join('');
  $('dClaim').innerHTML=`Claim +${amt} <span class="can"></span>`;
- $('dClaim').onclick=()=>{audioInit();daily={last:today,streak};store.set('daily',daily);cans+=amt;store.set('cans',cans);show('daily',0);chime([523,659,784,1047,1319]);buzz(40);if(state==='garage')renderGarage()};
+ $('dClaim').onclick=()=>{audioInit();daily={last:today,streak};store.set('daily',daily);cans+=amt;store.set('cans',cans);show('daily',0);chime([523,659,784,1047,1319]);buzz(40);
+ // the garage's coach tips were skipped while this popup was up, so they get their turn once the claim chime has played
+ if(state==='garage'){renderGarage();clearTimeout(gTips.t);gTips.t=setTimeout(gTips,900)}};
  show('daily',1)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state==='garage')checkDaily()});
 
