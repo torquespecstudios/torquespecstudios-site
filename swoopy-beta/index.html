@@ -471,7 +471,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v33 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v34 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1175,6 +1175,9 @@ function rebuildGhost(){scene.remove(ghostM);ghostM=PLANE_BUILD[spec.build]('#ff
 function ghostRecord(dt){if((ghostRecT+=dt)<.1)return;ghostRecT-=.1;ghostRec.push([T.x,T.y,T.d,T.a,T.roll,T.pitch].map(v=>Math.round(v*100)/100))}
 // split against the ghost at each quarter of the course: when did the ghost reach this distance? (sample i was taken at about (i+1)/10 s)
 function ghostTimeAt(d){const P=ghost.p;for(let i=1;i<P.length;i++)if(P[i][2]>=d){const a=P[i-1][2],b=P[i][2];return(i+(b>a?(d-a)/(b-a):0))*.1}return null}
+// the finish banner's last split: ahead of or behind your ghost's finish time
+function finishGap(){if(!ghost||!settings.ghost)return'';const g=ghost.t||ghostTimeAt(CO.len);if(!g)return'';const dt=runT-g;
+ return Math.abs(dt)<.05?'Dead level with your ghost':dt<0?`${(-dt).toFixed(1)} s ahead of your ghost`:`${dt.toFixed(1)} s behind your ghost`}
 function splitTick(){if(!ghost||!settings.ghost)return;const q=Math.floor(T.d/CO.len*4);if(q<=splitQ||q<1||q>3)return;splitQ=q;const g=ghostTimeAt(T.d);if(g==null)return;
  const dt=runT-g,el=$('split');el.textContent=(Math.abs(dt)<.05?'±0.0':(dt<0?'−':'+')+Math.abs(dt).toFixed(1))+' s';el.className='split '+(dt<0?'ahead':dt>=.05?'behind':'');
  show('split',0);void el.offsetWidth;show('split',1);clearTimeout(splitTick.t);splitTick.t=setTimeout(()=>show('split',0),2800)}
@@ -1528,7 +1531,7 @@ function nextToast(){const h=toastQ.shift();if(!h){toastBusy=false;show('mtoast'
 function coach(html,t){$('coach').innerHTML=html;show('coach',1);coachT=t}
 function banner(small,big,em){const el=$('region');el.className='';el.innerHTML=`<small>${small}</small><div class="disp">${big}</div>${em?`<em>${em}</em>`:''}`;show('region',0);void el.offsetWidth;show('region',1);clearTimeout(banner.t);banner.t=setTimeout(()=>show('region',0),2600)}
 function endRun(kind){if(state!=='play')return;state='done';endT=0;result={kind,time:runT};show('pauseBtn',0);show('stick',0);show('thr',0);show('coach',0);show('warn',0);show('rollBtn',0);show('split',0);stick=null;
- if(kind==='finish'){chime([523,659,784,1047]);buzz(40);for(let i=0;i<3;i++)burst(T.x+(Math.random()-.5)*12,T.y+4,-T.d-14,22,9,['#f2b33d','#ffffff','#5fc4c9'][i],.7,3);banner('Finish',clock(runT))}
+ if(kind==='finish'){chime([523,659,784,1047]);buzz(40);for(let i=0;i<3;i++)burst(T.x+(Math.random()-.5)*12,T.y+4,-T.d-14,22,9,['#f2b33d','#ffffff','#5fc4c9'][i],.7,3);banner('Finish',clock(runT),finishGap())}
  else{popText('Going <b>down!</b>',true);buzz(90);T.spin=(Math.random()<.5?-1:1)*2.5}}
 /* ---------- revive ---------- */
 // as in Swervy: after a crash past 300 m, the run can be continued once for REVIVE_COST cans (4 s to decide).
@@ -1623,7 +1626,7 @@ function finishRun(){const nextI=lvl+1,wasOpen=nextI<COURSES.length&&!COURSES[ne
  let pay=runCans+finPay+medalPay;if(ok&&spec.airliner){pay=Math.round(pay*(.5+.5*cabin/100));if(cabin>=90)stats.smooth=(stats.smooth||0)+1}if(isDaily){pay*=2;store.set('dailyCh',dp.key);stats.dailies=(stats.dailies||0)+1}
  const nb=ok&&(!prevBest||result.time<prevBest);if(nb){bests[key]=+result.time.toFixed(2);maybeAskReview()}
  // the ghost replays your best clean run (no revive); the first finish also sets one if there isn't one yet
- if(ok&&!reviveUsed&&(nb||!ghost)){store.set('ghost_'+key,{t:result.time,p:ghostRec});ghost={p:ghostRec}}if(m>prevM)medals[key]=m;if(pts>num(scores[key],0))scores[key]=pts;
+ if(ok&&!reviveUsed&&(nb||!ghost)){store.set('ghost_'+key,{t:result.time,p:ghostRec});ghost={t:result.time,p:ghostRec}}if(m>prevM)medals[key]=m;if(pts>num(scores[key],0))scores[key]=pts;
  cans+=pay;stats.runs++;if(ok){stats.fins++;if(sel==='cargo')stats.heavy++;if(hull>=100)stats.clean++;if(runRings===RINGS.length)stats.perfect++}if(m===3)stats.gold++;
  missionEvent('run');if(ok)missionEvent('finish');if(m===3)missionEvent('gold');store.set('missions',missions);
  const xr=awardXP(Math.floor(pts/100)+runCans*3+(ok?25:0)+m*10+missionXP);missionXP=0;
