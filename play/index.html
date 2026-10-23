@@ -1287,9 +1287,12 @@ function buildCar(c){
   // cars), so painted bodywork never shows through the windows
   const fx2=cab[0][0],rx2=cab[4][0];let belt=M.belt;for(let x=rx2+.05;x<=fx2-.05;x+=.05)belt=Math.max(belt,tA(x));belt+=.012;
   const seatX=(cab[2][0]+cab[3][0])/2+.05,head=roofAt(seatX)-belt,off=Math.min(.36,cabW*.22);
-  const midX=(fx2+rx2)/2;ib(fx2-rx2-.3,.01,2*cHalf(midX,belt)-.1,carpet,midX,belt+.005,0);
+  // the floor, dash and cage stay under the glass: on the mid-engine cars the engine cover lifts the floor above the foot
+  // of the steeply raked windshield, so their ends are pulled in to where the glass clears them
+  const clearX=(y,x,dir)=>{while(roofAt(x)<y&&(dir<0?x>rx2:x<fx2))x+=dir*.01;return x};
+  const ffx=clearX(belt+.015,fx2-.15,-1),frx=clearX(belt+.015,rx2+.15,1),midX=(ffx+frx)/2;ib(ffx-frx,.01,2*cHalf(midX,belt)-.1,carpet,midX,belt+.005,0);
   // the dash runs from under the windshield back toward the wheel, kept just below the glass
-  const dx=fx2-.42,dTop=Math.min(belt+.1,roofAt(fx2-.2)-.03);ib(.5,dTop-belt,2*cHalf(dx,belt)-.1,dark,dx,(belt+dTop)/2,0);
+  const dx=Math.min(fx2-.42,clearX(belt+.05,fx2-.17,-1)-.25),dTop=Math.min(belt+.1,roofAt(dx+.22)-.03);ib(.5,dTop-belt,2*cHalf(dx,belt)-.1,dark,dx,(belt+dTop)/2,0);
   for(const gz of[-.065,.065]){const gg=new THREE.Mesh(new THREE.CircleGeometry(.032,16).rotateY(-Math.PI/2),std({color:0x111111,emissive:0xff9a3a,emissiveIntensity:.8}));gg.position.set(dx-.251,dTop-.035,-off+gz);int.add(gg)}
   const sh=Math.max(.12,head-.07),sw=.4;
   for(const sz of[-1,1]){const st=new THREE.Group();st.position.set(seatX,belt-.02,sz*off);st.rotation.z=.18;int.add(st);
@@ -1303,7 +1306,7 @@ function buildCar(c){
   if(CB===2){const tube=(a,b,r=.022)=>{const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),10),cageM);o.position.copy(A).add(B).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());int.add(o)};
    const hx=seatX-.2,hy=roofAt(hx)-.07,hz=cHalf(hx,hy)-.06,bz=cHalf(hx,belt)-.08;
    for(const sz of[-1,1])tube([hx,belt,sz*bz],[hx,hy,sz*hz]);tube([hx,hy,-hz],[hx,hy,hz]);tube([hx,hy,-hz],[hx,belt+.02,bz]);
-   const ax=fx2-.2,ay=belt+.03,az=cHalf(ax,ay)-.08,tx=cab[1][0]-.08,ty=roofAt(tx)-.07,tz=cHalf(tx,ty)-.06,rx3=rx2+.2,ry=belt+.02;
+   const ax=fx2-.2,ay=Math.min(belt+.03,roofAt(ax)-.06),az=cHalf(ax,ay)-.08,tx=cab[1][0]-.08,ty=roofAt(tx)-.07,tz=cHalf(tx,ty)-.06,rx3=rx2+.2,ry=Math.min(belt+.02,roofAt(rx3)-.06);
    for(const sz of[-1,1]){tube([ax,ay,sz*az],[tx,ty,sz*tz]);tube([tx,ty,sz*tz],[hx,hy,sz*hz]);tube([hx,hy,sz*hz],[rx3,ry,sz*(cHalf(rx3,ry)-.08)])}
    tube([tx,ty,-tz],[tx,ty,tz])}
   int.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true}})}
