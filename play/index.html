@@ -18,7 +18,7 @@
 <meta name="apple-mobile-web-app-title" content="Swervy">
 <meta name="theme-color" content="#151a20">
 <link rel="apple-touch-icon" href="../img/swervy-icon.png">
-<link rel="icon" href="../img/favicon.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><script data-goatcounter="https://torquespecstudios.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+<link rel="icon" href="../img/favicon.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Swervy (beta)</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;800&family=Barlow:wght@500;700&display=swap">
@@ -2202,16 +2202,18 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  drawFx(dt,sf);
  if(!booted)warmShaders();R.render(scene,cam);if(!booted)bootDone();requestAnimationFrame(frame)}
 // the first rendered frame means the shaders are compiled: fade out the loading screen and log how long startup took
-// shader warm-up, once behind the loading screen: draw one throwaway frame with the road pieces, a smoke and a spark
-// sprite, the boost flames and a tiny mesh for every shared world material visible, so the GPU compiles their shaders
+// shader warm-up, once behind the loading screen: draw one throwaway frame with everything in the scene visible plus a
+// tiny mesh for every shared world material, so the GPU compiles their shaders
 // now rather than when the player first taps Drive (a visible freeze) or meets boost pads and road rocks mid-run (stutters)
 function warmShaders(){const tmp=new THREE.Group(),geo=new THREE.BoxGeometry(.05,.05,.05),back=[];
  // the best-distance flag makes its own materials, so a real one is placed in view for the warm-up and cleared after
  const bd0=bestDist;bestDist=Math.max(bestDist,100);placeBestFlag();bestDist=bd0;if(bestFlag){bestFlag.position.set(C.x,0,-C.d-6);bestFlag.traverse(o=>o.frustumCulled=false)}
  for(const m of Object.values(MT))if(m&&m.isMaterial){const o=new THREE.Mesh(geo,m);o.position.set(C.x,.3,-C.d);o.frustumCulled=false;o.castShadow=true;tmp.add(o)}
- scene.add(tmp);for(const[,ch]of chunks){back.push([ch.grp,ch.grp.visible]);ch.grp.visible=true}
- for(const o of[smoke[0].s,sparks[0].s,...flames]){back.push([o,o.visible]);o.visible=true;o.frustumCulled=false}
- try{R.render(scene,cam)}catch(e){}back.forEach(([o,v])=>o.visible=v);for(const o of[smoke[0].s,sparks[0].s,...flames])o.frustumCulled=true;scene.remove(tmp);geo.dispose();placeBestFlag(true)}
+ scene.add(tmp);
+ // every object in the scene is shown for this one frame (snowfall, glows, the hood and engine, sprites...), so anything
+ // hidden at boot still gets its shader and textures ready; visibility and culling are put back exactly afterwards
+ scene.traverse(o=>{if(o.isLight)return;back.push([o,o.visible,o.frustumCulled]);o.visible=true;o.frustumCulled=false});
+ try{R.render(scene,cam)}catch(e){}back.forEach(([o,v,f])=>{o.visible=v;o.frustumCulled=f});scene.remove(tmp);geo.dispose();placeBestFlag(true)}
 let booted=false;function bootDone(){booted=true;const b=$('boot');b.classList.add('gone');setTimeout(()=>b.remove(),400);console.log('[swervy] first frame '+Math.round(performance.now())+' ms')}
 
 function resize(){const w=innerWidth,h=innerHeight;R.setSize(w,h,false);fxC.width=w;fxC.height=h;cam.aspect=w/h;applyView();cam.updateProjectionMatrix()}
