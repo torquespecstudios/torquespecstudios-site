@@ -414,6 +414,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
 <div class="center" id="paused" hidden>
   <div class="disp t">Paused</div>
   <div class="vbtns"><button class="btn primary" id="resume">Resume</button><button class="btn" id="restart">Restart</button><button class="btn" id="pGarage">Hangar</button><button class="btn" id="pSettings">Settings</button></div>
+  <button class="linkbtn" id="pClimb"></button>
 </div>
 
 <div class="center" id="count" hidden>
@@ -481,7 +482,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v38 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v39 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1423,12 +1424,20 @@ let tut=null;
 const TUT=[
  {m:()=>TOUCH?'<b>Drag right</b> to bank and turn':'Hold <b>→</b> to bank and turn',ok:()=>T.bank>.5},
  {m:()=>TOUCH?'Now <b>drag left</b>':'Now hold <b>←</b>',ok:()=>T.bank<-.5},
- {m:()=>TOUCH?'<b>Drag up</b> to climb, <b>down</b> to dive':'<b>↑</b> to climb, <b>↓</b> to dive',ok:()=>Math.abs(T.vy)>5},
+ // the climb step asks rather than tells: half of players expect drag up to climb, the other half pull back like a pilot.
+ // On a phone, whichever way they first drag firmly becomes their climb direction (Settings → Climb control can switch it later)
+ {m:()=>TOUCH&&!store.get('climbSet',false)?'Climb! Drag <b>up</b> or <b>down</b>, whichever feels right':TOUCH?(settings.invert?'<b>Drag down</b> to climb, <b>up</b> to dive':'<b>Drag up</b> to climb, <b>down</b> to dive'):'<b>↑</b> to climb, <b>↓</b> to dive',ok:()=>Math.abs(T.vy)>5,pick:true},
  {m:()=>'Fly through the <b>gold rings</b> for speed and points',ok:()=>runRings>=2},
  {m:()=>TOUCH?'Slide the <b>throttle</b> (right) down for tighter turns':'<b>Q</b> and <b>E</b> set the throttle: slower turns tighter',ok:()=>throttle<.85},
  {m:()=>'Stay <b>low</b> for bonus points. Have fun!',ok:()=>false}];
 function tutShow(){coach(TUT[tut.step].m(),99);tut.t=0}
 function tutTick(dt){if(!tut||state!=='play')return;tut.t+=dt;const S=TUT[tut.step];
+ if(tut.confirm>0){tut.confirm-=dt;if(tut.confirm<=0){tut.step++;tutShow()}return}
+ if(S.pick&&TOUCH&&!store.get('climbSet',false)){const raw=stick?(stick.y0-stick.y)/STICK_R:0,sg=Math.abs(raw)>.45?Math.sign(raw):0;
+  if(sg&&sg===tut.sg)tut.hold=(tut.hold||0)+dt;else tut.hold=0;tut.sg=sg;
+  if(tut.hold>.3){settings.invert=sg<0;store.set('settings',settings);store.set('climbSet',true);chime([784,1047]);tut.confirm=3;
+   coach(settings.invert?'Got it: <b>drag down</b> to climb, like a pilot. Switch it any time in Settings':'Got it: <b>drag up</b> to climb. Switch it any time in Settings',99)}
+  else if(tut.t>12){tut.step++;tutShow()}return}
  if(S.ok()||tut.t>(tut.step===TUT.length-1?3.5:9)){if(S.ok())chime([784,1047]);tut.step++;if(tut.step>=TUT.length){tut=null;show('coach',0);store.set('coached',true);return}tutShow()}}
 // passengers: steep banks and hard pulls (sudden changes in climb rate) spill drinks and lower the Cabin meter
 function cabinTick(dt){if(!spec.airliner)return;const acc=Math.abs(T.vy-lastVy)/Math.max(dt,1e-3);lastVy=T.vy;
@@ -1842,6 +1851,9 @@ function revealPlane(id){const B=PLANES[id];banner('New plane unlocked',B.name,B
 const SEGS={callouts:[[true,'On'],[false,'Off']],lefty:[[false,'Right'],[true,'Left']],music:[[true,'On'],[false,'Off']],quality:[['high','High'],['low','Low']],ghost:[[true,'On'],[false,'Off']],sound:[[true,'On'],[false,'Off']],haptics:[[true,'On'],[false,'Off']],shake:[[true,'On'],[false,'Off']],invert:[[false,'Arcade'],[true,'Pilot']],units:[['mph','mph'],['kmh','km/h'],['kn','kn']]};
 function renderSettings(){document.querySelectorAll('.seg[data-s]').forEach(el=>{const k=el.dataset.s;el.innerHTML=SEGS[k].map(([v,n],i)=>`<button class="${settings[k]===v?'on':''}" data-i="${i}">${n}</button>`).join('');
  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{settings[k]=SEGS[k][+b.dataset.i][0];store.set('settings',settings);if(k==='sound')setMute(muted);if(k==='quality')applyQuality();if(k==='lefty')document.body.classList.toggle('lefty',settings.lefty);if(k==='ghost')ghostM.visible=false;renderSettings()})})}
+// one tap on the pause screen flips the climb direction, for anyone who finds the plane going the wrong way and never opens Settings
+function climbLabel(){$('pClimb').innerHTML=TOUCH?(settings.invert?'Climb: <b>drag down</b> (pilot) · tap to switch':'Climb: <b>drag up</b> · tap to switch'):(settings.invert?'Climb: <b>↓</b> (pilot) · tap to switch':'Climb: <b>↑</b> · tap to switch')}
+$('pClimb').addEventListener('click',()=>{settings.invert=!settings.invert;store.set('settings',settings);store.set('climbSet',true);climbLabel();buzz(10)});
 $('setBtn').addEventListener('click',()=>{renderSettings();show('settings',1)});$('pSettings').addEventListener('click',()=>{renderSettings();show('settings',1)});$('setClose').addEventListener('click',()=>show('settings',0));
 // Android back button: close the top panel, pause a flight, or step back toward the hangar
 if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{
@@ -1882,7 +1894,7 @@ $('thr').addEventListener('pointermove',e=>{if(thrDrag===e.pointerId)thrFromY(e.
 $('thr').addEventListener('pointerup',()=>thrDrag=null);
 $('rollBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();startRoll()});$('thr').addEventListener('pointercancel',()=>thrDrag=null);
 let NOPAUSE=false;
-function pause(){if(NOPAUSE)return;if(state!=='play'&&state!=='count')return;state='paused';stick=null;keys={};show('stick',0);show('count',0);show('pauseBtn',0);show('coach',0);show('warn',0);show('paused',1)}
+function pause(){if(NOPAUSE)return;if(state!=='play'&&state!=='count')return;state='paused';climbLabel();stick=null;keys={};show('stick',0);show('count',0);show('pauseBtn',0);show('coach',0);show('warn',0);show('paused',1)}
 function resume(){show('paused',0);show('pauseBtn',1);state='count';counting=2.4;$('countN').textContent='3';show('count',1)}
 $('pauseBtn').addEventListener('click',e=>{e.stopPropagation();pause()});$('resume').addEventListener('click',resume);
 $('restart').addEventListener('click',()=>{show('paused',0);goReady()});$('pGarage').addEventListener('click',()=>{show('paused',0);goGarage()});
