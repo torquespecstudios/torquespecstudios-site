@@ -166,6 +166,8 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #ready #readyS{background:rgba(13,17,23,.5);padding:6px 12px;border-radius:10px}
 #ready .tip{line-height:1.45}
 
+/* keyboard keys in How to play show only on computers; a phone shows just the buttons */
+@media (pointer:coarse){.help .k{display:none}}
 #over{background:radial-gradient(ellipse at center,rgba(10,12,16,.55),rgba(10,12,16,.85));pointer-events:auto;overflow-y:auto;overscroll-behavior:contain;justify-content:flex-start;padding-top:max(14px,var(--safe-area-inset-top,env(safe-area-inset-top,0px)));padding-bottom:max(14px,var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)));box-sizing:border-box}
 #over>:first-child{margin-top:auto}#over>:last-child{margin-bottom:auto}
 #over .disp.t{font-size:clamp(46px,13vw,80px);color:var(--amber);line-height:.9}
@@ -413,12 +415,12 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
   <div class="card" role="dialog" aria-label="How to play">
     <h2 class="disp">How to play</h2>
     <div class="help">
-      <b>Steering</b><p>Hold the left or right side of the screen, or ← → (A D). Boats keep their momentum, and barges swing wide on bends, so start turns early.</p>
+      <b>Steering</b><p>Hold the left or right side of the screen<span class="k">, or ← → (A D)</span>. Boats keep their momentum, and barges swing wide on bends, so start turns early.</p>
       <b>Racing</b><p>Get down the river fast without wrecking the hull or the cargo. Fuel cans mark the safe channel. Rapids push you sideways; sandbars slow you down.</p>
-      <b>Horn and tow line</b><p>Horn (B) makes fishing boats ahead give way. Tugs can heave the tow line in or pay it out (▲ ▼, or Q E): shorter swings less but yanks harder.</p>
-      <b>Jobs</b><p>You drive the throttle (lever on the right, or W S). Slow down, put a barge <i>on the hip</i> (H), come alongside the amber berth under 1.5 kn, and <i>Make fast</i> (M).</p>
+      <b>Horn and tow line</b><p>The Horn button<span class="k"> (B)</span> makes fishing boats ahead give way. Tugs can heave the tow line in or pay it out with ▲ ▼<span class="k"> (or Q E)</span>: shorter swings less but yanks harder.</p>
+      <b>Jobs</b><p>You drive the throttle (the lever on the right<span class="k">, or W S</span>). Slow down, put a barge <i>on the hip</i><span class="k"> (H)</span>, come alongside the amber berth under 1.5 kn, and <i>Make fast</i><span class="k"> (M)</span>.</p>
       <b>Fuel transfer</b><p>Swing the hose crane over the manifold and bolt up, crank the generator and close the breaker, set the pump direction, open all three valves, start the pump and bring the throttle up slowly. Watch the pressure (red line 150 psi) and the tank. Then shut down in reverse and stow the hose.</p>
-      <b>Crane work</b><p>Slew, boom and hoist (A D, W S, ↑ ↓) to put the hook over a load, lock on (Space), lift, swing it over its pad or bay, turn containers to line up (Q E), and set it down gently. The load swings if you slew hard, and the limiter stops you booming out too far.</p>
+      <b>Crane work</b><p>Slew, boom and hoist with the arrow buttons<span class="k"> (A D, W S, ↑ ↓)</span> to put the hook over a load, lock on with <i>Hook on</i><span class="k"> (Space)</span>, lift, swing it over its pad or bay, turn containers to line up<span class="k"> (Q E)</span>, and set it down gently. The load swings if you slew hard, and the limiter stops you booming out too far.</p>
     </div>
     <button class="btn primary" id="helpClose">Got it</button>
   </div>
@@ -474,7 +476,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v50 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v51 · by Torque Spec Studios</p>
   </div>
 </div>
 
