@@ -452,7 +452,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next job</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Scoopy beta v5 · by Torque Spec Studios</p>
+    <p class="ver">Scoopy beta v6 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -750,7 +750,7 @@ function buildMachine(id){const M=MACHINES[id],root=new THREE.Group(),pc=PAINTS[
  root.traverse(o=>{if(o.isMesh){o.castShadow=true}});
  // how far ahead the bucket reaches, and the half-width that hits things, in metres
  return{root,tilt,house,boom,stick,bkt,load,beacon:bc,wheels,M,pose:long?POSE_LONG:POSE,reach:(long?5.2:4.1)*M.scale,half:(M.kind==='swamp'?1.38:1.08)*M.scale}}
-function rebuildMachine(id){if(mach){scene.remove(mach.root);mach.root.traverse(o=>{if(o.isMesh&&o.geometry&&!Object.values(G).includes(o.geometry))o.geometry.dispose()})}mach=buildMachine(id);mach.paint=paintOf(id);scene.add(mach.root)}
+function rebuildMachine(id){if(mach){scene.remove(mach.root);freeTree(mach.root)}mach=buildMachine(id);mach.paint=paintOf(id);scene.add(mach.root)}
 function setPose(m,p){m.boom.rotation.x=p[0];m.stick.rotation.x=p[1];m.bkt.rotation.x=p[2]}
 const lerpP=(a,b,f)=>[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f];
 
@@ -875,7 +875,15 @@ function buildChunk(ci){const grp=new THREE.Group(),z0=-ci*CHUNK,J=job();scene.a
   else if(ci%3===1){const z=z0-20;for(const x of[-11.6,11.6])m(XG.column,XM.steelBeam,x,0,z,0,.7,1.05,.7);m(XG.gantry,XM.steelBeam,0,8.3,z,Math.PI/2,1,1,23.4);
    const sg=new THREE.Mesh(new THREE.PlaneGeometry(5,1.9),XM.signs[ci%4]);sg.position.set(rand(-5,5),7.1,z+.15);sg.rotation.y=Math.PI;grp.add(sg);const sb=sg.clone();sb.rotation.y=0;sb.position.z=z-.15;grp.add(sb)}}
  return{grp}}
-function dropChunk(ch){scene.remove(ch.grp)}
+// free what a removed object owned on the GPU: its own geometries, materials and textures. The shared ones (G, SG, XG, MT, XM and the
+// trench and paint-mark materials) stay. Without this, every truck, pickup, cone row, trench and scenery chunk left its geometry behind:
+// 30 runs added about 260 geometries, and switching machines leaked their textures.
+let KEEP=null;
+function freeTree(root){if(!KEEP){KEEP=new Set();const put=v=>{if(Array.isArray(v))v.forEach(put);else if(v&&(v.isBufferGeometry||v.isMaterial||v.isTexture))KEEP.add(v)};
+  for(const o of[G,SG,XG,MT,XM])Object.values(o).forEach(put);put(trenchMat);put(trenchTex);put(utilMats);put(utilTex);put(flagMats)}
+ root.traverse(o=>{if(o.geometry&&!KEEP.has(o.geometry))o.geometry.dispose();
+  for(const m of[].concat(o.material||[]))if(!KEEP.has(m)){if(m.map&&!KEEP.has(m.map))m.map.dispose();m.dispose()}})}
+function dropChunk(ch){scene.remove(ch.grp);freeTree(ch.grp)}
 function updateChunks(d){const a=Math.floor((d-40)/CHUNK),b=Math.floor((d+300)/CHUNK);for(const[ci,ch]of chunks)if(ci<a||ci>b){dropChunk(ch);chunks.delete(ci)}for(let ci=a;ci<=b;ci++)if(!chunks.has(ci))chunks.set(ci,buildChunk(ci))}
 
 /* ---------- particles ---------- */
@@ -969,7 +977,7 @@ function buzz(ms){if(!settings.haptics)return;if(NATIVE.haptics){NATIVE.haptics.
 let state='yard',C=null,bonus=0,crashT=0,shake=0,orbA=.6,counting=0,coachT=0,hudT=0,tut=false,tutS=0,runBest=0,beatBest=false,cause='',doneD=0;
 let OBJS=[],ROWS=[],nextRow=0,safeLane=1,truck=null,truckCD=0,foreman=null,lowWarned=false,trucksSeen=0,runCans=0,reviveUsed=false,reviveT=0,runMed=0;
 const lookT=new THREE.Vector3(),desired=new THREE.Vector3(),lookD=new THREE.Vector3();
-function resetWorld(){applyTheme(job());for(const o of OBJS)scene.remove(o.m);OBJS=[];ROWS=[];if(truck)scene.remove(truck.m.root);truck=null;foreman=null;
+function resetWorld(){applyTheme(job());for(const o of OBJS){scene.remove(o.m);freeTree(o.m)}OBJS=[];ROWS=[];if(truck){scene.remove(truck.m.root);freeTree(truck.m.root)}truck=null;foreman=null;
  C={d:T.START_D,x:0,lane:1,dir:-1,v:job().v0,fuel:T.FUEL_MAX,load:0,cap:spec.bucket,combo:0,comboT:0,shield:!!spec.M.hat,coffeeT:0,invT:0,trucks:0,scoops:0,t:0,diesel:0,coffee:0,maxCombo:0,
   scoopT:0,dumping:0,dumpSide:1,dumpT:0,swingA:0,yaw:0,tip:0,roll:0,y:0,tread:0,dustT:0};
  bonus=0;nextRow=T.START_D+38;safeLane=1;truckCD=5;lowWarned=false;doneD=0;runCans=0;reviveUsed=false;runMed=0;
@@ -1024,7 +1032,7 @@ function spawnRow(d){const J=job(),dist=d-T.START_D,warm=dist<110||(tut&&dist<24
 function spawnForeman(d){const lane=Math.random()*3|0,P=buildPickup();foreman=addObj(P.root,'foreman',d+20,lane,1.0,2.5,{v:7,bar:P.bar,honked:false});
  // rows already spawned ahead that would leave no way past the pickup lose one of their blocking hazards
  for(const row of ROWS){if(row.d<C.d+10)continue;const cover=new Set([...row.blocked,lane]);if(cover.size<3)continue;const l=row.blocked.find(b=>b!==lane);row.blocked=row.blocked.filter(b=>b!==l);
-  for(const o of row.objs)if(o.lane===l&&o.t!=='pile'&&!o.done){o.done=true;scene.remove(o.m)}}}
+  for(const o of row.objs)if(o.lane===l&&o.t!=='pile'&&!o.done){o.done=true;scene.remove(o.m);freeTree(o.m)}}}
 function genRows(){const J=job();while(nextRow<C.d+190){spawnRow(nextRow);nextRow+=rand(J.gap[0],J.gap[1])}}
 
 /* ---------- the core loop: scoop, haul, dump ---------- */
@@ -1069,7 +1077,7 @@ function truckTick(dt){
   if(beside&&C.load>0){if(!C.dumping){C.dumping=K.side;C.dumpSide=K.side;C.dumpT=0}C.dumpFar=far;C.dumpT+=dt;if(C.swingA>.8&&C.dumpT>=T.DUMP_T/spec.dump){C.dumpT=0;dumpUnit()}}
   else C.dumping=0;
   if(K.st==='wait'&&K.t>truckWait()&&!C.dumping){K.st='leave';K.v=C.v;if(K.fill>0)popText('Truck left half full',true);else popText('Missed the truck',true)}}
- else{C.dumping=0;K.v+=dt*7;K.d+=K.v*dt;if(K.d>C.d+230){scene.remove(K.m.root);truck=null;truckCD=rand(T.TRUCK_CD[0],T.TRUCK_CD[1])}}
+ else{C.dumping=0;K.v+=dt*7;K.d+=K.v*dt;if(K.d>C.d+230){scene.remove(K.m.root);freeTree(K.m.root);truck=null;truckCD=rand(T.TRUCK_CD[0],T.TRUCK_CD[1])}}
  if(K.st==='leave'&&C.dumping)C.dumping=0}
 function truckVisual(dt){if(!truck)return;const K=truck,M=K.m;M.root.position.set(K.x,0,-K.d);const f=K.fill/T.TRUCK_CAP;
  M.fill.visible=f>0;M.fill.scale.y=Math.max(.01,Math.min(1,f*1.1));M.fill.position.y=.06+M.fill.scale.y*.5;M.heap.visible=f>=.8;M.heap.scale.y=f>=.8?(f-.6)*1.6:.01;M.heap.position.y=1.1;
@@ -1117,7 +1125,7 @@ function tick(dt){const J=job(),dist=C.d-T.START_D;
   if(Math.abs(o.x-C.x)>=o.half+mh)continue;
   if(o.t==='pile')scoop(o);else if(o.t==='diesel'||o.t==='hat'||o.t==='coffee')pickup(o);else{hitHazard(o);if(state!=='play')return}}
  // tidy up everything left behind
- if(OBJS.length&&OBJS[0].d<C.d-30||OBJS.some(o=>o.t==='foreman'&&o.d<C.d-30)){OBJS=OBJS.filter(o=>{const keep=o.d>=C.d-30;if(!keep){scene.remove(o.m);if(o===foreman)foreman=null}return keep});ROWS=ROWS.filter(r=>r.d>=C.d-30)}
+ if(OBJS.length&&OBJS[0].d<C.d-30||OBJS.some(o=>o.t==='foreman'&&o.d<C.d-30)){OBJS=OBJS.filter(o=>{const keep=o.d>=C.d-30;if(!keep){scene.remove(o.m);freeTree(o.m);if(o===foreman)foreman=null}return keep});ROWS=ROWS.filter(r=>r.d>=C.d-30)}
  if(foreman&&foreman.d<C.d-30)foreman=null;
  if(tut)tutTick(dt);else if(coachT>0){coachT-=dt;if(coachT<=0)show('coach',0)}
  if(!beatBest&&runBest>=200&&score()>runBest)celebrateBest();
