@@ -471,7 +471,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v37 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v38 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1558,13 +1558,29 @@ function shareText(){return shareCopy()+' Play free: '+PLAY_URL}
 function shareCopy(){if(shareKind==='plane')return`Check out my ${PLANES[sel].name} ${PLANES[sel].type.toLowerCase()} in Swoopy Wings.`;// the brag first: a gold medal and how much a new best beat the old one by
  const L=lastRun,gold=L.medal===3?' for gold':'',gain=L.gain>=.05?` That's a new best by ${L.gain.toFixed(1)} s.`:'';
  return`I flew ${L.course} in ${clock(L.time)}${gold} in the ${L.plane} on Swoopy Wings (${L.rings}/${L.ringsN} rings).${gain} Can you beat it?`}
+// an airliner seen head-on for the share card, from its AIRLINERS layout: engines under the wing (a high wing and props for the turboprop),
+// the jumbo's hump, the superjumbo's tall double deck, a T-tail, or the supersonic's thin delta
+function drawAirlinerFront(g,C){const cream='#f5f0e6',dark='#1c1f25',wy=C.high?-34:C.delta?20:16,R=C.needle?30:48,H=R*(C.oval||1);
+ g.fillStyle=cream;// tailplane and fin behind the body
+ const finH=C.needle?190:150,stabY=C.ttail?-H-finH+10:-H*.35;g.fillRect(-9,-H-finH+20,18,finH);if(!C.delta)g.fillRect(-120,stabY,240,12);
+ // wings, with a little dihedral (none on a high wing or delta)
+ const dih=C.high||C.delta?0:16;for(const sg of[-1,1]){g.beginPath();g.moveTo(sg*R*.6,wy-10);g.lineTo(sg*262,wy-10-dih);g.lineTo(sg*262,wy+4-dih);g.lineTo(sg*R*.6,wy+(C.delta?14:12));g.fill()}
+ g.beginPath();g.ellipse(0,0,R,H,0,0,7);g.fill();if(C.hump){g.beginPath();g.ellipse(0,-H*.55,R*.62,H*.75,0,0,7);g.fill()}
+ g.fillStyle=dark;g.fillRect(-R*.7,-H*.42,R*1.4,7);if(C.deck2)g.fillRect(-R*.6,-H*.05,R*1.2,6);
+ // engines: a nacelle hanging under (or sitting on) the wing at each engX, with a dark intake; props get a blade line
+ for(const f of C.engX||[])for(const sg of[-1,1]){const ex=sg*(R+(262-R)*f*1.15),er=C.prop?19:Math.max(17,C.er*30),ey=C.high?wy+er*.2:wy+er+4;
+  g.fillStyle=cream;g.beginPath();g.arc(ex,ey,er,0,7);g.fill();g.fillStyle=dark;g.beginPath();g.arc(ex,ey,er*.62,0,7);g.fill();
+  if(C.prop){g.fillStyle=cream;g.fillRect(ex-52,ey-3,104,6)}}
+ if(C.delta){g.fillStyle=cream;for(const sg of[-1,1])g.fillRect(sg*64-20,wy+12,40,22)}
+ // (gear is up in flight, so nothing hangs below the body)
+}
 function drawCard(){const L=lastRun,W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),S=L.sky.stops;
  const bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,S[0]);bg.addColorStop(.3,S[1]);bg.addColorStop(.5,S[2]);bg.addColorStop(.58,S[3]);bg.addColorStop(.6,'#3d4a33');bg.addColorStop(1,'#1c2218');g.fillStyle=bg;g.fillRect(0,0,W,H);
  // two ridges, then a gold ring with a plane flying through it
  g.fillStyle='rgba(60,70,95,.55)';g.beginPath();g.moveTo(0,820);for(let x=0;x<=W;x+=40)g.lineTo(x,700-Math.abs(Math.sin(x*.005)*120)-Math.sin(x*.019)*30);g.lineTo(W,820);g.fill();
  g.fillStyle='rgba(30,40,30,.85)';g.beginPath();g.moveTo(0,860);for(let x=0;x<=W;x+=40)g.lineTo(x,790-Math.abs(Math.sin(x*.008+1)*90));g.lineTo(W,860);g.fill();
  g.strokeStyle='#f2b33d';g.lineWidth=26;g.shadowColor='rgba(242,179,61,.6)';g.shadowBlur=40;g.beginPath();g.ellipse(540,930,190,250,0,0,7);g.stroke();g.shadowBlur=0;
- g.save();g.translate(560,930);g.rotate(-.12);g.fillStyle='#f5f0e6';g.fillRect(-250,-14,500,28);g.fillRect(-26,-10,52,170);g.fillRect(-110,140,220,18);g.beginPath();g.ellipse(0,-6,44,56,0,0,7);g.fill();g.fillStyle='#1c1f25';g.fillRect(-120,-4,240,6);g.restore();
+ g.save();g.translate(560,930);g.rotate(-.12);g.fillStyle='#f5f0e6';if(AIRLINERS[L.id])drawAirlinerFront(g,AIRLINERS[L.id]);else{g.fillRect(-250,-14,500,28);g.fillRect(-26,-10,52,170);g.fillRect(-110,140,220,18);g.beginPath();g.ellipse(0,-6,44,56,0,0,7);g.fill();g.fillStyle='#1c1f25';g.fillRect(-120,-4,240,6)}g.restore();
  g.textAlign='center';const disp='800 italic 132px "Saira Condensed","Arial Narrow",Impact,sans-serif';
  g.font=disp;const w1=g.measureText('SWOO').width,w2=g.measureText('PY').width,x0=W/2-(w1+w2)/2;g.textAlign='left';g.fillStyle='#f5f0e6';g.fillText('SWOO',x0,172);g.fillStyle='#f2b33d';g.fillText('PY',x0+w1,172);g.textAlign='center';
  g.font='800 40px "Barlow",system-ui,sans-serif';g.letterSpacing='18px';g.fillText('WINGS',W/2+9,218);g.letterSpacing='0px';
@@ -1647,7 +1663,7 @@ function finishRun(){const nextI=lvl+1,wasOpen=nextI<COURSES.length&&!COURSES[ne
  $('oAch').hidden=!got.length&&!opened&&!isDaily;$('oAch').innerHTML=(isDaily?`Daily challenge done · cans ×2!`+(got.length||opened?'<br>':''):'')+(opened?`New course unlocked: ${COURSES[nextI].n}!`+(got.length?'<br>':''):'')+got.map(([n,r])=>`${TROPHY} ${n} · +${r} <span class="can"></span>`).join('<br>');
  soClose(ok,m);
  $('oTip').innerHTML=pickTip(ok,m);renderMissions('oMissions');
- lastRun=ok?{time:result.time,course:CO.n,sub:CO.sub,plane:PLANES[sel].name,type:PLANES[sel].type,medal:m,rings:runRings,ringsN:RINGS.length,pts,best:nb,gain:nb&&prevBest?prevBest-result.time:0,sky:SKY}:null;
+ lastRun=ok?{id:sel,time:result.time,course:CO.n,sub:CO.sub,plane:PLANES[sel].name,type:PLANES[sel].type,medal:m,rings:runRings,ringsN:RINGS.length,pts,best:nb,gain:nb&&prevBest?prevBest-result.time:0,sky:SKY}:null;
  show('shareBtn',ok);$('oBtns').classList.toggle('solo',!ok);$('toGarage').classList.toggle('nudge',canSpend());
  state='over';clearTimeout(banner.t);show('region',0);show('hud',0);show('over',1);showXP(xr);if(m===3&&m>prevM)chime([523,659,784,1047,1319])}
 // "So close!": as in Swervy, a near miss is named on the results screen, with a bar that ends at the target, because it's the
