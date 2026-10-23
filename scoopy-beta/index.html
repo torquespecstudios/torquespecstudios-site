@@ -452,7 +452,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next job</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Scoopy beta v6 · by Torque Spec Studios</p>
+    <p class="ver">Scoopy beta v7 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -532,8 +532,8 @@ const JOBS=[
 // A bigger machine is also wider, so it squeezes past hazards a little tighter. mult multiplies every point.
 const MACHINES={
  mini:{n:'Mini-Ex',ty:'Compact excavator',make:'Starter',bucket:3,scale:.82,body:'#ffc21a',trim:'#2a2a2a',cw:'#e8a800',kind:'ex',mult:1,perk:'Nimble starter machine',price:0},
- wheel:{n:'Road Runner',ty:'Wheeled excavator',make:'Wheels',bucket:3,scale:.9,body:'#ff8a1a',trim:'#262626',cw:'#e06e00',kind:'wheel',mult:1.15,swing:24,perk:'Quickest lane swings · score ×1.15',price:250},
- ex330:{n:'330 Excavator',ty:'Hydraulic excavator',make:'Job reward',bucket:4,scale:1,body:'#f5a800',trim:'#1f1f1f',cw:'#d98f00',kind:'ex',mult:1.2,perk:'Bucket holds 4 · score ×1.2',need:'house'},
+ wheel:{n:'Street Digger',ty:'Wheeled excavator',make:'Wheels',bucket:3,scale:.9,body:'#ff8a1a',trim:'#262626',cw:'#e06e00',kind:'wheel',mult:1.15,swing:24,perk:'Quickest lane swings · score ×1.15',price:250},
+ ex330:{n:'Big Digger',ty:'Hydraulic excavator',make:'Job reward',bucket:4,scale:1,body:'#f5a800',trim:'#1f1f1f',cw:'#d98f00',kind:'ex',mult:1.2,perk:'Bucket holds 4 · score ×1.2',need:'house'},
  swamp:{n:'Marsh Buggy',ty:'Pontoon excavator',make:'Pontoons',bucket:4,scale:.95,body:'#5fae3a',trim:'#22301c',cw:'#3e8a24',kind:'swamp',mult:1.2,perk:'Floats over open trenches',price:650},
  shovel:{n:'Mining Shovel',ty:'Front shovel',make:'Job reward',bucket:5,scale:1.17,body:'#ebe5d4',trim:'#b8261b',cw:'#b8261b',kind:'shovel',mult:1.35,perk:'Bucket holds 5 · score ×1.35',need:'road'},
  long:{n:'Long Reach',ty:'Long-front excavator',make:'Job reward',bucket:4,scale:1,body:'#2f6fb3',trim:'#1a1d22',cw:'#235a96',kind:'long',mult:1.4,perk:'Dumps from the middle lane · score ×1.4',need:'lot'},
@@ -1268,7 +1268,9 @@ function drawCard(){const r=lastRun,J=JOBS[r.jobI],W=1080,H=1350,c=document.crea
  g.fillStyle='rgba(20,16,12,.8)';g.fillRect(0,H-190,W,190);g.fillStyle='#ffc21a';g.font='800 italic 92px "Saira Condensed","Arial Narrow",Impact,sans-serif';g.fillText('CAN YOU BEAT IT?',W/2,H-82);
  g.fillStyle='rgba(247,241,227,.6)';g.font='700 26px "Barlow",system-ui,sans-serif';g.fillText('B Y   T O R Q U E   S P E C   S T U D I O S',W/2,H-30);
  return c}
-function shareText(){return`I loaded ${lastRun.trucks} truck${lastRun.trucks===1?'':'s'} on ${lastRun.job} and scored ${fmt(lastRun.sc)} pts in Scoopy. Can you beat it? https://torquespecstudios.com/scoopy-beta/`}
+function shareText(){return`I loaded ${lastRun.trucks} truck${lastRun.trucks===1?'':'s'} on ${lastRun.job} and scored ${fmt(lastRun.sc)} pts in Scoopy. Can you beat it?`+(SHARE_URL?' '+SHARE_URL:'')}
+// the link in shares: the web beta in a browser, the Play listing on Android, and the App Store link once Apple assigns the app's ID
+const SHARE_URL=(()=>{try{const p=window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform();return p==='android'?'https://play.google.com/store/apps/details?id=com.torquespecstudios.scoopy':p==='ios'?'':'https://torquespecstudios.com/scoopy-beta/'}catch(e){return''}})();
 function openShare(){if(!lastRun)return;const c=drawCard();$('shareImg').src=c.toDataURL('image/png');$('shareMsg').textContent='';shareFile=null;c.toBlob(b=>{try{shareFile=new File([b],'scoopy-run.png',{type:'image/png'})}catch(e){}},'image/png');show('share',1)}
 $('shareBtn').addEventListener('click',openShare);
 $('shareGo').addEventListener('click',async()=>{const text=shareText();
@@ -1348,6 +1350,8 @@ $('replayTut').addEventListener('click',()=>{store.set('tutDone',false);$('repla
 // and from the yard send the app to the background. It never quits mid-run (the system default would)
 if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{
  if(!$('settings').hidden){show('settings',0);return}
+ // the other panels close the way their own buttons do (the daily reward can only be claimed, so Back claims it)
+ for(const[p,b]of[['help','helpClose'],['achPanel','achClose'],['share','shareClose'],['daily','dClaim']])if(!$(p).hidden){$(b).click();return}
  if(state==='play'||(state==='paused'&&counting>0)){pause();return}
  if(state==='paused'){resume();return}
  if(state==='ready'||state==='over'){goYard();return}
