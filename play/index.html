@@ -302,6 +302,8 @@ body:has(#over:not([hidden])) #mtoast{display:none}
 .tabs{display:flex;gap:4px;padding:4px;border-radius:12px;background:rgba(255,255,255,.06)}
 .tab{flex:1;padding:9px 4px;border-radius:9px;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
 .tab.on{background:var(--ink);color:#16181c}
+/* an upgrade the player can afford right now marks the Engine tab, as the results tip sends them there */
+.tab{position:relative}.tab .dot{position:absolute;top:3px;right:4px;width:8px;height:8px;border-radius:50%;background:#ff4a32;box-shadow:0 0 0 2px #22262c}
 .perf-sum{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05)}
 .perf-sum .stat{grid-template-columns:70px 1fr}
 .part{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--hair)}
@@ -2058,8 +2060,11 @@ function renderGarage(){checkAch();renderAch();$('collN').textContent=`My cars $
  $('models').querySelectorAll('.mcard').forEach(b=>b.onclick=()=>{if(b.dataset.m===cfg.model)return;cancelPreview(false);selectModel(b.dataset.m);rebuildCar();renderGarage()});
  const M=MODELS[cfg.model];$('cName').textContent=M.name;$('cType').textContent=M.make+' · '+M.type;$('cPerk').textContent=M.perk;
  const PT=perfTotals(cfg.model);$('bSpeed').style.width=Math.min(100,30+M.speed*55+PT.pw*70)+'%';$('bGrip').style.width=Math.min(100,30+M.grip*55+PT.gr*100)+'%';
- $('tabs').innerHTML=TABS.map(t=>`<button class="tab ${t.id===tab?'on':''}" role="tab" aria-selected="${t.id===tab}" data-t="${t.id}">${t.n}</button>`).join('');
- $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(tab===b.dataset.t)return;cancelPreview(false);tab=b.dataset.t;renderGarage();$('opts').scrollTop=0;setEngineView(tab==='engine')});
+ {const P=perfFor(cfg.model),upNow=unlocked.includes(cfg.model)&&PERF.some(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1]);
+ $('tabs').innerHTML=TABS.map(t=>`<button class="tab ${t.id===tab?'on':''}" role="tab" aria-selected="${t.id===tab}" data-t="${t.id}">${t.n}${t.id==='engine'&&tab!=='engine'&&upNow?'<i class="dot" aria-label="upgrade ready"></i>':''}</button>`).join('')}
+ $('tabs').querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(tab===b.dataset.t)return;cancelPreview(false);tab=b.dataset.t;renderGarage();$('opts').scrollTop=0;setEngineView(tab==='engine');
+  // the upgrade rows sit below the bay styles: bring the first one the player can afford into view
+  if(tab==='engine'){const r=$('opts').querySelector('.buy:not([disabled])');if(r)r.closest('.part').scrollIntoView({block:'nearest',behavior:'smooth'})}});
  const keep=[...$('opts').querySelectorAll('.row')].map(r=>r.scrollLeft);
  if(tab==='engine')renderPerf();else $('opts').innerHTML=TABS.find(t=>t.id===tab).opts.map(([key,label,kind])=>{
   if(kind==='builds')return buildsRow();
