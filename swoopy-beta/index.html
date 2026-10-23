@@ -483,7 +483,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v42 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v43 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1700,7 +1700,10 @@ function finishRun(){const nextI=lvl+1,wasOpen=nextI<COURSES.length&&!COURSES[ne
 function soClose(ok,m){const el=$('oClose');let msg='',f=0;
  if(!ok){const d=Math.min(CO.len,Math.max(0,T.d));if(d>=CO.len*.6){msg=`So close! <b>${fmt(Math.ceil((CO.len-d)/10)*10)} m</b> from the finish`;f=d/CO.len}}
  else{const par=parOf(CO,sel),tgt=m===1&&runRings>=silverNeed()?par*1.15:m===2&&runRings>=ringNeed()?par:0,gap=tgt?result.time-tgt:0;
-  if(tgt&&gap>0&&gap<=3){msg=`So close! <b>${gap.toFixed(1)} s</b> off ${m===1?'Silver':'Gold'}`;f=tgt/result.time}}
+  if(tgt&&gap>0&&gap<=3){msg=`So close! <b>${gap.toFixed(1)} s</b> off ${m===1?'Silver':'Gold'}`;f=tgt/result.time}
+  // fast enough for the next medal but a few rings short of it (the usual way a fast new pilot misses gold)
+  else if(m<3){const need=m===2?ringNeed():silverNeed(),fast=result.time<=(m===2?par:par*1.15),short=need-runRings;
+   if(fast&&short>0&&short<=6){msg=`${m===2?'Gold':'Silver'} time! Just <b>${short} more ring${short>1?'s':''}</b> for ${m===2?'Gold':'Silver'}`;f=runRings/need}}}
  el.hidden=!msg;if(!msg)return;el.innerHTML=`${msg}<div class="xpbar"><i></i><u></u></div>`;const bar=el.querySelector('i');requestAnimationFrame(()=>requestAnimationFrame(()=>bar.style.width=Math.round(f*100)+'%'))}
 function canSpend(){if(ORDER.some(id=>!unlocked.includes(id)&&cans>=PLANES[id].price))return true;const P=perfFor(sel);return UPG.some(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1])}
 const TIPS=['Each ring gives a short <b>speed boost</b>. Chain them for ×2 and ×3 points.','Skim the ground or the water to score <b>low pass</b> points.','Slower is tighter: ease off the <b>throttle</b> before a hairpin bend.','Fly <b>under</b> the bridges for a bonus.','Birds circle near the rings. Bank around the flock.'];
