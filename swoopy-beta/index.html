@@ -471,7 +471,7 @@ body.lefty #rollBtn{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v32 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v33 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -952,7 +952,7 @@ function stackAt(x,d,rad,H,rnd){if(secAt(CO,d)==='desert'||CO.stacks==='desert')
 function hoodooAt(x,d,rad,H,rnd){const gy=groundAt(x,d),g=new THREE.CylinderGeometry(rad*.55,rad,H,7,6),p=g.attributes.position;
  for(let i=0;i<p.count;i++){const y=p.getY(i)/H+.5,k=1+.18*Math.sin(y*14+rnd()*2);p.setX(i,p.getX(i)*k);p.setZ(i,p.getZ(i)*k)}g.computeVertexNormals();
  const m=new THREE.Mesh(g,hoodooMat);m.position.set(x,gy+H/2-1,-d);m.castShadow=true;hz.add(m);const hat=new THREE.Mesh(new THREE.CylinderGeometry(rad*.9,rad*.7,2.4,7),hatMat);hat.position.set(x,gy+H,-d);hat.castShadow=true;hz.add(hat);
- addBox('stack',x,d,0,rad*.8,rad*.8,gy-4,gy+H+1,30)}
+ addBox('hoodoo',x,d,0,rad*.8,rad*.8,gy-4,gy+H+1,30)}
 function placeStacks(){const rnd=mulberry(CO.seed*313),bd=CO.bridges.map(b=>b[0]),want=CO.stacks===true?'sea':CO.stacks;let side=1;
  for(let d=260;d<CO.len+150;d+=55+rnd()*55){if(secAt(CO,d)!==want||bd.some(b=>Math.abs(b-d)<40))continue;const r=crs(d,{});side=-side;
   for(let k=0;k<2;k++){const rad=4+rnd()*5,lat=r.lane+side*(23+rad+k*28+rnd()*16),H=24+rnd()*46;if(Math.abs(lat)>r.hw-8)continue;stackAt(r.c+Math.cos(r.h)*lat,d-Math.sin(r.h)*lat,rad,H,rnd)}}}
@@ -962,7 +962,7 @@ function lighthouseAt(d){const r=crs(d,{}),lat=r.lane+(r.lane>0?-40:40),x=r.c+Ma
  for(const y of[17,24]){const b=new THREE.Mesh(new THREE.CylinderGeometry(1.75,1.95,2,14),MAT.red);b.position.y=y;g.add(b)}
  const lamp=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,2,10),glassMat);lamp.position.y=30;g.add(lamp);const roof=new THREE.Mesh(new THREE.ConeGeometry(1.8,1.8,10),MAT.red);roof.position.y=31.9;g.add(roof);
  const beam=new THREE.Sprite(new THREE.SpriteMaterial({map:puffTex,color:0xfff2c0,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));beam.scale.set(14,14,1);beam.position.y=30;g.add(beam);
- g.position.set(x,0,-dd);hz.add(g);addBox('stack',x,dd,0,2.3,2.3,10,32,30)}
+ g.position.set(x,0,-dd);hz.add(g);addBox('lighthouse',x,dd,0,2.3,2.3,10,32,30)}
 // wind turbines: a white tower and three turning blades, standing well off the ring line
 let TURBINES=[],TRAIN=null;
 function turbineAt(d){const r=crs(d,{}),s=r.lane>0?-1:1,lat=r.lane+s*40,x=r.c+Math.cos(r.h)*lat,dd=d-Math.sin(r.h)*lat,gy=groundAt(x,dd),g=new THREE.Group(),H=46;
@@ -1467,7 +1467,7 @@ function boxTick(){const P=contactPoints();
    // something that just hit you (and anything within 25 m of it: a sea stack is several boxes) still knocks you off,
    // but can't damage you again for 2 s. A big jet scraping round a stack used to take 4-7 hits in a row
    if(runT-o.hitT<2){T.cool=.55;continue}for(const q of OBS)if(Math.abs(q.d-o.d)<25&&Math.abs(q.x-o.x)<25)q.hitT=runT;
-   o.hit=true;hit(1,o.dmg,p.x,p.y,p.d,{plane:'Parked jet!',hangar:'Hangar!',stand:'Work stand!',train:'Train!',bridge:'Bridge!',pier:'Pier!',tower:'Tower!',wire:'Wires!',building:'Building!',ship:'Ship!',crane:'Crane!',stack:'Rocks!'}[o.k]||'Hit!');return}}
+   o.hit=true;hit(1,o.dmg,p.x,p.y,p.d,{plane:'Parked jet!',hangar:'Hangar!',stand:'Work stand!',train:'Train!',bridge:'Bridge!',pier:'Pier!',tower:'Tower!',wire:'Wires!',building:'Building!',ship:'Ship!',crane:'Crane!',stack:'Rocks!',hoodoo:'Hoodoo!',lighthouse:'Lighthouse!'}[o.k]||'Hit!');return}}
  // passing: score close calls and fly-unders
  for(const o of OBS){if(o.passed)continue;const v=(T.x-o.x)*o.sn+(T.d-o.d)*o.cs;if(v<o.sv+2)continue;o.passed=true;
   if(!o.hit&&o.near<3.5&&o.near>-1&&state==='play'){closeRun++;bonus(50,'Close call!');missionEvent('close')}}
@@ -1658,7 +1658,8 @@ const CRASH_TIPS={'Wall!':'The <b>walls</b> got you. Ease off the throttle befor
  'Pull up!':'You flew into the <b>ground</b>. Keep a few metres of air under you: low-pass points start higher than you think.','Splash!':'You touched the <b>water</b>. Skim it, don\'t land on it: ease up as you get close.',
  'Wires!':'<b>Wires</b> hang between the towers. Spot the towers early and go over or under the line.','Bird strike!':'<b>Birds</b> circle near the rings. Bank around the flock, not through it.',
  'Mid-air!':'Other <b>traffic</b> shares the sky. Look ahead and slide aside early.','Lightning!':'The sky <b>glows</b> just before lightning strikes. Steer away from the glow.',
- 'Bridge!':'Fly <b>under</b> bridges in the middle of the span, where there\'s the most room.','Hangar!':'Line up with the <b>hangar door</b> early and keep the wings level through Bay 1.'};
+ 'Bridge!':'Fly <b>under</b> bridges in the middle of the span, where there\'s the most room.','Hangar!':'Line up with the <b>hangar door</b> early and keep the wings level through Bay 1.',
+ 'Hoodoo!':'The <b>hoodoos</b> stand just off the ring line. Stay on the rings and they\'ll slip past your wingtip.'};
 function crashTip(){const t=CRASH_TIPS[lastHit];if(t)return t;const n=lastHit.replace(/!$/,'').toLowerCase();return lastHit&&lastHit!=='Hit!'?`The <b>${n}</b> got you. Follow the <b>rings</b>: they mark the safe line.`:''}
 function pickTip(ok,m){if(!ok&&crashTip())return crashTip();const b=ORDER.find(id=>!unlocked.includes(id)&&cans>=PLANES[id].price);if(b)return`You can unlock the <b>${PLANES[b].name}</b> ${PLANES[b].type.toLowerCase()} in the Hangar!`;
  if(!ok)return'Canyon walls, towers and the ground all damage the plane. Follow the <b>rings</b> for the safe line.';
