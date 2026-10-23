@@ -471,7 +471,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v45 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v46 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1492,7 +1492,8 @@ function buildDocks(){SLACK=[];while(dockGroup.children.length){const o=dockGrou
  // a clear approach: no rocks or loose logs in the last 110 m before a job's berth, on its side of the river, so swinging in to come alongside isn't a trap
  if(isJob())for(const D of DOCKS)for(const o of OB){if(o.k!=='rock'&&o.k!=='log'||o.d<D.d-110||o.d>D.d+D.len/2+10)continue;const r=riv(o.d,{});if((o.x-r.c)*D.side>D.face*D.side-18){o.off=true;o.m.visible=false}}
  if(driveJob()){addDriveLogs();for(const o of OB)if(!o.drive&&(o.k==='log'||o.d>DOCKS[0].d-40&&o.d<DOCKS[0].d+40)&&o.d>JOBD().start-20&&o.d<DOCKS[0].d+60){o.off=true;o.m.visible=false}}
- if(searchJob()){buildSwimmers();for(const o of OB)if(SWIM.some(q=>Math.abs(o.d-q.d)<25)){o.off=true;o.m.visible=false}}else SWIM=[];
+ // clear water round each paddler, and no loose log upstream that would drift down onto them while you search
+ if(searchJob()){buildSwimmers();for(const o of OB)if(SWIM.some(q=>Math.abs(o.d-q.d)<25||o.k==='log'&&o.d>q.d-200&&o.d<q.d&&Math.abs(o.x-q.x)<14)){o.off=true;o.m.visible=false}}else SWIM=[];
  dockGroup.updateMatrixWorld(true);
  // clear rocks, logs and sandbars off the approach to each berth
  for(const o of OB){const rr=riv(o.d,{}),lat=o.x-rr.c;for(const D of DOCKS)if(Math.abs(o.d-D.d)<60&&Math.sign(lat)===D.side&&Math.abs(lat)>2.5){o.off=true;o.m.visible=false}}
@@ -1868,6 +1869,8 @@ function hoseCue(){const f=F,h=HC,D=OPS.D,s=D.side;let x,z,y,fin;
  else return fuelCue();
  const vx=x-s*2.2,vz=z-1.5,R=Math.hypot(vx,vz),ps=Math.atan2(vz,-s*vx),dp=wrapA(ps-h.psi),dR=R-h.R,dy=h.H.y-y,hor=Math.hypot(h.H.x-x,h.H.z-z);
  if((h.hT>0?Math.hypot(h.V.x,h.V.z):h.V.length())>.9)return{k:null,t:'let the swing settle'};
+ // lift it clear before swinging: below deck level the hose end would swing into the ship's side, the dock or the barge
+ if(hor>.8&&dy<-.6)return{k:'hcU',t:'raise ▲ clear of the side first'};
  // the slew coasts after you let go (about half a second), so call it on where the jib will stop, plus a moment to react
  const dpe=dp-h.pv*(Math.abs(h.pv)/1.6+.3);
  if(hor>.8&&Math.abs(dpe)*R>.5){const l=(dpe>0)===(s>0);return{k:l?'hcL':'hcR',t:'slew '+(l?'◀':'▶')}}
