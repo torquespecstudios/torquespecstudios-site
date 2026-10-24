@@ -485,7 +485,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <div class="linkrow"><button class="linkbtn" id="replayTut">Replay the flying lesson</button><a class="linkbtn" id="feedback" href="#" target="_blank" rel="noopener">Send feedback</a></div>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Swoopy Wings v50 beta · by Torque Spec Studios</p>
+    <p class="ver">Swoopy Wings v51 beta · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -570,10 +570,10 @@ const PLANES={
  jet:{make:'Skunk Hollow',name:'Viper',type:'Jet',price:180,top:72,min:32,acc:14,turn:.92,roll:1.1,climb:18,resp:4.4,tough:1.05,span:8.8,jet:true,
   cam:[16,4.6,52],gcam:[17,2],eng:[150,2.4],perk:'Fastest by far · wide turns at full throttle',paint:5,build:'jet'},
  // cargo plane: a huge four-engine freighter; slow to roll, sturdy, and a finish pays ×1.6
- cargo:{make:'Ironwood Aero',name:'Big Lou',type:'Cargo plane',price:240,top:39,min:24,acc:4.5,turn:.64,roll:.85,climb:7.5,resp:1.8,tough:.55,span:22,cargo:1.6,
+ cargo:{make:'Cragmore Aero',name:'Big Lou',type:'Cargo plane',price:240,top:39,min:24,acc:4.5,turn:.64,roll:.85,climb:7.5,resp:1.8,tough:.55,span:22,cargo:1.6,
   cam:[27,8,48],gcam:[34,5],eng:[38,1],perk:'22 m wingspan · sturdy · pays ×1.6',paint:4,build:'cargo'}
 };
-PLANES.scoop={make:'Ironwood Aero',name:'Scooper',type:'Water bomber',price:300,top:40,min:21,acc:5.5,turn:.82,roll:.9,climb:9,resp:2.4,tough:.7,span:15,float:true,scoop:true,
+PLANES.scoop={make:'Cragmore Aero',name:'Scooper',type:'Water bomber',price:300,top:40,min:21,acc:5.5,turn:.82,roll:.9,climb:9,resp:2.4,tough:.7,span:15,float:true,scoop:true,
   cam:[18,5.4,40],gcam:[21,3],eng:[46,1.2],perk:'Skim to scoop water, drop it on wildfires',paint:3,build:'scoop'};
 // glider: no engine. Speed comes from height (dive to speed up, climbing costs speed) and thermals lift it for free.
 PLANES.glider={make:'Skylark',name:'Whisper',type:'Glider',price:360,top:48,min:17,acc:0,turn:1,roll:.95,climb:10,resp:3,tough:1.1,span:17,glider:true,
