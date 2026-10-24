@@ -476,7 +476,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v51 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v52 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -556,13 +556,13 @@ const BOATS={
  // Hercules: the biggest harbour tug, towing three barges in a string
  hercules:{make:'Harbor Works',name:'Hercules',type:'Tug + 3 barges',price:1800,barges:3,cargo:true,top:9.2,acc:3.3,turn:.68,resp:2.9,grip:2.9,mass:2.9,r:2.4,load:1.1,dpay:2.2,big:1.25,
   body:[[2.8,2.2,0,'hull'],[-2.7,2.3,0,'hull']],cam:[50,40,4],gcam:[50,15],stern:5,bow:5.4,bw:1.1,eng:[24,2.1],lean:.05,pitch:.01,wake:[3,9,.07],perk:'Tows three barges · cargo pays ×2.2',paint:5,build:'bigmo'},
- // jet ski: the fastest thing on the river, twitchy and slidey, and its hull takes 30% more damage
- jetski:{make:'Wavecat',name:'Skeeter',type:'Jet ski',price:350,barges:0,top:17.5,acc:5.6,turn:2,resp:7,grip:1.6,mass:.6,r:1,load:0,armor:1.3,
+ // water scooter: the fastest thing on the river, twitchy and slidey, and its hull takes 30% more damage
+ jetski:{make:'Wavecat',name:'Skeeter',type:'Water scooter',price:350,barges:0,top:17.5,acc:5.6,turn:2,resp:7,grip:1.6,mass:.6,r:1,load:0,armor:1.3,
   body:[[1.1,.9,0,'hull'],[-1,.9,0,'hull']],cam:[11,6,20],gcam:[9,3.2],stern:1.6,bow:1.6,bw:.5,eng:[90,9],lean:-.28,pitch:.1,wake:[1,4.5,.03],perk:'Fastest boat · twitchy · fragile hull',paint:7,build:'jetski'},
  // airboat: a flat-bottomed skiff pushed by a caged aircraft propeller; it skims over sandbars but slides in every turn
  airboat:{make:'Bayou Works',name:'Swamp Fox',type:'Airboat',price:450,barges:0,top:14,acc:4.2,turn:1.25,resp:4,grip:1.15,mass:.9,r:1.5,load:0,skim:true,
   body:[[1.6,1.3,0,'hull'],[-1.6,1.3,0,'hull']],cam:[14,7.5,20],gcam:[13,4.2],stern:2.6,bow:2.4,bw:1.2,eng:[70,8],lean:-.08,pitch:.03,wake:[1.6,5.5,.04],perk:'Skims over sandbars · slides in turns',paint:3,build:'airboat'},
- pilot:{make:'Bayline Marine',name:'Pathfinder',type:'Pilot boat',price:150,barges:0,top:12.5,acc:3.6,turn:1.2,resp:4.2,grip:2.4,mass:1,r:1.5,load:0,armor:.65,
+ pilot:{make:'Brinewater',name:'Pathfinder',type:'Pilot boat',price:150,barges:0,top:12.5,acc:3.6,turn:1.2,resp:4.2,grip:2.4,mass:1,r:1.5,load:0,armor:.65,
   body:[[2.2,1.45,0,'hull'],[-2,1.5,0,'hull']],cam:[15,8.5,19],gcam:[15,4.6],stern:4,bow:4.2,bw:1.1,eng:[46,5.2],lean:-.1,pitch:.05,wake:[1.8,6,.05],perk:'Tough work hull · takes 35% less damage',paint:5,build:'pilot'},
  speed:{make:'Swiftwater',name:'Dart',type:'Speedboat',price:250,barges:0,top:15.5,acc:4.6,turn:1.5,resp:5,grip:2.1,mass:1,r:1.4,load:0,
   body:[[1.7,1.2,0,'hull'],[-1.6,1.25,0,'hull']],cam:[14,8,20],gcam:[13,4.2],stern:3.3,bow:3.2,bw:.9,eng:[62,7.5],lean:-.16,pitch:.07,wake:[1.6,6,.04],perk:'Fast and nimble · no cargo',paint:4,build:'speed'},
@@ -586,7 +586,7 @@ const BOATS={
  fire:{make:'Harbor Works',name:'Engine 9',type:'Fireboat',price:600,barges:0,top:11,acc:3,turn:1,resp:3.6,grip:2.8,mass:1.2,r:1.9,load:0,cannon:true,
   body:[[2.2,1.7,0,'hull'],[-2.1,1.75,0,'hull']],cam:[18,11,20],gcam:[17,5.5],stern:4,bow:4.3,bw:.9,eng:[38,3.4],lean:.04,pitch:.02,wake:[2.2,7,.06],perk:'Water cannons blast logs and buoys aside',paint:0,build:'fire'},
  // crane barge: rigid like the ATB, plus a load hanging from the crane that swings on turns; swing it too far and the cargo takes damage
- crane:{make:'Ironwood Marine',name:'Big Lift',type:'Crane barge + push tug',price:1000,barges:0,cargo:true,rigid:true,crane:true,top:7,acc:1.4,turn:.62,resp:2,grip:3.4,mass:3,r:4,load:.9,dpay:1.5,
+ crane:{make:'Cragmore Marine',name:'Big Lift',type:'Crane barge + push tug',price:1000,barges:0,cargo:true,rigid:true,crane:true,top:7,acc:1.4,turn:.62,resp:2,grip:3.4,mass:3,r:4,load:.9,dpay:1.5,
   body:[[8.5,2.3,1.9,'cargo'],[8.5,2.3,-1.9,'cargo'],[3.3,2.3,1.9,'cargo'],[3.3,2.3,-1.9,'cargo'],[-1.9,2.3,1.9,'cargo'],[-1.9,2.3,-1.9,'cargo'],[-8,1.9,0,'hull'],[-11,1.8,0,'hull']],
   cam:[42,32,10],gcam:[42,12],stern:13,bow:11.5,bw:4,eng:[30,2.4],lean:.02,pitch:.008,wake:[4.5,10,.08],perk:'Swinging crane load: turn smoothly · cargo pays ×1.5',paint:2,build:'crane'}
 };
@@ -1070,7 +1070,7 @@ function buildCrane(paint){const g=new THREE.Group(),steel=new THREE.MeshStandar
  const spuds=[];for(const x of[-3.4,3.4]){const sp=box(.6,12,.6,new THREE.MeshStandardMaterial({color:0x3a3d42,roughness:.6,metalness:.4}),x,5,-10.6,g);box(1,1.4,1,MAT.dark,x,2,-10.6,g);spuds.push(sp)}
  const tug=buildTug(paint);tug.scale.setScalar(.9);tug.position.z=9.2;g.add(tug);
  g.userData={spuds,slew,piv,pend,hookLine,hookBlk,beams,stack:new THREE.Vector3(0,4.14,10.3),mud:g.userData.dredge&&g.userData.dredge.heap,digRing:g.userData.dredge&&g.userData.dredge.ring};return g}
-// jet ski with a seated rider
+// water scooter with a seated rider
 function buildJetSki(paint){const g=new THREE.Group(),hull=new THREE.MeshStandardMaterial({color:paint,roughness:.3,metalness:.1}),blk=MAT.dark,skin=new THREE.MeshStandardMaterial({color:0xc69072,roughness:.7}),vest=new THREE.MeshStandardMaterial({color:0xf26a1b,roughness:.6});
  const O=[[-.55,-1.6],[.55,-1.6],[.62,0],[.45,1],[0,1.75],[-.45,1],[-.62,0]],h=new THREE.Mesh(outlineGeo(O,.7),hull);h.position.y=-.3;h.castShadow=true;g.add(h);
  const sd=new THREE.Mesh(outlineGeo(O,.25,.8),blk);sd.position.y=.4;g.add(sd);box(.45,.3,1.1,blk,0,.75,.35,g);box(.7,.18,.12,blk,0,1.1,-.55,g);
