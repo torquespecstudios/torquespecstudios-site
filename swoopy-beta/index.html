@@ -1899,7 +1899,7 @@ if(NATIVE.app)NATIVE.app.addListener('backButton',()=>{
  if(state==='garage')NATIVE.app.minimizeApp()});
 // feedback: an email to the studio with the version, device and current course filled in
 $('feedback').addEventListener('click',e=>{const v=document.querySelector('.ver').textContent.split(' · ')[0],body=`What I liked:\n\nWhat was hard or broken:\n\n---\n${v} · ${CO.n} · ${PLANES[sel].name} · pilot level ${level} · ${innerWidth}x${innerHeight}\n${navigator.userAgent}`;
- $('feedback').href='mailto:torquespecstudios@gmail.com?subject='+encodeURIComponent(v+' feedback')+'&body='+encodeURIComponent(body)});
+ $('feedback').href='mailto:support@torquespecstudios.com?subject='+encodeURIComponent(v+' feedback')+'&body='+encodeURIComponent(body)});
 $('replayTut').addEventListener('click',()=>{store.set('coached',false);$('replayTut').textContent='Lesson will replay next flight'});
 
 /* ---------- input ---------- */

@@ -7,7 +7,7 @@ Static site, no build step. The files are:
 - `img/`: the icon and screenshots.
 
 ## Contact email
-Both pages use torquespecstudios@gmail.com. To change it later, replace it in both HTML files.
+Both pages use support@torquespecstudios.com. To change it later, replace it in both HTML files.
 
 ## Host it free on GitHub Pages
 1. Create a free GitHub account, then a **public** repository named `torquespecstudios-site`.
@@ -27,7 +27,7 @@ Both pages use torquespecstudios@gmail.com. To change it later, replace it in bo
 5. Wait 10–60 minutes (sometimes up to a day). Then, back in GitHub Pages, tick **Enforce HTTPS**.
 
 ### Free email on your domain (optional)
-In Namecheap, go to **Domain List → Manage → Redirect Email**. Add `hello` (or `support`) forwarding to torquespecstudios@gmail.com. Mail sent to hello@torquespecstudios.com then lands in your Gmail.
+In Namecheap, go to **Domain List → Manage → Redirect Email**. Add `hello` (or `support`) forwarding to support@torquespecstudios.com. Mail sent to support@torquespecstudios.com then lands in your Gmail.
 
 ## Generic DNS steps (any registrar)
 1. In **Settings → Pages → Custom domain**, enter `torquespecstudios.com` and save.
