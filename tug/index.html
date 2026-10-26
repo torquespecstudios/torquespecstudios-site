@@ -478,7 +478,7 @@ input.thr{flex:1;accent-color:var(--amber);min-width:120px;height:32px}
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="helpBtn">How to play</button>
     <button class="btn primary" id="setClose">Done</button>
-    <p class="ver">Tuggy beta v52 · by Torque Spec Studios</p>
+    <p class="ver">Tuggy beta v53 · by Torque Spec Studios</p>
   </div>
 </div>
 
@@ -1208,7 +1208,7 @@ const desired=new THREE.Vector3(),lookT=new THREE.Vector3(),lookD=new THREE.Vect
 function resetWorld(){const d0=isJob()?JOBD().start:0,r=riv(d0,{});T={x:r.c,d:d0,a:r.h,av:0,vx:0,vd:0,y:0,roll:0,pitch:0,cool:0,sink:0,fw:0,thr:0};
  BG=[];let ad=T.d-spec.stern,ax=T.x;for(let i=0;i<(rescueJob()||lightJob()?0:spec.barges);i++){const L=i?3+6:ROPE+6,d=ad-L;BG.push({x:ax,d,a:r.h,vx:0,vd:0,cool:0,L,mass:2.2,hip:0,hipT:0});ad=d-6}
  // jobs start empty and stopped
- HC=null;spudY=0;spudT=0;FY=null;heard=null;for(const o of OB)if(o.drive){o.penned=false;o.lost=false;o.m.visible=true}for(const q of SWIM){q.got=false;q.warn=false;q.g.visible=true}TS={i:0,t:0,seen:0,tips:0,warnT:0};SH=null;if(assistJob()&&DOCKS[0])shipInit();if(boatM&&boatM.userData.mud){boatM.userData.mud.visible=false;boatM.userData.mud.scale.y=.01;boatM.userData.digRing.visible=false}ferryAboard=[];hornDue=0;ferryCarN=0;if(boatM&&boatM.userData.ramps){boatM.userData.ramps.forEach((p,i)=>ferryRamp(i,1));boatM.userData.cars.forEach(m=>m.visible=false);boatM.userData.gates.forEach(g=>g.visible=true)}for(const D of DOCKS)if(D.queue)D.queue.forEach(m=>m.visible=true);for(const D of DOCKS)if(D.casualty)D.casualty.visible=true;if(rescueJob()&&bargeM.length){bargeM.forEach(m=>boatRoot.remove(m));ropeSegs.forEach(sg=>sg.forEach(m=>boatRoot.remove(m)));bargeM=[];ropeSegs=[]}$('mCargo').firstChild.textContent=tourJob()?'Comfort':assistJob()?'Ship':driveJob()?'Logs':'Cargo';for(const D of DOCKS)if(D.bundles)D.bundles.forEach(b=>b.visible=true);if(boatM&&boatM.userData.beams)boatM.userData.beams.forEach(m=>{if(m.userData.salvage)m.visible=false});stopI=0;throttle=0;coal=0;pullJ=0;coalPop=false;fuelLv=isJob()&&JOBD().load?JOBD().load:3;F=null;K=null;OPS=null;jobLog={spill:0,errs:[]};for(const k in HOLD)HOLD[k]=false;moorLines.forEach(m=>m.visible=false);hoseSegs.forEach(m=>m.visible=false);if(BG[0]&&fuelJob())BG[0].mass=1.2+1.6*fuelLv/100;
+ HC=null;spudY=0;spudT=0;FY=null;heard=null;for(const o of OB)if(o.drive){o.penned=false;o.lost=false;o.m.visible=true}for(const q of SWIM){q.got=false;q.warn=false;q.g.visible=true}TS={i:0,t:0,seen:0,tips:0,warnT:0};SH=null;if(assistJob()&&DOCKS[0])shipInit();if(boatM&&boatM.userData.mud){boatM.userData.mud.visible=false;boatM.userData.mud.scale.y=.01;boatM.userData.digRing.visible=false}ferryAboard=[];hornDue=0;ferryCarN=0;if(boatM&&boatM.userData.ramps){boatM.userData.ramps.forEach((p,i)=>ferryRamp(i,1));boatM.userData.cars.forEach(m=>m.visible=false);boatM.userData.gates.forEach(g=>g.visible=true)}for(const D of DOCKS)if(D.queue)D.queue.forEach(m=>m.visible=true);for(const D of DOCKS)if(D.casualty)D.casualty.visible=true;if(rescueJob()&&bargeM.length){bargeM.forEach(m=>boatRoot.remove(m));ropeSegs.forEach(sg=>sg.forEach(m=>boatRoot.remove(m)));bargeM=[];ropeSegs=[]}$('mCargo').firstChild.textContent=tourJob()?'Comfort':assistJob()?'Ship':driveJob()?'Logs':'Cargo';for(const D of DOCKS)if(D.bundles)D.bundles.forEach(b=>b.visible=true);if(boatM&&boatM.userData.beams)boatM.userData.beams.forEach(m=>{if(m.userData.salvage)m.visible=false});stopI=0;throttle=isJob()?0:1;coal=0;pullJ=0;coalPop=false;fuelLv=isJob()&&JOBD().load?JOBD().load:3;F=null;K=null;OPS=null;jobLog={spill:0,errs:[]};for(const k in HOLD)HOLD[k]=false;moorLines.forEach(m=>m.visible=false);hoseSegs.forEach(m=>m.visible=false);if(BG[0]&&fuelJob())BG[0].mass=1.2+1.6*fuelLv/100;
  // beams set on the pier in an earlier attempt go back on the barge
  placedClones.forEach(c=>dockGroup.remove(c));placedClones.length=0;if(boatM&&boatM.userData.beams&&isJob())boatM.userData.beams.forEach(m=>{m.visible=true;m.position.copy(m.userData.home);m.rotation.y=0});
  SW={a:0,v:0};swingCD=0;runT=0;hull=100;cargo=100;runCans=0;camYaw=0;inRapids=false;sandCD=0;result=null;
@@ -1235,9 +1235,9 @@ function goReady(){if(!unlocked.includes(sel)){sel='tug';store.set('sel',sel);re
  state='ready';resetWorld();hideRunUI();show('daily',0);show('garage',0);show('over',0);show('hud',1);show('ready',1);
  $('readyL').textContent=(isJob()?JOBD().n:LV.sub+' · '+LV.n)+(ENV==='night'?' · night':'');$('readyT').textContent=isJob()?'Tap to start the job':'Tap to cast off';
  $('readyTip').innerHTML=isJob()?jobBrief():spec.crane?'The crane <b>load swings</b> on turns. Steer smoothly or it will damage the cargo.':spec.cannon?'Your <b>water cannons</b> push logs and buoys out of the way.':spec.steady?'A <b>catamaran</b>: the rapids barely push you around.':spec.barges?'Your <b>barge</b> swings wide on the bends. Start every turn early.':spec.rigid?'A <b>long, stiff</b> tow: it turns slowly and the stern swings out. Start turns early.':'No cargo to look after: <b>full speed</b>, but watch the rocks.';
- $('readyS').innerHTML=(NIGHT?'Fog ahead: sound the horn to clear boats<br>':'')+(TOUCH?'Hold the left or right side to steer':'Hold ← → or A D to steer')+(isJob()?(TOUCH?'<br>Throttle lever on the right':'<br>W S or ↑ ↓ for the throttle'):'');
+ $('readyS').innerHTML=(NIGHT?'Fog ahead: sound the horn to clear boats<br>':'')+(TOUCH?'Hold the left or right side to steer':'Hold ← → or A D to steer')+(TOUCH?'<br>Throttle lever on the right':'<br>W S or ↑ ↓ for the throttle');
  show('mCargo',!!spec.cargo&&!rescueJob()||tourJob()||assistJob()||driveJob());rec=[];recT=0;loadGhost();refreshMissions();renderMissions('rMissions');runMXP=0;rapHit=false;renderThr();applyView();updateHud();snapCam()}
-function startCount(){if(state!=='ready')return;reviveUsed=false;state='count';show('ready',0);counting=2.4;$('countN').textContent='3';$('countS').textContent=isJob()?JOBD().n:LV.n;show('count',1);show('pauseBtn',1);showSteer();show('thrBox',isJob());show('jobBar',isJob());show('winch',BG.length>0);show('hornBtn',1)}
+function startCount(){if(state!=='ready')return;reviveUsed=false;state='count';show('ready',0);counting=2.4;$('countN').textContent='3';$('countS').textContent=isJob()?JOBD().n:LV.n;show('count',1);show('pauseBtn',1);showSteer();show('thrBox',1);renderThr();show('jobBar',isJob());show('winch',BG.length>0);show('hornBtn',1)}
 function showSteer(){show('stL',TOUCH);show('stR',TOUCH)}
 const TOUCH=matchMedia('(pointer:coarse)').matches;
 
@@ -1386,7 +1386,7 @@ function dredgeJob(){return isJob()&&JOBD().id==='dredge'}
 function rescueJob(){return isJob()&&!!JOBD().notow}
 function fuelJob(){return isJob()&&JOBD().stops.some(st=>st.kind==='fuel')}
 function JOBD(){return JOBS[jobIdx]}
-function thrInput(){return botThr!=null?botThr:isJob()?throttle:1}
+function thrInput(){return botThr!=null?botThr:throttle}
 // a dock sticks 4 m out from its bank; boats and barges stop against its face instead of the bank
 function dockAt(d,s){for(const D of DOCKS)if(!D.ship&&D.side===s&&Math.abs(d-D.d)<D.len/2)return D.depth;return 0}
 const signTexs={};
@@ -2348,14 +2348,15 @@ window.addEventListener('keydown',e=>{
  if(state==='moored'&&OPS&&OPS.kind==='fuel'){const m=HKEYS[e.code];if(m){e.preventDefault();HOLD[m]=true}else if(e.code==='Space'&&!e.repeat){e.preventDefault();fuelAct('hose')}return}
  if(state==='moored'&&OPS&&OPS.kind==='ferry'){if(e.code==='ArrowUp'){e.preventDefault();HOLD.fRu=true}else if(e.code==='ArrowDown'){e.preventDefault();HOLD.fRd=true}else if(!e.repeat){if(e.code==='KeyG')ferryAct('gate');if(e.code==='KeyF')ferryAct('off');if(e.code==='KeyR')ferryAct('on');if(e.code==='Space'){e.preventDefault();ferryAct('cast')}}return}
  if(state==='moored'&&OPS&&OPS.kind==='crane'){const m=CKEYS[e.code];if(m){e.preventDefault();HOLD[m]=true}else if(e.code==='Space'&&!e.repeat){e.preventDefault();craneHook()}return}
- if(isJob()&&state==='play'){if(e.code==='KeyW'||e.code==='ArrowUp'){thrKey=1;e.preventDefault()}if(e.code==='KeyS'||e.code==='ArrowDown'){thrKey=-1;e.preventDefault()}if(e.code==='KeyH'&&!e.repeat)toggleHip();if(e.code==='KeyM'&&!e.repeat)moor()}
+ if(state==='play'){if(e.code==='KeyW'||e.code==='ArrowUp'){thrKey=1;e.preventDefault()}if(e.code==='KeyS'||e.code==='ArrowDown'){thrKey=-1;e.preventDefault()}}
+ if(isJob()&&state==='play'){if(e.code==='KeyH'&&!e.repeat)toggleHip();if(e.code==='KeyM'&&!e.repeat)moor()}
  if(e.code==='KeyB'&&!e.repeat)horn();
  if(e.code==='KeyQ')HOLD.winIn=true;if(e.code==='KeyE')HOLD.winOut=true;
  if(LKEYS.includes(e.code)){keyL=true;e.preventDefault()}if(RKEYS.includes(e.code)){keyR=true;e.preventDefault()}
  if(e.code==='Space'||e.code==='Enter'){if(state==='ready'){e.preventDefault();startCount()}else if(state==='over'&&!e.repeat&&$('share').hidden&&$('settings').hidden&&$('achPanel').hidden){e.preventDefault();$('retry').click()}}
  else if(state==='ready'&&(LKEYS.includes(e.code)||RKEYS.includes(e.code)))startCount()});
 window.addEventListener('keyup',e=>{if(LKEYS.includes(e.code))keyL=false;if(RKEYS.includes(e.code))keyR=false;const m=CKEYS[e.code];if(m)HOLD[m]=false;const m2=HKEYS[e.code];if(m2)HOLD[m2]=false;
- if(['KeyW','ArrowUp','KeyS','ArrowDown'].includes(e.code))thrKey=0;if(e.code==='ArrowUp')HOLD.fRu=false;if(e.code==='ArrowDown')HOLD.fRd=false;if(e.code==='KeyQ')HOLD.winIn=false;if(e.code==='KeyE')HOLD.winOut=false});
+ if(['KeyW','ArrowUp','KeyS','ArrowDown'].includes(e.code)){thrKey=0;if(Math.abs(throttle)<.05)setThr(0)}if(e.code==='ArrowUp')HOLD.fRu=false;if(e.code==='ArrowDown')HOLD.fRd=false;if(e.code==='KeyQ')HOLD.winIn=false;if(e.code==='KeyE')HOLD.winOut=false});
 const CKEYS={KeyA:'slL',KeyD:'slR',KeyW:'bUp',KeyS:'bDn',ArrowUp:'hUp',ArrowDown:'hDn',KeyQ:'rL',KeyE:'rR'},HKEYS={KeyA:'hcL',KeyD:'hcR',KeyW:'hcO',KeyS:'hcI',ArrowUp:'hcU',ArrowDown:'hcD'};let thrKey=0;
 // throttle lever: drag anywhere on the track; it snaps to Stop near the middle
 const THR_MIN=-.6;
@@ -2395,7 +2396,7 @@ let lastGood=null;
 function tick(dt,t){
  hornT-=dt;
  if(state==='play'){runT+=dt;T.cool-=dt;for(const B of BG)B.cool-=dt;sandCD-=dt;
-  if(thrKey)setThr(throttle+thrKey*dt*.9);
+  if(thrKey){throttle=clamp(throttle+thrKey*dt*.9,THR_MIN,1);renderThr()}
   // tow winch: heave the line in or pay it out (7 to 26 m)
   if(BG[0]&&!BG[0].hip){if(HOLD.winIn)BG[0].L=Math.max(13,BG[0].L-3*dt);if(HOLD.winOut)BG[0].L=Math.min(32,BG[0].L+3*dt)}
   pullJ=0;const thr=thrInput(),fw=boatTick(dt,steerInput(),thr);bargeTick(dt);if(!isJob())recordTick(dt);
