@@ -515,6 +515,8 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Tap to steer<small>Pick right if you play left-handed</small></span><div class="seg" data-s="flip"></div></div>
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next drive</button>
+    <a class="linkbtn" href="https://torquespecstudios.com/privacy.html" target="_blank" rel="noopener">Privacy &amp; support</a>
+    <a class="linkbtn" href="mailto:support@torquespecstudios.com">Email support</a>
     <button class="btn primary" id="setClose">Done</button>
     <p class="ver">Swervy v1.0 · by Torque Spec Studios</p>
   </div>
@@ -599,7 +601,7 @@ const MODELS={
   L:4.0,W:1.85,wr:.35,tw:.25,y0:.34,fwx:1.3,rwx:-1.2,belt:.98,roofY:1.52,lamp:.72,tail:.9,doors:2,spoiler:'roof',
   top:[[1.95,.34],[2.0,.5],[1.99,.66],[1.82,.8],[1.25,.9],[.75,.97],[-.5,1.02],[-1.9,1.06],[-2.0,.92],[-2.03,.62],[-1.98,.4],[-1.92,.34]],
   cab:[[.75,.97],[.05,1.48],[-.8,1.52],[-1.72,1.48],[-1.92,1.06]]},
- sedan:{eng:'i6',make:'Nordvik',name:'Halcyon',type:'Sport sedan',price:140,speed:.8,grip:.9,perk:'Quick and stable · Score ×1.15',mult:1.15,
+ sedan:{eng:'i6',make:'Valdane',name:'Solmere',type:'Sport sedan',price:140,speed:.8,grip:.9,perk:'Quick and stable · Score ×1.15',mult:1.15,
   L:4.85,W:1.88,wr:.36,tw:.26,y0:.33,fwx:1.5,rwx:-1.4,belt:.95,roofY:1.44,lamp:.7,tail:.85,doors:4,spoiler:'lip',bar:true,
   top:[[2.38,.33],[2.43,.48],[2.44,.62],[2.3,.76],[1.7,.86],[1.0,.92],[-.4,.96],[-1.6,.98],[-2.2,.98],[-2.38,.9],[-2.42,.65],[-2.38,.4],[-2.33,.33]],
   cab:[[1.0,.92],[.1,1.4],[-.55,1.44],[-1.2,1.4],[-1.85,.98]]},
@@ -607,7 +609,7 @@ const MODELS={
   L:4.8,W:1.95,wr:.37,tw:.3,y0:.34,fwx:1.45,rwx:-1.45,belt:.99,roofY:1.38,lamp:.75,tail:.86,doors:2,spoiler:'deck',scoop:true,
   top:[[2.36,.34],[2.42,.5],[2.43,.72],[2.38,.88],[2.1,.94],[.5,.98],[-.6,.99],[-1.6,1.0],[-2.3,1.0],[-2.4,.92],[-2.42,.6],[-2.38,.4],[-2.32,.34]],
   cab:[[.5,.98],[-.3,1.36],[-.8,1.38],[-1.3,1.36],[-2.0,1.0]]},
- suv:{eng:'v8',make:'Sable',name:'Trailhound',type:'Off-road SUV',price:480,speed:.5,grip:.85,perk:'Rides the road edge early on',edge:.7,
+ suv:{eng:'v8',make:'Brennick',name:'Trailhound',type:'Off-road SUV',price:480,speed:.5,grip:.85,perk:'Rides the road edge early on',edge:.7,
   L:4.7,W:2.0,wr:.44,tw:.3,y0:.55,fwx:1.45,rwx:-1.4,belt:1.27,roofY:1.9,lamp:1.0,tail:1.15,doors:4,spoiler:'roof',flares:true,rack:true,
   top:[[2.3,.55],[2.38,.75],[2.39,1.0],[2.26,1.14],[1.6,1.2],[1.15,1.24],[-.5,1.27],[-2.2,1.3],[-2.33,1.2],[-2.37,.9],[-2.33,.6],[-2.28,.55]],
   cab:[[1.15,1.24],[.55,1.86],[-.8,1.9],[-2.1,1.86],[-2.2,1.3]]},
@@ -619,7 +621,7 @@ const MODELS={
   L:4.55,W:2.0,wr:.35,tw:.3,y0:.27,fwx:1.45,rwx:-1.33,belt:.8,roofY:1.13,lamp:.5,tail:.72,doors:2,spoiler:'deck',bar:true,intakes:true,
   top:[[2.22,.27],[2.3,.36],[2.29,.48],[2.02,.6],[1.45,.76],[1.0,.72],[.85,.74],[-.6,.86],[-1.3,.92],[-2.05,.88],[-2.25,.78],[-2.28,.5],[-2.22,.3],[-2.18,.27]],
   cab:[[.85,.74],[-.1,1.1],[-.55,1.13],[-1.0,1.1],[-1.6,.9]]},
- hyper:{eng:'v12',mid:true,make:'Halvorsen',name:'Aether',type:'Hypercar',price:1700,speed:1,grip:1,perk:'Score ×2.5 · 1 crash save',mult:2.5,saves:1,
+ hyper:{eng:'v12',mid:true,make:'Vessmark',name:'Aether',type:'Hypercar',price:1700,speed:1,grip:1,perk:'Score ×2.5 · 1 crash save',mult:2.5,saves:1,
   L:4.65,W:2.05,wr:.35,tw:.31,y0:.25,fwx:1.5,rwx:-1.38,belt:.76,roofY:1.07,lamp:.46,tail:.7,doors:2,spoiler:'wing',bar:true,intakes:true,
   top:[[2.28,.25],[2.36,.33],[2.33,.44],[2.02,.58],[1.5,.76],[1.05,.69],[.9,.7],[-.7,.84],[-1.38,.94],[-2.1,.87],[-2.3,.74],[-2.33,.45],[-2.28,.28],[-2.24,.25]],
   cab:[[.9,.7],[-.05,1.04],[-.5,1.07],[-.95,1.03],[-1.55,.88]]}
@@ -942,7 +944,7 @@ function genTo(n){while(RC.length<=n){const i=RC.length;
 // road obstacles: from Autumn Ridge (2 km) on, placed OB_LAG segments behind generation so the stretch on both sides is
 // known. Only on calm road (no hairpin, little curve for ~40 m either side), never near a boost pad, spaced further
 // apart early and closer later. Rocks and logs sit on the outer part of one side and never reach the centre line, so a
-// car down the middle always gets through: they narrow the road at that spot rather than block it. Frostline Pass adds ice patches,
+// car down the middle always gets through: they narrow the road at that spot rather than block it. Whitecrest Pass adds ice patches,
 // which make the car slide instead of crashing it. Uses roadRnd, so the Daily Road gets the same obstacles for everyone.
 const OB_D=2000,OB_LAG=14,OB_CALM=13;
 function calmAt(j){for(let k=j-OB_CALM;k<=j+OB_CALM;k++){if(HPF[k]||k<1||k+1>=RC.length)return false;if(Math.abs(RC[k+1]-2*RC[k]+RC[k-1])>.07)return false}return true}
@@ -1637,7 +1639,7 @@ function placeBestFlag(clearOnly){if(bestFlag){scene.remove(bestFlag);bestFlag.t
 /* ---------- regions ---------- */
 // each biome is a named region; crossing into one shows a banner, and the first visit ever pays a one-time bonus
 const km=m=>(m/1000).toLocaleString('en-US',{maximumFractionDigits:1});
-const REGIONS=[{n:'Pine Valley',d:0,rw:0},{n:'Autumn Ridge',d:2000,rw:50},{n:'Frostline Pass',d:4500,rw:100}];
+const REGIONS=[{n:'Pine Valley',d:0,rw:0},{n:'Autumn Ridge',d:2000,rw:50},{n:'Whitecrest Pass',d:4500,rw:100}];
 let runRegion=0,regionSeen=Math.min(REGIONS.length-1,num(store.get('region',0),0));
 function enterRegion(i){const R=REGIONS[i],first=i>regionSeen;
  if(first){regionSeen=i;store.set('region',i);cans+=R.rw;store.set('cans',cans);bumpStat('regions')}
@@ -1713,7 +1715,7 @@ let missions=store.get('missions',null),missionXP=0;
 function newMission(have){// boost missions wait until the player has driven far enough to have seen a pad; region missions until a region is within reach
  const types=Object.keys(MPOOL).filter(t=>!have.includes(t)&&!(t==='beat'&&bestDist<100)&&!(t==='boost1'&&bestDist<700)&&!(t==='region'&&bestDist<1200)),t=types[Math.random()*types.length|0],tier=Math.min(4,Math.floor((level-1)/3));
  const m={t,n:MPOOL[t][tier],p:0,done:false,xp:40+tier*20,c:10+tier*8};
- // reaching a region in one run is a bigger ask than the other goals, so it aims at Frostline Pass only for players who get close and pays extra
+ // reaching a region in one run is a bigger ask than the other goals, so it aims at Whitecrest Pass only for players who get close and pays extra
  if(t==='region'){m.n=bestDist>=3800?2:1;m.c+=15*m.n;m.xp+=30}
  return m}
 function refreshMissions(){if(!Array.isArray(missions)||missions.length!==3||missions.some(m=>!m||!MPOOL[m.t]))missions=[];
