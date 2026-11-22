@@ -16,10 +16,10 @@ Never put one game's files into another game's repo.
 | --- | --- | --- |
 | Swervy | `torquespecstudios/swervy` (game file `hairpin.html`) | `play/index.html` (beta), `swervy/` (game page) |
 | Swoopy Wings | `torquespecstudios/swoopy` (game file `swoopy.html`) | none (beta taken down) |
-| Tuggy | `torquespecstudios/tuggy` | none (beta taken down) |
+| Tuggy | `torquespecstudios/tuggy` | `tug/index.html` (beta, restored Nov 22, 2026) |
 | Scoopy | `torquespecstudios/scoopy` | none (beta taken down) |
 
-**Nov 21, 2026: the owner took the Swoopy Wings, Tuggy and Scoopy betas off the site** (their `swoopy-beta/`, `tug/` and `scoopy-beta/` pages, home-page sections and images) so the site focuses on Swervy's launch. Their private repos are unchanged. Don't publish those betas here again unless the owner asks; until then, changes to those games go to their private repos only. The notes below say how each beta was built, for when one comes back.
+**Nov 21, 2026: the owner took the Swoopy Wings, Tuggy and Scoopy betas off the site; on Nov 22 Tuggy came back** (its `tug/` page, home-page section and images are restored). Swoopy's and Scoopy's `swoopy-beta/` and `scoopy-beta/` pages, home-page sections and images stay off so the site focuses on Swervy and Tuggy. Their private repos are unchanged. Don't publish the Swoopy or Scoopy betas here again unless the owner asks; until then, changes to those games go to their private repos only. The notes below say how each beta was built, for when one comes back.
 
 Notes:
 - **Tuggy:** the private repo's `index.html` is the same file as `tug/index.html` here. Copy it across unchanged and use the same commit message (e.g. "Tuggy beta v36").
