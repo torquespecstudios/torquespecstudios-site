@@ -247,8 +247,18 @@ body:has(#over:not([hidden])) #mtoast{display:none}
 #over .dist small{font-size:28px;opacity:.75}
 #over .meta{display:flex;gap:18px;font-weight:700;color:var(--mute);letter-spacing:.06em}
 #over .meta b{color:var(--ink)}
+/* the weekly challenge stands out from the daily missions: amber edge and star */
+.mrow.weekly{border-color:rgba(242,179,61,.55);background:rgba(242,179,61,.1)}
+.mrow.weekly .ck{color:var(--amber);border-color:var(--amber)}
+.mrow.weekly small{display:block;font-size:11px;font-weight:600;color:var(--mute)}
+.mrow.weekly .mp small{color:var(--amber)}
 #oClose{width:min(320px,100%);font-weight:700;color:var(--amber);text-align:center}
 #oClose b{color:var(--ink)}
+#over.almost .t{color:var(--amber)}
+#over.almost #oClose{font-size:17px}
+#over.almost #retry{animation:beatIt 1.1s ease-in-out infinite}
+@keyframes beatIt{50%{transform:scale(1.06);box-shadow:0 0 24px rgba(242,179,61,.55)}}
+@media (prefers-reduced-motion:reduce){#over.almost #retry{animation:none}}
 #oClose .bar{position:relative;height:8px;margin-top:7px;border-radius:4px;background:rgba(255,255,255,.12)}
 #oClose .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--amber)}
 #oClose .bar::after{content:"";position:absolute;right:-1px;top:-4px;width:3px;height:16px;border-radius:2px;background:var(--ink)}
@@ -582,6 +592,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     <div class="srow"><span>Camera shake</span><div class="seg" data-s="shake"></div></div>
     <div class="srow"><span>Tap to steer<small>Pick right if you play left-handed</small></span><div class="seg" data-s="flip"></div></div>
     <div class="srow"><span>Speed</span><div class="seg" data-s="units"></div></div>
+    <div class="srow" id="remRow" hidden><span>Reminders<small>Daily reward and streak</small></span><div class="seg" data-s="remind"></div></div>
     <button class="linkbtn" id="replayTut">Replay the tutorial on next drive</button>
     <a class="linkbtn" href="https://torquespecstudios.com/privacy.html" target="_blank" rel="noopener">Privacy &amp; support</a>
     <a class="linkbtn" href="mailto:support@torquespecstudios.com">Email support</a>
@@ -591,7 +602,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
 </div>
 
 <div class="center" id="over" hidden>
-  <div class="disp t">Wrecked</div>
+  <div class="disp t" id="oTitle">Wrecked</div>
   <div class="nbBadge" id="oNB" hidden>New best!</div>
   <div class="dist" id="oDist">0<small>pts</small></div>
   <div class="oach" id="oAch" hidden></div>
@@ -657,7 +668,7 @@ const fmt=n=>Math.round(n).toLocaleString('en-US');
 const num=(v,d,min=0,max=1e9)=>typeof v==='number'&&Number.isFinite(v)?Math.min(max,Math.max(min,v)):d,MAXD=1e5;
 const obj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
 // native plugins when running as the iOS app (Capacitor); all undefined in a browser
-const NATIVE=(p=>({prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,fs:p&&p.Filesystem,review:p&&p.InAppReview,app:p&&p.App}))(window.Capacitor&&window.Capacitor.Plugins);
+const NATIVE=(p=>({prefs:p&&p.Preferences,haptics:p&&p.Haptics,share:p&&p.Share,fs:p&&p.Filesystem,review:p&&p.InAppReview,app:p&&p.App,notif:p&&p.LocalNotifications}))(window.Capacitor&&window.Capacitor.Plugins);
 const store={get(k,d){try{const v=localStorage.getItem('hp3_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){const j=JSON.stringify(v);try{localStorage.setItem('hp3_'+k,j)}catch(e){}if(NATIVE.prefs)NATIVE.prefs.set({key:'hp3_'+k,value:j}).catch(()=>{})}};
 
 /* ---------- data ---------- */
@@ -808,8 +819,8 @@ function defLook(id){const d=DEF[id]||[0,0,0];return{paint:d[0],finish:d[2],roof
 
 let best=num(store.get('best',0),0),cans=num(store.get('cans',0),0),unlocked=store.get('unlocked',['coupe']),muted=store.get('muted',false)===true;
 unlocked=Array.isArray(unlocked)?unlocked.filter((id,i,a)=>MODELS[id]&&a.indexOf(id)===i):[];if(!unlocked.includes('coupe'))unlocked.unshift('coupe');
-let settings=Object.assign({haptics:true,quality:'high',shake:true,flip:false,units:'mph',music:true},obj(store.get('settings',{})));
-for(const k of['haptics','shake','flip','music'])settings[k]=settings[k]!==false&&(k!=='flip'||settings[k]===true);if(settings.quality!=='low')settings.quality='high';if(settings.units!=='kmh')settings.units='mph';
+let settings=Object.assign({haptics:true,quality:'high',shake:true,flip:false,units:'mph',music:true,remind:true},obj(store.get('settings',{})));
+for(const k of['haptics','shake','flip','music','remind'])settings[k]=settings[k]!==false&&(k!=='flip'||settings[k]===true);if(settings.quality!=='low')settings.quality='high';if(settings.units!=='kmh')settings.units='mph';
 // which way holding steers; "flip" is the left-handed option
 const sideH=()=>settings.flip?'right':'left',sideR=()=>settings.flip?'left':'right';
 // premium styling: some looks cost cans, bought once and then usable on every car, so there is always something to save for;
@@ -2029,7 +2040,7 @@ function buzz(ms){if(!settings.haptics)return;if(NATIVE.haptics){NATIVE.haptics.
 // opening the game on consecutive days climbs a 7-day reward ladder; missing a day starts it over
 const DAILY=[20,30,40,60,80,100,200];
 const dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-let daily=Object.assign({last:'',streak:0},obj(store.get('daily',{})));daily.streak=num(daily.streak,0);if(typeof daily.last!=='string')daily.last='';
+let daily=Object.assign({last:'',streak:0,saved:''},obj(store.get('daily',{})));daily.streak=num(daily.streak,0);if(typeof daily.last!=='string')daily.last='';if(typeof daily.saved!=='string')daily.saved='';
 // adaptive difficulty for Endless runs, the way puzzle games keep players in the zone: a struggling player gets a quieter
 // road, a strong one a busier, faster one. e is a smoothed typical distance, f counts poor runs in a row, l is the level
 // (-1 easier .. +1 harder). The level drifts toward a target set by e, at most .15 a run so it never jumps; three poor
@@ -2043,17 +2054,32 @@ function ddaLevel(){let l=dda.l;if(dda.f>=3)l-=.4;
 function ddaLearn(dist){dda.e=dda.e?dda.e*.75+dist*.25:dist;dda.f=dist<Math.max(400,.6*dda.e)?dda.f+1:0;
  const t=ddaTarget(dda.e);dda.l=clamp(dda.l+clamp(t-dda.l,-.15,.15),-1,1);dda.last=todayKey();store.set('dda',dda)}
 // the streak starts once the tutorial is done, so a new player's first screen is the road, not a reward popup
+// a missed day doesn't have to end the streak: once a week, coming back the day after a missed day keeps it going
+const daysBetween=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5);
 function checkDaily(){if(!store.get('tutDone',false))return;const now=new Date(),today=dayKey(now);if(daily.last===today)return;
- const y=new Date(now);y.setDate(y.getDate()-1);const streak=daily.last===dayKey(y)?daily.streak+1:1,idx=(streak-1)%7,amt=DAILY[idx];
- $('dTitle').textContent=streak>1?`Day ${streak} streak!`:'Daily reward';
- $('dSub').textContent=streak>1?`You've played ${streak} days in a row. Come back tomorrow for +${DAILY[(idx+1)%7]}.`:`Come back tomorrow for +${DAILY[1]}. Miss a day and the streak resets.`;
+ const gap=daily.last?daysBetween(daily.last,today):99,canSave=gap===2&&daily.streak>=2&&(!daily.saved||daysBetween(daily.saved,today)>=7),
+  streak=gap===1||canSave?daily.streak+1:1,idx=(streak-1)%7,amt=DAILY[idx];
+ $('dTitle').textContent=canSave?'Streak saved!':streak>1?`Day ${streak} streak!`:'Daily reward';
+ $('dSub').textContent=canSave?`You missed yesterday, but your ${daily.streak}-day streak is safe. One save a week.`:streak>1?`You've played ${streak} days in a row. Come back tomorrow for +${DAILY[(idx+1)%7]}.`:`Come back tomorrow for +${DAILY[1]}. Miss a day and the streak resets.`;
  $('dDays').innerHTML=DAILY.map((a,i)=>`<div class="day ${i<idx?'got':''} ${i===idx?'today':''} ${i===6?'big':''}"><span>Day ${i+1}</span><b>${a}</b><span class="can"></span></div>`).join('');
  $('dClaim').innerHTML=`Claim +${amt} <span class="can"></span>`;
- $('dClaim').onclick=()=>{audioInit();daily={last:today,streak};store.set('daily',daily);cans+=amt;store.set('cans',cans);show('daily',0);chime([523,659,784,1047,1319]);buzz(40);
+ $('dClaim').onclick=()=>{audioInit();daily={last:today,streak,saved:canSave?today:daily.saved||''};store.set('daily',daily);cans+=amt;store.set('cans',cans);show('daily',0);chime([523,659,784,1047,1319]);buzz(40);
+ // the first claim is when a reminder makes sense to the player, so that's when the app asks for notification permission
+ planReminders(true);
  // the garage's coach tips were skipped while this popup was up, so they get their turn once the claim chime has played
  if(state==='garage'){renderGarage();clearTimeout(gTips.t);gTips.t=setTimeout(gTips,900)}};
  show('daily',1)}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state==='garage')checkDaily()});
+// app only: a reminder the next evening (the daily reward, or the streak at stake) and one nudge after three days away.
+// Pending reminders are replaced every time the app opens or closes, so a player who keeps playing never gets one
+async function planReminders(ask){const N=NATIVE.notif;if(!N)return;try{
+ await N.cancel({notifications:[{id:1},{id:2}]});if(!settings.remind||!store.get('tutDone',false))return;
+ let perm=(await N.checkPermissions()).display;if(perm==='prompt'&&ask)perm=(await N.requestPermissions()).display;if(perm!=='granted')return;
+ const at=(days,h)=>{const d=new Date();d.setDate(d.getDate()+days);d.setHours(h,0,0,0);return d},today=dayKey(new Date()),
+  next=daily.last===today?daily.streak+1:1,amt=DAILY[(next-1)%7];
+ await N.schedule({notifications:[
+  {id:1,title:next>2?`Keep your ${next-1}-day streak alive`:'Your daily reward is ready',body:next>2?`Day ${next} pays +${amt} cans. Your streak ends at midnight.`:`Claim +${amt} cans and take on today's Daily Road.`,schedule:{at:at(1,18)}},
+  {id:2,title:'The mountain road is waiting',body:'New Daily Road, new deals, and your best to beat.',schedule:{at:at(3,18)}}]})}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state==='garage')checkDaily();planReminders(false)});
 
 /* ---------- achievements ---------- */
 // long-term trophies backed by lifetime stats; each pays cans once. IDs are kept stable so they can map to Game Center achievements.
@@ -2106,15 +2132,31 @@ function newMission(have){// boost missions wait until the player has driven far
 function refreshMissions(){if(!Array.isArray(missions)||missions.length!==3||missions.some(m=>!m||!MPOOL[m.t]))missions=[];
  missions=missions.filter(m=>!m.done);while(missions.length<3)missions.push(newMission(missions.map(m=>m.t)));store.set('missions',missions)}
 function mText(m){return{dist:`Drive ${fmt(m.n)}m in one run`,cans1:`Collect ${m.n} cans in one run`,cansTotal:`Collect ${m.n} cans`,runs:`Play ${m.n} runs`,beat:'Beat your best distance',boost1:`Hit ${m.n} boost pad${m.n>1?'s':''} in one run`,close1:`Get ${m.n} close call${m.n>1?'s':''} in one run`,combo:`Reach a x${m.n} combo`,region:`Reach ${(REGIONS[m.n]||REGIONS[1]).n}`}[m.t]}
+// the weekly challenge: one bigger goal per week (weeks start Monday), the same kind for everyone that week, sized to the
+// player's level when the week starts. It pays more than a mission and shows on the start screen with the days left
+const WK=[{t:'wDist',n:[8,12,15,20,25],u:'km',txt:n=>`Drive ${n} km this week`},{t:'wCans',n:[80,120,150,200,260],txt:n=>`Collect ${n} cans this week`},
+ {t:'wClose',n:[10,15,25,35,45],txt:n=>`Get ${n} close calls this week`},{t:'wRuns',n:[12,16,20,25,30],txt:n=>`Play ${n} runs this week`}];
+const weekKey=()=>{const d=new Date();d.setDate(d.getDate()-(d.getDay()+6)%7);return dayKey(d)};
+let weekly=obj(store.get('weekly',{}));if(typeof weekly.wk!=='string')weekly={};weekly.n=num(weekly.n,1,1,1e4);weekly.p=num(weekly.p,0,0,1e6);weekly.c=num(weekly.c,150,0,1e4);weekly.xp=num(weekly.xp,120,0,1e4);weekly.done=weekly.done===true;
+function refreshWeekly(){const wk=weekKey();if(weekly.wk===wk&&WK.some(w=>w.t===weekly.t))return;
+ const w=WK[Math.floor(new Date(wk)/6048e5)%WK.length],tier=Math.min(4,Math.floor((level-1)/3));
+ weekly={wk,t:w.t,n:w.n[tier],p:0,done:false,c:150+tier*25,xp:120+tier*30};store.set('weekly',weekly)}
+function weeklyEvent(ev,v){if(tut)return;refreshWeekly();if(weekly.done)return;const p0=weekly.p;
+ if(weekly.t==='wDist'&&ev==='runEnd')weekly.p+=Math.max(0,v)/1000;else if(weekly.t==='wCans'&&ev==='can')weekly.p++;
+ else if(weekly.t==='wClose'&&ev==='close')weekly.p++;else if(weekly.t==='wRuns'&&ev==='runEnd')weekly.p++;
+ if(weekly.p===p0)return;if(weekly.p>=weekly.n){weekly.done=true;cans+=weekly.c;store.set('cans',cans);missionXP+=weekly.xp;
+  toast(`🏆 Weekly challenge done · +${weekly.c} <span class="can"></span>`);chime([523,659,784,1047]);buzz(40)}store.set('weekly',weekly)}
+function weeklyRow(){refreshWeekly();const w=WK.find(x=>x.t===weekly.t),left=7-((new Date().getDay()+6)%7),p=weekly.t==='wDist'?weekly.p.toFixed(1):Math.floor(weekly.p);
+ return`<div class="mrow weekly ${weekly.done?'done':''}"><i class="ck">${weekly.done?'✓':'★'}</i><span>${w.txt(weekly.n)}<small>Weekly · ${left} day${left>1?'s':''} left</small></span><span class="mp">${weekly.done?'Done':p+'/'+weekly.n}<small>+${weekly.c} <span class="can"></span></small></span></div>`}
 function renderMissions(id){const el=$(id);if(!missions)refreshMissions();
- el.innerHTML='<span>Missions</span>'+missions.map(m=>`<div class="mrow ${m.done?'done':''}"><i class="ck">${m.done?'✓':''}</i><span>${mText(m)}</span><span class="mp">${m.done?`+${m.c} <span class="can"></span>`:m.t==='beat'||m.t==='region'?`+${m.c} <span class="can"></span>`:fmt(Math.min(m.p,m.n))+'/'+fmt(m.n)}</span></div>`).join('')}
+ el.innerHTML='<span>Missions</span>'+(id==='rMissions'&&!tut?weeklyRow():'')+missions.map(m=>`<div class="mrow ${m.done?'done':''}"><i class="ck">${m.done?'✓':''}</i><span>${mText(m)}</span><span class="mp">${m.done?`+${m.c} <span class="can"></span>`:m.t==='beat'||m.t==='region'?`+${m.c} <span class="can"></span>`:fmt(Math.min(m.p,m.n))+'/'+fmt(m.n)}</span></div>`).join('')}
 function completeMission(m){m.done=true;m.p=m.n;cans+=m.c;store.set('cans',cans);missionXP+=m.xp;
  toast(`✓ ${mText(m)} · +${m.c} <span class="can"></span>`);chime([659,880,1175]);buzz(25)}
 // pop-ups queue so a mission and a trophy unlocked together are both seen
 let toastQ=[],toastBusy=false;
 function toast(html){toastQ.push(html);if(!toastBusy)nextToast()}
 function nextToast(){const h=toastQ.shift();if(!h){toastBusy=false;return}toastBusy=true;const t=$('mtoast');t.hidden=true;void t.offsetWidth;t.innerHTML=h;t.hidden=false;setTimeout(nextToast,2300)}
-function missionEvent(ev){if(!missions||tut)return;let changed=false;const dist=Math.floor(C.d-START_D);
+function missionEvent(ev){if(ev==='can'||ev==='close')weeklyEvent(ev);if(!missions||tut)return;let changed=false;const dist=Math.floor(C.d-START_D);
  for(const m of missions){if(m.done)continue;let p=m.p;
   if(m.t==='dist'&&ev==='tick')p=Math.max(p,dist);else if(m.t==='cans1'&&ev==='can')p=Math.max(p,runCans);else if(m.t==='cansTotal'&&ev==='can')p++;
   else if(m.t==='runs'&&ev==='run')p++;else if(m.t==='beat'&&ev==='beat')p=1;
@@ -2135,7 +2177,7 @@ function showXP(r){const tok=++xpAnim,bar=$('oXPbar'),pct=(v,L)=>Math.min(100,v/
  setTimeout(()=>{if(tok!==xpAnim)return;if(level===r.from.level){bar.style.width=pct(xp,level);return}bar.style.width='100%';
   setTimeout(()=>{if(tok!==xpAnim)return;bar.style.transition='none';bar.style.width='0%';void bar.offsetWidth;bar.style.transition='width .6s ease-out';bar.style.width=pct(xp,level);
    $('oLv').textContent='Level '+level;const u=$('oLvUp');u.innerHTML='Level up! <b>+'+r.reward+'</b> <span class="can"></span>';u.hidden=false;chime([392,523,659,784,1047]);buzz(40)},850)},300)}
-function bankRun(D=C.d){const dist=Math.floor(D-START_D);if(ddaRun){ddaRun=false;ddaLearn(dist)}if(dist>bestDist){bestDist=dist;store.set('bestDist',bestDist)}
+function bankRun(D=C.d){const dist=Math.floor(D-START_D);if(ddaRun){ddaRun=false;ddaLearn(dist)}weeklyEvent('runEnd',dist);if(dist>bestDist){bestDist=dist;store.set('bestDist',bestDist)}
  if(dailyMode&&runDay===todayKey()&&dist>dailyBestToday()){dBest={date:runDay,dist};store.set('dailyBest',dBest)}
  if(racing()&&dist>raceBest()){delete raceBests[raceCode];raceBests[raceCode]={dist};const ks=Object.keys(raceBests);while(ks.length>8)delete raceBests[ks.shift()];store.set('raceBests',raceBests)}
  missionEvent('run');store.set('missions',missions);bumpStat('runs');saveStats();lastXP=awardXP(Math.max(0,dist),runCans,beatBest,missionXP);missionXP=0;
@@ -2167,7 +2209,9 @@ function finishRun(){show('revive',0);show('hud',0);
  countUp($('oDist'),sc);const nbs=nb&&sc>0;$('over').classList.toggle('best',nbs);$('oNB').hidden=!nbs;$('oMeters').textContent=fmt(Math.max(0,Math.floor(crashD-START_D)))+'m';$('oBestWrap').innerHTML='Best <b>'+fmt(best)+'</b>';$('oBestWrap').hidden=nbs;$('oCans').textContent='+'+gained+(dbl?' ×2':'');$('oTip').innerHTML=pickTip();
  // a run that ends close to the best shows exactly how close, which is the strongest reason to tap Retry
  const rd=lastRun.dist,gap=runBest-rd,close=!lastRun.best&&runBest>=100&&gap>0&&rd>=runBest*.75;$('oClose').hidden=!close;
- if(close)$('oClose').innerHTML=`So close! <b>${fmt(gap)} m</b> short of ${dailyMode?"today's":racing()?"this race's":'your'} <b>${fmt(runBest)} m</b> best<div class="bar"><i style="width:${(rd/runBest*100).toFixed(1)}%"></i></div>`;$('toGarage').classList.toggle('nudge',canSpend());
+ // within 10% (or 60 m) of the best is the moment players hit Retry: the title says so and Retry becomes "Beat it!"
+ const almost=close&&gap<=Math.max(60,runBest*.1);$('over').classList.toggle('almost',almost);$('oTitle').textContent=almost?'So close!':'Wrecked';$('retry').textContent=almost?'Beat it!':'Retry';
+ if(close)$('oClose').innerHTML=`${almost?'Only':'So close!'} <b>${fmt(gap)} m</b> short of ${dailyMode?"today's":racing()?"this race's":'your'} <b>${fmt(runBest)} m</b> best<div class="bar"><i style="width:${(rd/runBest*100).toFixed(1)}%"></i></div>`;$('toGarage').classList.toggle('nudge',canSpend());
  state='over';checkAch();const got=runAch;$('oAch').hidden=!got.length;$('oAch').innerHTML=got.map(([n,r])=>`${TROPHY} ${n} unlocked · +${r} <span class="can"></span>`).join('<br>');
  renderMissions('oMissions');show('over',1);if(lastXP)showXP(lastXP);if(lastRun.best)maybeAskReview()}
 function controlText(){$('readyT').textContent='Tap to start';$('readyS').innerHTML='Tap to steer '+sideH()+'<br>Let go to swing '+sideR();$('countS').textContent='Get ready · tap to steer '+sideH()}
@@ -2305,7 +2349,7 @@ $('pGarage').addEventListener('click',()=>{bankRun();goGarage()});
 $('rvYes').addEventListener('click',acceptRevive);$('rvNo').addEventListener('click',()=>{if(state==='revive')finishRun()});
 
 /* ---------- settings ---------- */
-const SET_OPTS={sound:[['On',true],['Off',false]],music:[['On',true],['Off',false]],haptics:[['On',true],['Off',false]],quality:[['High','high'],['Low','low']],shake:[['On',true],['Off',false]],flip:[['Left',false],['Right',true]],units:[['mph','mph'],['km/h','kmh']]};
+const SET_OPTS={sound:[['On',true],['Off',false]],music:[['On',true],['Off',false]],haptics:[['On',true],['Off',false]],quality:[['High','high'],['Low','low']],shake:[['On',true],['Off',false]],flip:[['Left',false],['Right',true]],units:[['mph','mph'],['km/h','kmh']],remind:[['On',true],['Off',false]]};
 // dynamic resolution: while driving, if frames run slower than ~50fps the render scale steps down (to 60% at most);
 // it steps back up once there's headroom again. basePR is the quality setting's pixel ratio.
 let basePR=1,renderScale=1,frameEMA=16.7,slowT=0,fastT=0;
@@ -2320,8 +2364,8 @@ function applyQuality(){const low=settings.quality==='low',ms=low||PHONE?1024:20
  if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}scene.fog.far=low?360:640;resize()}
 function renderSettings(){document.querySelectorAll('#settings .seg').forEach(el=>{const k=el.dataset.s,cur=k==='sound'?!muted:settings[k];
  el.innerHTML=SET_OPTS[k].map(([n,v])=>`<button class="${v===cur?'on':''}" aria-pressed="${v===cur}">${n}</button>`).join('');
- el.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{const v=SET_OPTS[k][i][1];if(k==='sound'){audioInit();setMute(!v)}else{settings[k]=v;store.set('settings',settings);if(k==='quality')applyQuality();if(k==='haptics'&&v)buzz(30);if(k==='flip')controlText();if(k==='units')updateHud()}renderSettings()})})}
-function openSettings(){renderSettings();$('replayTut').textContent=store.get('tutDone',false)?'Replay the tutorial on next drive':'Tutorial will play on your next drive';show('settings',1)}
+ el.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{const v=SET_OPTS[k][i][1];if(k==='sound'){audioInit();setMute(!v)}else{settings[k]=v;store.set('settings',settings);if(k==='quality')applyQuality();if(k==='haptics'&&v)buzz(30);if(k==='flip')controlText();if(k==='units')updateHud();if(k==='remind')planReminders(v)}renderSettings()})})}
+function openSettings(){$('remRow').hidden=!NATIVE.notif;renderSettings();$('replayTut').textContent=store.get('tutDone',false)?'Replay the tutorial on next drive':'Tutorial will play on your next drive';show('settings',1)}
 $('setBtn').addEventListener('click',openSettings);$('pSettings').addEventListener('click',openSettings);
 $('setClose').addEventListener('click',()=>show('settings',0));
 // Android back button: close the open panel, pause a run, resume from pause, leave the start or results screen for the
