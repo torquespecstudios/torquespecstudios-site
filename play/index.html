@@ -1077,6 +1077,14 @@ const grassTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#4d5f2e';g.fillRect(0,0,
 grassTex.repeat.set(160,160);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({map:grassTex,roughness:1}));
 ground.receiveShadow=true;scene.add(ground);
+// large patches over the grass (drier, lusher, bare earth), sampled at two scales from the world position so the 10 m grass tile
+// doesn't read as a repeating carpet. World position, not the mesh's UVs: the ground jumps with the camera in 10 m steps
+const patchTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#808080';g.fillRect(0,0,w,h);
+ for(let i=0;i<34;i++){const x=Math.random()*w,y=Math.random()*h,r=8+Math.random()*26,c=['196,170,96','80,104,70','158,118,82','100,116,74'][i%4];
+  for(const dx of[-w,0,w])for(const dy of[-h,0,h]){const gr=g.createRadialGradient(x+dx,y+dy,0,x+dx,y+dy,r);gr.addColorStop(0,`rgba(${c},.8)`);gr.addColorStop(.5,`rgba(${c},.5)`);gr.addColorStop(1,`rgba(${c},0)`);g.fillStyle=gr;g.fillRect(0,0,w,h)}}},true);
+ground.material.onBeforeCompile=sh=>{sh.uniforms.patchMap={value:patchTex};
+ sh.vertexShader='varying vec2 vWXZ;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvWXZ=(modelMatrix*vec4(transformed,1.)).xz;');
+ sh.fragmentShader='uniform sampler2D patchMap;\nvarying vec2 vWXZ;\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\ndiffuseColor.rgb*=texture2D(patchMap,vWXZ*.0043).rgb*texture2D(patchMap,vWXZ*.0113+.37).rgb*4.;')};
 
 // mountains
 const mtns=new THREE.Group();
@@ -1097,29 +1105,102 @@ const mtns=new THREE.Group();
  // a third, near layer: low forested hills with a jagged tree line, darker than the ridges behind, so the land
  // fades in depth (dark near hills, paler far mountains) instead of reading as one flat silhouette
  const hills=ridge(560,16,74,0x26402f,999,7.3,{N:720,rough:.3,haze:.22});hills.userData.near=true;mtns.add(hills);}
-// clouds: a ring of soft cloud sprites beyond the far ridge, drifting slowly; each region tints and dims them
-const clouds=new THREE.Group();
-{const tex=canvasTex(256,128,(g,w,h)=>{for(let i=0;i<14;i++){const x=40+Math.random()*176,y=58+Math.random()*34-Math.abs(x-128)*.12,r=22+Math.random()*30,gr=g.createRadialGradient(x,y,0,x,y,r);
-  gr.addColorStop(0,'rgba(255,255,255,.55)');gr.addColorStop(.6,'rgba(255,255,255,.28)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,w,h)}});
- // premultiplied upload: iPhones unpremultiply the canvas's faint edge pixels into random colours (visible static in the
- // clouds); keeping the data premultiplied end to end avoids that
- tex.premultiplyAlpha=true;tex.needsUpdate=true;
- for(let i=0;i<14;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,premultipliedAlpha:true,depthWrite:false,fog:false})),a=i/14*6.283+Math.random()*.3,d=1300+Math.random()*120,sc=320+Math.random()*260;
-  m.position.set(Math.cos(a)*d,250+Math.random()*170,Math.sin(a)*d);m.scale.set(sc,sc*(.32+Math.random()*.12),1);m.userData.o=.6+Math.random()*.4;clouds.add(m)}}
+// clouds: one mesh of flat cards in a ring beyond the far ridge, each facing the middle (the ring follows the camera), so the
+// sky's clouds cost one draw call instead of one per sprite. Four cumulus shapes share one texture: rounded tops, a soft flat
+// base and a shaded underside; the time of day tints them. Vertex colours above 1 keep the tops white after tone mapping
+const cloudMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,fog:false,side:THREE.DoubleSide});
+let clouds;
+{const W=512,H=256,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+ for(let k=0;k<4;k++){const ox=(k&1)*256,oy=(k>>1)*128,n=9+(Math.random()*6|0);g.save();g.beginPath();g.rect(ox,oy,256,128);g.clip();
+  for(let i=0;i<n;i++){const x=ox+52+Math.random()*152,r=18+Math.random()*24,y=oy+88-r*.55-Math.random()*22+Math.abs(x-ox-128)*.12,gr=g.createRadialGradient(x,y,0,x,y,r);
+   gr.addColorStop(0,'rgba(255,255,255,.85)');gr.addColorStop(.7,'rgba(255,255,255,.6)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(ox,oy,256,128)}
+  // a soft, flat base
+  const fb=g.createLinearGradient(0,oy+82,0,oy+104);fb.addColorStop(0,'rgba(0,0,0,0)');fb.addColorStop(1,'rgba(0,0,0,1)');g.globalCompositeOperation='destination-out';g.fillStyle=fb;g.fillRect(ox,oy,256,128);g.restore()}
+ // only the canvas's alpha is kept; the colour (white tops, a cooler grey underside) is written per row, and the texture is a
+ // data texture with straight alpha, because iPhones turn a canvas's faint edge pixels into coloured static
+ const al=g.getImageData(0,0,W,H).data,px=new Uint8Array(W*H*4);
+ for(let y=0;y<H;y++){const sh=.3*clamp((y%128-44)/56,0,1),r=255-105*sh,gg=255-97*sh,b=255-67*sh;for(let x=0;x<W;x++)px.set([r,gg,b,al[(y*W+x)*4+3]],((H-1-y)*W+x)*4)}
+ const tex=new THREE.DataTexture(px,W,H,THREE.RGBAFormat);tex.encoding=THREE.sRGBEncoding;tex.magFilter=THREE.LinearFilter;tex.minFilter=THREE.LinearMipmapLinearFilter;tex.generateMipmaps=true;tex.needsUpdate=true;cloudMat.map=tex;
+ const pos=[],uv=[],col=[],idx=[];
+ for(let i=0;i<14;i++){const a=i/14*6.283+Math.random()*.3,d=1300+Math.random()*120,w=400+Math.random()*320,h=w*(.36+Math.random()*.12),y=250+Math.random()*170,
+   cx=Math.cos(a)*d,cz=Math.sin(a)*d,rx=-Math.sin(a)*w/2,rz=Math.cos(a)*w/2,k=i%4,u0=(k&1)*.5,v1=1-(k>>1)*.5,v0=v1-.5,b=1.2+Math.random()*.25,n=i*4;
+  pos.push(cx-rx,y-h/2,cz-rz,cx+rx,y-h/2,cz+rz,cx+rx,y+h/2,cz+rz,cx-rx,y+h/2,cz-rz);uv.push(u0,v0,u0+.5,v0,u0+.5,v1,u0,v1);col.push(b,b,b,b,b,b,b,b,b,b,b,b);idx.push(n,n+1,n+2,n,n+2,n+3)}
+ const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));cg.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));cg.setAttribute('color',new THREE.Float32BufferAttribute(col,3));cg.setIndex(idx);
+ clouds=new THREE.Mesh(cg,cloudMat);clouds.frustumCulled=false}
+// the sky behind the ranges: a broad glow on the horizon under the sun (warm by day, deep orange at dusk), and at night a
+// moon with a soft halo and a band of stars above the peaks. All follow the camera like the sun disc and sit beyond the
+// ridges, so the peaks stand out against them
+const GLOWDIR=new THREE.Vector3(SUNDIR.x,.05,SUNDIR.z).normalize(),MOONDIR=new THREE.Vector3(-.3,.19,-.93).normalize();
+const softDot=radial('rgba(255,255,255,1)','rgba(255,255,255,0)'),skyGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:softDot,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,transparent:true}));
+skyGlow.scale.set(2600,620,1);scene.add(skyGlow);
+const moon=new THREE.Sprite(new THREE.SpriteMaterial({map:(()=>{const n=128,px=new Uint8Array(n*n*4);
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){const d=Math.hypot(x-63.5,y-63.5)/64,disc=clamp((.2-d)/.02,0,1),
+    // darker "seas" on the disc, and a halo that falls off fast
+    sea=1-.2*clamp(Math.sin(x*.31+1)*Math.sin(y*.27+2)*2,0,1),v=Math.max(disc*sea,.45*Math.exp(-d*6)*(1-disc)),i=(y*n+x)*4;
+   px.set([235,240,255,255*Math.min(1,v)],i)}
+  const t=new THREE.DataTexture(px,n,n,THREE.RGBAFormat);t.encoding=THREE.sRGBEncoding;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.needsUpdate=true;return t})(),
+ blending:THREE.AdditiveBlending,depthWrite:false,fog:false,transparent:true}));moon.scale.set(250,250,1);moon.visible=false;scene.add(moon);
+// (the stars use the same material settings as the falling snow, so they need no shader of their own)
+const stars=(()=>{const N=420,p=new Float32Array(N*3);for(let i=0;i<N;i++){const a=Math.random()*6.283,e=.06+Math.pow(Math.random(),1.5)*.5;p.set([Math.cos(a)*Math.cos(e)*1400,Math.sin(e)*1400,Math.sin(a)*Math.cos(e)*1400],i*3)}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(p,3));
+ const s=new THREE.Points(g,new THREE.PointsMaterial({color:0xdde6ff,map:softDot,size:5,transparent:true,opacity:0,depthWrite:false,fog:false}));s.frustumCulled=false;s.visible=false;scene.add(s);return s})();
 scene.add(clouds);
 scene.add(mtns);
 
 /* ---------- road ---------- */
-const asphaltTex=canvasTex(256,512,(g,w,h)=>{g.fillStyle='#45474c';g.fillRect(0,0,w,h);speck(g,w,h,16000,()=>{const l=48+Math.random()*48|0;return`rgb(${l},${l},${l+3})`});
- g.fillStyle='rgba(18,18,20,.16)';g.fillRect(w*.17,0,w*.15,h);g.fillRect(w*.68,0,w*.15,h);
- g.strokeStyle='rgba(22,22,25,.55)';for(let i=0;i<9;i++){g.beginPath();let x=Math.random()*w,y=Math.random()*h;g.moveTo(x,y);for(let j=0;j<6;j++){x+=(Math.random()-.5)*22;y+=Math.random()*16;g.lineTo(x,y)}g.stroke()}
- g.fillStyle='#e9e5d9';g.fillRect(8,0,8,h);g.fillRect(w-16,0,8,h);
+// asphalt: 256 px across the road, 512 along 12 m. The colour, roughness and night-glow maps share one layout: the darker,
+// worn wheel paths are also a little glossier and catch the low sun and the headlights, and the road studs between the centre
+// dashes light up at night like real reflectors. Cracks and sealed cracks (black tar lines) are picked once, here
+const ROADF=(()=>{const q=Math.random,walk=(n,dx,dy)=>{let x=24+q()*208,y=q()*512;const p=[[x,y]];for(let j=0;j<n;j++){x+=(q()-.5)*dx;y+=dy*(.3+q());p.push([x,y])}return p};
+ return{cracks:Array.from({length:8},()=>walk(6,22,14)),tar:Array.from({length:4},()=>walk(10,26,20))}})();
+// draws a path three times, a tile apart, so a line that runs off the top or bottom carries on in the next tile
+function tilePath(g,p,h){for(const dy of[-h,0,h]){g.beginPath();p.forEach(([x,y],k)=>k?g.lineTo(x,y+dy):g.moveTo(x,y+dy));g.stroke()}}
+// wheel paths: two per lane, where tyres have polished the stone
+const WHEEL=[.18,.32,.68,.82],wheelPaths=(g,h,c,a)=>{for(const u of WHEEL){const x=u*256,gr=g.createLinearGradient(x-13,0,x+13,0);gr.addColorStop(0,`rgba(${c},0)`);gr.addColorStop(.5,`rgba(${c},${a})`);gr.addColorStop(1,`rgba(${c},0)`);g.fillStyle=gr;g.fillRect(x-13,0,26,h)}};
+const asphaltTex=canvasTex(256,512,(g,w,h)=>{g.fillStyle='#404247';g.fillRect(0,0,w,h);
+ // broad soft blotches (older greyer and fresher darker stretches), drawn wrapped so the tile repeats cleanly
+ for(let i=0;i<26;i++){const x=Math.random()*w,y=Math.random()*h,r=25+Math.random()*60,c=Math.random()<.5?'200,198,190,.05':'10,10,14,.1';
+  for(const dy of[-h,0,h]){const gr=g.createRadialGradient(x,y+dy,0,x,y+dy,r);gr.addColorStop(0,`rgba(${c})`);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,w,h)}}
+ // stone aggregate: mid greys, a few pale chips, dark pits
+ speck(g,w,h,15000,()=>{const l=46+Math.random()*44|0;return`rgb(${l},${l},${l+3})`});speck(g,w,h,700,()=>{const l=140+Math.random()*60|0;return`rgba(${l+6},${l+2},${l-4},.45)`});speck(g,w,h,2500,()=>'rgba(20,20,24,.6)');
+ wheelPaths(g,h,'16,16,19',.26);
+ // a faint oil line down the middle of each lane
+ for(const u of[.25,.75])for(let i=0;i<70;i++){const r=2+Math.random()*5;g.fillStyle='rgba(12,10,8,.07)';g.beginPath();g.ellipse(u*w+(Math.random()-.5)*9,Math.random()*h,r*.6,r*1.6,0,0,6.3);g.fill()}
+ g.lineJoin='round';g.strokeStyle='rgba(18,18,20,.6)';g.lineWidth=1;ROADF.cracks.forEach(p=>tilePath(g,p,h));
+ g.strokeStyle='rgba(8,8,10,.7)';g.lineWidth=1.6;ROADF.tar.forEach(p=>tilePath(g,p,h));
+ // the crumbling edge outside the edge lines, with shoulder gravel worked into it
+ for(const s of[0,1])for(let i=0;i<900;i++){const d=Math.pow(Math.random(),1.8)*10,l=Math.random();g.fillStyle=Math.random()<.5?`rgb(${100+l*60|0},${90+l*50|0},${72+l*40|0})`:'rgba(20,19,18,.7)';g.fillRect(s?w-1-d:d,Math.random()*h,1+Math.random()*2|0,1+Math.random()*3|0)}
+ // paint: edge lines and the centre dash, worn where the stone shows through
+ g.fillStyle='#e6e2d6';g.fillRect(8,0,8,h);g.fillRect(w-16,0,8,h);
  g.fillStyle='#e7ad2e';g.fillRect(w/2-4,0,8,h*.36);
- speck(g,w,h,2500,()=>'rgba(60,60,64,.55)')},true);
-asphaltTex.wrapS=THREE.ClampToEdgeWrapping;
-const roadMat=new THREE.MeshStandardMaterial({map:asphaltTex,roughness:.9,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
-const gravelTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#7a6b56';g.fillRect(0,0,w,h);speck(g,w,h,5000,()=>{const l=Math.random();return`rgb(${90+l*70|0},${80+l*60|0},${64+l*50|0})`})},true);
-const shoulderMat=new THREE.MeshStandardMaterial({map:gravelTex,roughness:1,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+ for(let i=0;i<700;i++){const k=Math.random()*3|0,x=[8,w-16,w/2-4][k]+Math.random()*8,y=Math.random()*h*(k<2?1:.36);g.fillStyle=`rgba(70,70,74,${.25+Math.random()*.4})`;g.fillRect(x,y,1+Math.random()*2|0,1+Math.random()*2|0)}
+ // a road stud in each gap between dashes: dark housing, amber lens
+ g.fillStyle='#2a2a2c';g.fillRect(w/2-2,h*.68-3,4,5);g.fillStyle='#ffb43a';g.fillRect(w/2-1,h*.68-1,2,2);
+ speck(g,w,h,1500,()=>'rgba(60,60,64,.45)')},true);
+// roughness (green channel): polished wheel paths and paint are smoother than the open stone
+const asphaltRough=canvasTex(256,512,(g,w,h)=>{g.fillStyle='#f0f0f0';g.fillRect(0,0,w,h);speck(g,w,h,6000,()=>{const l=200+Math.random()*55|0;return`rgb(${l},${l},${l})`});
+ wheelPaths(g,h,'215,215,215',.8);
+ g.fillStyle='#c4c4c4';g.fillRect(8,0,8,h);g.fillRect(w-16,0,8,h);g.fillRect(w/2-4,0,8,h*.36);g.fillStyle='#404040';g.fillRect(w/2-1,h*.68-1,2,2)},true);
+// night glow (emissive, faded in with the dark): the studs, and a faint glint on the edge lines so the road's line shows far ahead
+const asphaltGlow=canvasTex(128,256,(g,w,h)=>{g.fillStyle='#000';g.fillRect(0,0,w,h);g.fillStyle='#34322c';g.fillRect(4,0,4,h);g.fillRect(w-8,0,4,h);
+ const r=g.createRadialGradient(w/2,h*.68,0,w/2,h*.68,4);r.addColorStop(0,'#ffb040');r.addColorStop(.45,'#a85a10');r.addColorStop(1,'#000');g.fillStyle=r;g.fillRect(w/2-4,h*.68-4,8,8)},true);
+for(const t of[asphaltTex,asphaltRough,asphaltGlow])t.wrapS=THREE.ClampToEdgeWrapping;
+const roadMat=new THREE.MeshStandardMaterial({map:asphaltTex,roughnessMap:asphaltRough,roughness:1,emissiveMap:asphaltGlow,emissive:0xffffff,emissiveIntensity:0,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+// the verge: 128 px from its outer edge to just under the asphalt, 256 along 6 m. Packed, dusty gravel by the road, then
+// dirt that thins into the grass with a ragged, see-through edge, so the road no longer ends in a hard brown stripe. Built
+// pixel by pixel as a data texture: a canvas's faint edge pixels turn into coloured static on iPhones (see radial)
+const VERGE=2.6,vergeTex=(()=>{const W=128,H=256,px=new Uint8Array(W*H*4),q=Math.random,
+  // where the gravel gives way to dirt wanders along the road (whole cycles per tile, so it repeats seamlessly)
+  wv=y=>{const a=y/H*6.2832;return .45*Math.sin(a*2+1.3)+.3*Math.sin(a*5+.4)+.2*Math.sin(a*11+2.1)};
+ for(let y=0;y<H;y++){const e=1.45+.3*wv(y);for(let x=0;x<W;x++){const m=(1-x/(W-1))*(VERGE+.1)-.1,l=q();let r,gg,b,a=1;
+   if(m<e){r=90+l*70;gg=80+l*60;b=64+l*50;if(q()<.08){r*=.6;gg*=.6;b*=.6}
+    // darker, dustier right by the asphalt
+    if(m<.35){const k=.45*(1-m/.35);r+=(66-r)*k;gg+=(62-gg)*k;b+=(58-b)*k}}
+   else{const t=(m-e)/(VERGE-e);if(q()<t*.9){r=55+l*45;gg=72+l*45;b=30+l*25}else{r=88+l*40;gg=74+l*32;b=54+l*24}a=clamp(1.15-t*1.5+(q()-.5)*.5,0,1)}
+   px.set([r,gg,b,a*255],(y*W+x)*4)}}
+ const t=new THREE.DataTexture(px,W,H,THREE.RGBAFormat);t.encoding=THREE.sRGBEncoding;t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=ANISO;t.needsUpdate=true;return t})();
+// see-through at its outer edge, so it is drawn after the ground and the snow (snowGround has renderOrder -1)
+const shoulderMat=new THREE.MeshStandardMaterial({map:vergeTex,roughness:1,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
 
 const SEG=3,CH=30,START_W=14,MIN_W=8,START_D=60;
 // road layout, cans and pads come from roadRnd: Math.random for endless runs, a date-seeded generator for the Daily Road
@@ -1173,6 +1254,11 @@ function placeObstacle(j){const dist=j*SEG-START_D;if(dist<OB_D)return;
 function roadHeading(d){return Math.atan2(road(d+3).c-road(d-3).c,6)}
 function road(d){const f=d/SEG,i=Math.max(0,Math.floor(f)),t=f-i;genTo(i+2);return{c:RC[i]*(1-t)+RC[i+1]*t,w:RW[i]*(1-t)+RW[i+1]*t}}
 
+// the verge strips either side of the road: outer edge (u=0) to 10 cm under the asphalt (u=1); nothing under the road itself
+function verge(s0,s1,vs){const n=s1-s0+1,pos=new Float32Array(n*12),uv=new Float32Array(n*8),idx=[];
+ for(let j=0;j<n;j++){const i=s0+j,c=RC[i],hw=RW[i]/2,z=-i*SEG,v=i*SEG*vs;pos.set([c-hw-VERGE,.015,z,c-hw+.1,.015,z,c+hw-.1,.015,z,c+hw+VERGE,.015,z],j*12);uv.set([0,v,1,v,1,v,0,v],j*8);
+  if(j<n-1){const a=j*4;idx.push(a,a+1,a+4,a+1,a+5,a+4,a+2,a+3,a+6,a+3,a+7,a+6)}}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
 function ribbon(s0,s1,extra,y,vs){const n=s1-s0+1,pos=new Float32Array(n*6),uv=new Float32Array(n*4),idx=[];
  for(let j=0;j<n;j++){const i=s0+j,c=RC[i],hw=RW[i]/2+extra,z=-i*SEG;pos.set([c-hw,y,z,c+hw,y,z],j*6);uv.set([0,i*SEG*vs,1,i*SEG*vs],j*4);if(j<n-1){const a=j*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
@@ -1230,9 +1316,15 @@ const BIOME_TREES=[['pineA','pineA','pineB'],['larchGold','larchOrange','larchGo
 // the road passes through pine forest, then autumn (from 2 km), then a snowy pass (from 4.5 km); trees are set per road stretch, the ground blends
 let snowFs=0;
 const biomeAt=dist=>dist<2000?0:dist<4500?1:2;
-const snowGround=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({color:0xeef3f8,roughness:.9,transparent:true,opacity:0,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-4}));
+// snow: soft wind-blown drifts in the colour, and sparse ice crystals in a glow map that glint in the night
+const snowTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#f4f6fa';g.fillRect(0,0,w,h);for(let i=0;i<30;i++){const x=Math.random()*w,y=Math.random()*h,r=14+Math.random()*40;
+  for(const dx of[-w,0,w])for(const dy of[-h,0,h]){const gr=g.createRadialGradient(x+dx,y+dy,0,x+dx,y+dy,r);gr.addColorStop(0,Math.random()<.5?'rgba(190,205,228,.35)':'rgba(255,255,255,.4)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,w,h)}}
+ speck(g,w,h,3000,()=>`rgba(${200+Math.random()*30|0},${212+Math.random()*30|0},${235+Math.random()*20|0},.6)`)},true),
+ snowGlint=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#000';g.fillRect(0,0,w,h);speck(g,w,h,520,()=>Math.random()<.3?'#cfe2ff':'#ffffff')},true);
+snowTex.repeat.set(160,160);snowGlint.repeat.set(160,160);
+const snowGround=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({color:0xeef3f8,map:snowTex,emissiveMap:snowGlint,emissive:0xffffff,emissiveIntensity:.5,roughness:.9,transparent:true,opacity:0,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-4}));
 // the snow sits 5 mm above the ground; the depth offset keeps it winning there, where it could lose to the grass in stripes
-snowGround.position.y=.005;snowGround.receiveShadow=true;scene.add(snowGround);
+snowGround.position.y=.005;snowGround.receiveShadow=true;snowGround.renderOrder=-1;scene.add(snowGround);
 // snowfall: a box of flakes that travels with the camera; it fades in with the snow ground, so it costs nothing until the snowy pass
 const SNOW_N=700,snowGeo=new THREE.BufferGeometry(),snowPos=new Float32Array(SNOW_N*3);
 for(let i=0;i<SNOW_N;i++){snowPos[i*3]=(Math.random()-.5)*50;snowPos[i*3+1]=Math.random()*16;snowPos[i*3+2]=-Math.random()*60+8}
@@ -1244,12 +1336,12 @@ function updateSnowfall(dt,fs){snowFx.visible=fs>0&&!matchMedia('(prefers-reduce
   if(p[k+1]<0)p[k+1]+=16;if(p[k+2]>8)p[k+2]-=68}
  snowGeo.attributes.position.needsUpdate=true}
 function updateBiomeGround(dist){const fa=clamp((dist-1800)/600,0,1)*(1-clamp((dist-4300)/500,0,1)),fs=clamp((dist-4300)/500,0,1);
- ground.material.color.setRGB(1+.25*fa,1,1-.4*fa);snowGround.material.opacity=fs*.92;snowGround.visible=fs>0;snowFs=fs;snowGround.position.x=ground.position.x;snowGround.position.z=ground.position.z}
+ ground.material.color.setRGB(1+.25*fa,1,1-.4*fa);shoulderMat.color.setRGB(1+.55*fs,1+.65*fs,1+.85*fs);snowGround.material.opacity=fs*.92;snowGround.visible=fs>0;snowFs=fs;snowGround.position.x=ground.position.x;snowGround.position.z=ground.position.z}
 function makeCan(){const g=new THREE.Group();const b=new THREE.Mesh(G.canBody,MT.can);b.castShadow=true;g.add(b);const c=new THREE.Mesh(G.canCap,MT.canY);c.position.set(.15,.38,0);g.add(c);const h=new THREE.Mesh(G.canHandle,MT.canY);h.position.set(-.05,.37,0);g.add(h);return g}
 
 const chunks=new Map();
 function buildChunk(k){const s0=k*CH,s1=s0+CH;genTo(s1+8);const grp=new THREE.Group(),ch={grp,cans:[],boosts:[],obst:[],geos:[],inst:[]};
- const rg=ribbon(s0,s1,0,.03,1/12),sg=ribbon(s0,s1,1.4,.015,1/5);ch.geos.push(rg,sg);
+ const rg=ribbon(s0,s1,0,.03,1/12),sg=verge(s0,s1,1/6);ch.geos.push(rg,sg);
  const mr=new THREE.Mesh(rg,roadMat),ms=new THREE.Mesh(sg,shoulderMat);mr.receiveShadow=ms.receiveShadow=true;grp.add(ms,mr);
  const posts=[];for(let i=s0;i<s1;i++){if(i%5)continue;const hw=RW[i]/2+1;posts.push(M4(RC[i]-hw,0,-i*SEG,0,1),M4(RC[i]+hw,0,-i*SEG,0,1))}
  const bi=biomeAt(s0*SEG-START_D),lowQ=settings.quality==='low',SC={},put=(n,m,c)=>{(SC[n]=SC[n]||{ms:[],cs:[]}).ms.push(m);SC[n].cs.push(c)},pick=a=>a[Math.random()*a.length|0];
@@ -2411,10 +2503,11 @@ $('rand').addEventListener('click',()=>{if(pv){cancelPreview();return}for(const 
 /* ---------- time of day ---------- */
 // the drive starts at golden hour and slides into dusk (1.5-2.75km) then night (by 4km): sky, fog, sun, mountains and exposure blend,
 // and the car's headlight beam fades in
-const TOD=[ // [sky stops x5, fog, sun color, sun intensity, hemi intensity, exposure, mountain tint, sun disc opacity]
- {sky:['#21406f','#57709f','#b9988f','#ebbb88','#d9ac86'],fog:'#d9ac86',sun:'#ffcf9a',si:2.4,hi:.35,ex:1.05,mt:'#ffffff',so:1,hl:'#ffffff',cl:'#ffffff',co:.85},
- {sky:['#171c40','#3a3466','#8a4f6e','#e07a55','#6e4a55'],fog:'#6e4a55',sun:'#ff8a5a',si:1.3,hi:.26,ex:.85,mt:'#a07c88',so:.6,hl:'#c99a7a',cl:'#ffb69c',co:.8},
- {sky:['#03050c','#0a1024','#16203e','#253055','#121828'],fog:'#121828',sun:'#9fb4ff',si:.3,hi:.15,ex:.58,mt:'#2a3150',so:0,hl:'#3b4565',cl:'#3a4468',co:.3}];
+const TOD=[ // [sky stops x5, fog, sun color, sun intensity, hemi intensity, exposure, mountain tint, sun disc opacity,
+ // near hills tint, cloud colour and opacity, horizon glow colour and strength]
+ {sky:['#21406f','#57709f','#b9988f','#ebbb88','#d9ac86'],fog:'#d9ac86',sun:'#ffcf9a',si:2.4,hi:.35,ex:1.05,mt:'#ffffff',so:1,hl:'#ffffff',cl:'#ffffff',co:.85,gc:'#ffd2a0',go:.3},
+ {sky:['#171c40','#3a3466','#8a4f6e','#e07a55','#6e4a55'],fog:'#6e4a55',sun:'#ff8a5a',si:1.3,hi:.26,ex:.85,mt:'#a07c88',so:.6,hl:'#c99a7a',cl:'#ffb69c',co:.8,gc:'#ff7440',go:.85},
+ {sky:['#03050c','#0a1024','#16203e','#253055','#121828'],fog:'#121828',sun:'#9fb4ff',si:.3,hi:.15,ex:.58,mt:'#2a3150',so:0,hl:'#3b4565',cl:'#56628e',co:.3,gc:'#34467e',go:.35}];
 const _c1=new THREE.Color(),_c2=new THREE.Color(),SKY_AT=[0,.28,.46,.56,1];let todNow=-1;
 function mixHex(a,b,f){return _c1.set(a).lerp(_c2.set(b),f)}
 function todMix(t){const i=t<.5?0:1,f=t<.5?t*2:(t-.5)*2;return[TOD[i],TOD[i+1],f]}
@@ -2424,7 +2517,10 @@ function timeOfDay(t){if(Math.abs(t-todNow)<.004)return;todNow=t;const[a,b,f]=to
  a.sky.forEach((c,k)=>gr.addColorStop(SKY_AT[k],'#'+mixHex(c,b.sky[k],f).getHexString()));g.fillStyle=gr;g.fillRect(0,0,sky.image.width,h);sky.needsUpdate=true;
  scene.fog.color.copy(mixHex(a.fog,b.fog,f));sun.color.copy(mixHex(a.sun,b.sun,f));sun.intensity=a.si+(b.si-a.si)*f;hemi.intensity=a.hi+(b.hi-a.hi)*f;
  R.toneMappingExposure=a.ex+(b.ex-a.ex)*f;mtns.children.forEach(m=>m.material.color.copy(m.userData.near?mixHex(a.hl,b.hl,f):mixHex(a.mt,b.mt,f)));
- {const cc=mixHex(a.cl,b.cl,f),co=a.co+(b.co-a.co)*f;clouds.children.forEach(m=>{m.material.color.copy(cc);m.material.opacity=co*m.userData.o})}
+ cloudMat.color.copy(mixHex(a.cl,b.cl,f));cloudMat.opacity=a.co+(b.co-a.co)*f;
+ skyGlow.material.color.copy(mixHex(a.gc,b.gc,f)).multiplyScalar(a.go+(b.go-a.go)*f);
+ // night: the moon and stars come out, and the road studs and edge lines start to glow
+ {const nt=clamp((t-.68)/.28,0,1);moon.material.opacity=nt;moon.visible=stars.visible=nt>0;stars.material.opacity=nt*.9;roadMat.emissiveIntensity=clamp((t-.45)/.4,0,1)*1.6}
  sunSprite.material.opacity=a.so+(b.so-a.so)*f;sunSprite.visible=sunSprite.material.opacity>.01;headLight.intensity=clamp((t-.3)/.5,0,1)*9;carEnvK=1-.8*clamp(t,0,1);carEnv()}
 /* ---------- speed streaks ---------- */
 // once past ~1/3 of top speed, faint streaks rush outward from the vanishing point; they start well away from the centre so they never cover the car
@@ -2552,7 +2648,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  tmpV.set(C.x,0,-C.d-6);sun.target.position.copy(tmpV);sun.position.copy(tmpV).addScaledVector(showroom.visible?SHOWDIR:SUNDIR,80);
  ground.position.set(Math.round(cam.position.x/10)*10,0,Math.round(cam.position.z/10)*10);
  mtns.position.set(cam.position.x,0,cam.position.z);clouds.position.set(cam.position.x,0,cam.position.z);clouds.rotation.y+=dt*.003;
- sunSprite.position.copy(cam.position).addScaledVector(SUNDIR,700);
+ sunSprite.position.copy(cam.position).addScaledVector(SUNDIR,700);skyGlow.position.copy(cam.position).addScaledVector(GLOWDIR,1500);moon.position.copy(cam.position).addScaledVector(MOONDIR,1400);stars.position.set(cam.position.x,0,cam.position.z);
  {const on=state==='garage'&&(!photo||photo.studio),sm=showroom.userData.m;if(on!==showroom.visible){showroom.visible=on;cam.far=on?60:1600;cam.updateProjectionMatrix();scene.environment=on&&sm.env||outdoorEnv;carEnv();
   // the grass under the showroom floor is hidden too: at the low, close My garage snapshot angle it showed through the floor
   ground.visible=!on}if(on){showroom.position.set(C.x,C.y,-C.d);if(showroom.userData.room!==(cfg.room||0))applyRoom(cfg.room||0);
