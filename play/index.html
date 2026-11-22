@@ -76,7 +76,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 /* pause, countdown, settings, tutorial coach */
 #paused,#settings{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.88));pointer-events:auto}
-#settings,#daily,#share,#achPanel,#shop,#coll{z-index:10}
+#settings,#daily,#share,#achPanel,#shop,#coll,#spinP{z-index:10}
 #pick{position:fixed;left:0;right:0;bottom:0;z-index:9;pointer-events:auto;padding:28px max(16px,var(--safe-area-inset-right,env(safe-area-inset-right,0px))) calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) + 16px) max(16px,var(--safe-area-inset-left,env(safe-area-inset-left,0px)));background:linear-gradient(rgba(10,12,16,0),rgba(10,12,16,.9) 22%)}
 .pickcard{display:flex;flex-direction:column;gap:12px;max-width:520px;margin:0 auto}
 .pickcard h2{margin:0;font-size:34px;line-height:1}
@@ -102,7 +102,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .ccar small{font-size:11px;font-weight:700;color:var(--mute);padding:0 2px}
 .ccar.lk small{color:var(--amber)}
 .ccar.on{border-color:var(--amber)}
-#shop{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.9));pointer-events:auto}
+#shop,#spinP{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.9));pointer-events:auto}
 .trophy.deals{display:flex;width:max-content;color:var(--amber);position:relative}
 .trophy.deals .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#ff4a32;box-shadow:0 0 0 2px #151a20}
 .dealgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
@@ -115,6 +115,64 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .deal .off{position:absolute;top:6px;right:6px;background:#ff4a32;color:#fff;font-weight:800;font-size:12px;padding:2px 7px;border-radius:999px}
 .deal.got{opacity:.55}
 .pz.sale{color:var(--amber)}
+/* free daily spin, wishlist, bundles, almost-there bars, purchase confetti */
+.trophy.spinb{color:#1d1508;background:var(--amber);border-color:transparent;position:relative}
+.trophy.spinb:not(.hot){color:var(--amber);background:var(--glass);border-color:rgba(242,179,61,.55)}
+.trophy.spinb .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#ff4a32;box-shadow:0 0 0 2px #151a20}
+.trophy.spinb.hot{animation:glow 1.6s ease-in-out infinite}
+.trophy.deals .wbadge{position:absolute;top:-7px;right:-7px;min-width:17px;height:17px;border-radius:50%;background:#ff4a32;color:#fff;font:800 11px/17px system-ui,sans-serif;font-style:normal;text-align:center;box-shadow:0 0 0 2px #151a20}
+#spinP .card{align-items:center;text-align:center}
+.wheelbox{position:relative;width:min(250px,62vw,38vh);aspect-ratio:1}
+#wheel{width:100%;height:100%;display:block;border-radius:50%;box-shadow:0 10px 30px rgba(0,0,0,.45);will-change:transform}
+.wptr{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:24px solid #fff;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.spinres{display:flex;flex-direction:column;gap:4px;align-items:center}
+.spinres b{font-size:30px;line-height:1;color:var(--amber);display:flex;align-items:center;gap:6px}
+.spinres span{color:var(--ink);font-size:14px;font-weight:600}
+#spinP .vbtns{width:100%}
+.odds{margin:0;color:var(--mute);font-size:11px;line-height:1.35;text-align:left}
+.odds b{color:var(--ink)}
+.wishb{flex:0 0 auto;width:54px;padding:0!important;display:grid;place-items:center}
+.wishb svg{width:24px;height:24px;fill:none;stroke:var(--ink);stroke-width:2}
+.wishb.on svg{fill:#ff5a7a;stroke:#ff5a7a}
+.wh{font-style:normal;color:#ff5a7a}
+.nw{font-style:normal;display:inline-block;margin-left:5px;padding:1px 5px;border-radius:6px;background:#ff4a32;color:#fff;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;vertical-align:1px}
+.nw.tr{background:#2f80ff}
+.sw{position:relative}
+.sw .nw,.sw .wh{position:absolute;left:-5px;top:-6px;margin:0;line-height:1.2}
+.sw .wh{font-size:12px;text-shadow:0 1px 3px #000}
+.chip.on .wh{color:#a3123a}
+.almost{display:block;width:100%;height:4px;margin-top:3px;border-radius:2px;background:rgba(255,255,255,.16);overflow:hidden}
+.almost i{display:block;height:100%;border-radius:2px;background:var(--amber)}
+.deal.wished{border-color:#ff5a7a;box-shadow:0 0 0 1px #ff5a7a inset}
+.deal .wtag{position:absolute;top:6px;left:6px;background:rgba(13,17,23,.85);color:#ff7a92;font-weight:800;font-size:11px;padding:2px 7px;border-radius:999px}
+.sbanner{padding:9px 12px;border-radius:12px;background:rgba(242,179,61,.16);border:1px solid rgba(242,179,61,.6);font-size:13px;line-height:1.3;margin-bottom:8px}
+.sbanner b{color:var(--amber)}
+.sbanner.soft{background:var(--glass-2);border-color:var(--hair)}
+#shopTop:empty,#shopTop .sbanner:last-child{margin-bottom:0}
+#shopMore{display:flex;flex-direction:column;gap:10px;width:100%}
+.bundle{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:14px;background:linear-gradient(135deg,rgba(242,179,61,.16),rgba(242,179,61,.04));border:1px solid rgba(242,179,61,.6)}
+.bundle .bh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bundle .bh b{font-size:22px;line-height:1;text-transform:uppercase}
+.bundle .off{background:#ff4a32;color:#fff;font-weight:800;font-size:12px;padding:2px 7px;border-radius:999px}
+.bundle small{font-size:12px;color:var(--mute);font-weight:600}
+.bundle .fine{font-size:11px}
+.bpv{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.bpv .pv{height:44px;border-radius:8px;background:#20242b center/cover no-repeat;display:grid;place-items:center;font-family:var(--display);font-weight:800;color:var(--mute)}
+.brow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brow .btn{font-size:17px;padding:10px 16px}
+.pr{display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px;color:var(--amber)}
+.pr s{color:var(--mute);font-weight:700;font-size:12px}
+.shh{margin:4px 0 0;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#ff7a92}
+.wlist{display:flex;flex-direction:column;gap:8px}
+.wrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--glass-2);border:1px solid var(--hair);text-align:left;min-height:44px}
+.wrow .wi{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.wrow b{font-size:14px}
+.wrow small{font-size:11px;color:var(--mute);font-weight:700}
+.wrow small em{font-style:normal;color:#ff7a92}
+#confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:7}
+#confetti i{position:absolute;top:-14px;width:8px;height:13px;border-radius:2px;animation:cfFall 2s linear forwards}
+@keyframes cfFall{0%{transform:translate(0,0) rotate(0);opacity:1}85%{opacity:1}100%{transform:translate(var(--dx),calc(100vh + 30px)) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){.trophy.spinb.hot{animation:none}#wheel{transition:none!important}}
 #achPanel{background:radial-gradient(ellipse at center,rgba(10,12,16,.6),rgba(10,12,16,.88));pointer-events:auto}
 .trophy{margin-top:6px;display:inline-flex;white-space:nowrap;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--hair);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .trophy svg,.ach svg{width:14px;height:14px;flex:0 0 auto}
@@ -433,7 +491,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
 @keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.97)}}
 @keyframes sheetIn{from{opacity:.4;transform:translateY(40px)}}
 @keyframes topIn{from{opacity:0;transform:translateY(-10px)}}
-#paused,#settings,#daily,#share,#achPanel,#shop,#coll,#revive{animation:ovIn .2s ease-out}
+#paused,#settings,#daily,#share,#achPanel,#shop,#coll,#spinP,#revive{animation:ovIn .2s ease-out}
 .center>.card,.pickcard{animation:cardIn .34s var(--out) both}
 #garage:not([hidden]) .sheet{animation:sheetIn .42s var(--out) both}
 #garage:not([hidden]) .g-top{animation:topIn .4s var(--out) both}
@@ -473,7 +531,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
 /* level up: a badge that pops in under the bar and stays (it used to float up across the bar and vanish) */
 .lvup{align-self:center;font-size:17px;padding:3px 14px;border-radius:999px;background:rgba(242,179,61,.14);border:1px solid rgba(242,179,61,.5);animation:pillPop .5s var(--out)}
 @media (prefers-reduced-motion:reduce){
- #paused,#settings,#daily,#share,#achPanel,#shop,#coll,#revive,#over,.center>.card,.pickcard,#garage .sheet,#garage .g-top,#paused .vbtns,#revive .vbtns,#over>*,#over>.disp.t,#over.best>.nbBadge,.lvup,.pill.bump,#comboN.bump,.tobest.beat{animation:none!important}
+ #paused,#settings,#daily,#share,#achPanel,#shop,#coll,#spinP,#revive,#over,.center>.card,.pickcard,#garage .sheet,#garage .g-top,#paused .vbtns,#revive .vbtns,#over>*,#over>.disp.t,#over.best>.nbBadge,.lvup,.pill.bump,#comboN.bump,.tobest.beat{animation:none!important}
  .btn,.chip,.pill,.tab,.mcard,.buy,.deal,.ccar,.pk,.trophy,.seg button,.ph-tod button,.sw{transition:none}
 }
 @media (max-height:600px) and (min-aspect-ratio:1/1){#over{gap:5px}#over .disp.t{font-size:40px}#over .dist{font-size:46px}#over .dist small{font-size:20px}#over .tip,#over .mlist{display:none}#over .btns{grid-template-columns:1.6fr 1fr 1fr;width:min(520px,100%);margin-top:6px}#over #retry{grid-column:auto;font-size:22px}#over .oach{font-size:12px}#over .nbBadge{font-size:14px;padding:2px 12px}}
@@ -512,6 +570,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
 <div class="center" id="newBest" hidden><div class="disp">New best!</div></div>
 <div id="region" hidden></div>
 <div id="unlockFx" hidden></div>
+<div id="confetti" aria-hidden="true"></div>
 
 <div class="center" id="revive" hidden>
   <div class="disp t">Keep going?</div>
@@ -568,8 +627,21 @@ body:has(#over:not([hidden])) #mtoast{display:none}
   <div class="card" role="dialog" aria-label="Daily deals">
     <h2 class="disp">Daily deals</h2>
     <p class="dsub" id="shopSub"></p>
+    <div id="shopTop"></div>
     <div class="dealgrid" id="dealList"></div>
+    <div id="shopMore"></div>
     <button class="btn" id="shopClose">Close</button>
+  </div>
+</div>
+
+<!-- free daily spin: once a day after the daily reward; each slice is as wide as its chance, and the odds are printed below -->
+<div class="center" id="spinP" hidden>
+  <div class="card" role="dialog" aria-label="Free daily spin">
+    <h2 class="disp">Free daily spin</h2>
+    <div class="wheelbox"><canvas id="wheel" width="560" height="560" aria-hidden="true"></canvas><i class="wptr" aria-hidden="true"></i></div>
+    <div class="spinres" id="spinRes" role="status" hidden></div>
+    <div class="vbtns"><button class="btn primary" id="spinGo">Spin</button><button class="btn" id="spinLater">Later</button></div>
+    <p class="odds"><b>Odds:</b> 10 cans 27% · 20 cans 20% · 40 cans 10% · 80 cans 3% · 15% off coupon 16% · 20% off 8% · 30% off 4% · 24h trial of a premium look 12%. Always free, once a day. Coupons cover one car or look of 60+ cans and end at midnight.</p>
   </div>
 </div>
 
@@ -627,7 +699,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
 
 <div id="garage">
   <div class="g-top">
-    <div><div class="logo disp">Swer<i>vy</i></div><div class="glv" id="gLv"></div><button class="trophy" id="achBtn" type="button"></button><button class="trophy deals" id="shopBtn" type="button" aria-label="Daily deals"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12.6V4a1 1 0 0 1 1-1h8.6a1 1 0 0 1 .7.3l7.4 7.4a1 1 0 0 1 0 1.4l-8.6 8.6a1 1 0 0 1-1.4 0L3.3 13.3a1 1 0 0 1-.3-.7zM7.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg> Deals<i class="dot" id="shopDot"></i></button><button class="trophy deals mine" id="collBtn" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 11l1.6-4.3A2 2 0 0 1 8.5 5.4h7a2 2 0 0 1 1.9 1.3L19 11h.5A1.5 1.5 0 0 1 21 12.5V16a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1v-3.5A1.5 1.5 0 0 1 4.5 11H5zm2.1 0h9.8l-1.1-3.1a.8.8 0 0 0-.7-.5H8.9a.8.8 0 0 0-.7.5L7.1 11z"/></svg> <span id="collN">My cars</span></button></div>
+    <div><div class="logo disp">Swer<i>vy</i></div><div class="glv" id="gLv"></div><button class="trophy" id="achBtn" type="button"></button><button class="trophy deals" id="shopBtn" type="button" aria-label="Daily deals"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12.6V4a1 1 0 0 1 1-1h8.6a1 1 0 0 1 .7.3l7.4 7.4a1 1 0 0 1 0 1.4l-8.6 8.6a1 1 0 0 1-1.4 0L3.3 13.3a1 1 0 0 1-.3-.7zM7.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg> Deals<i class="dot" id="shopDot"></i><i class="wbadge" id="shopWish" hidden aria-label="a wishlist item is on sale">♥</i></button><button class="trophy deals mine" id="collBtn" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 11l1.6-4.3A2 2 0 0 1 8.5 5.4h7a2 2 0 0 1 1.9 1.3L19 11h.5A1.5 1.5 0 0 1 21 12.5V16a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1v-3.5A1.5 1.5 0 0 1 4.5 11H5zm2.1 0h9.8l-1.1-3.1a.8.8 0 0 0-.7-.5H8.9a.8.8 0 0 0-.7.5L7.1 11z"/></svg> <span id="collN">My cars</span></button><button class="trophy deals spinb" id="spinBtn" type="button" hidden></button></div>
     <div class="pills"><div class="pill">Best <span id="gBest">0</span></div><div class="pill"><span class="can"></span><span id="gCans">0</span></div><button class="pill" id="setBtn" aria-label="Settings">⚙</button><button class="pill" id="photoBtn" aria-label="Photo mode"><svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M9 4h6l1.6 2.2H20a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.2a2 2 0 0 1 2-2h3.4L9 4zm3 4.6a4.4 4.4 0 1 0 0 8.8 4.4 4.4 0 0 0 0-8.8zm0 2a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 0 1 0-4.8z"/></svg></button></div>
   </div>
   <div class="sheet" id="sheet">
@@ -642,7 +714,7 @@ body:has(#over:not([hidden])) #mtoast{display:none}
     </div>
     <div class="tabs" role="tablist" id="tabs"></div>
     <div class="opts" id="opts"></div>
-    <div class="drive-wrap"><button class="btn" id="rand">Random</button><button class="btn primary" id="drive">Drive</button></div>
+    <div class="drive-wrap"><button class="btn" id="rand">Random</button><button class="btn wishb" id="wishBtn" type="button" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 6.9 4.5c2.1 0 3.6 1.2 5.1 3 1.5-1.8 3-3 5.1-3 3.5 0 5.5 3.5 4.2 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg></button><button class="btn primary" id="drive">Drive</button></div>
   </div>
 </div>
 
@@ -827,20 +899,41 @@ const sideH=()=>settings.flip?'right':'left',sideR=()=>settings.flip?'left':'rig
 // a car's factory look is always free, and options a save already used before prices existed stay owned
 const PRICE={finish:[0,0,40,60,150],rimStyle:[0,0,40,60,80],rimSize:[0,30,60],wheels:[0,0,0,25,40,25,25],tires:[0,30,30],spoiler:[0,0,30,60,120],lip:[0,40,80],skirts:[0,60],stripeStyle:[0,30,30,30],lights:[0,20,20,20],glow:[0,100,100,100,100,100],halo:[0,80],paint:[0,0,0,0,0,0,0,0,25,25,25,25,25,25,25,25],tint:[0,0,20,20,20],cabin:[0,60,140],livery:[0,200,150,150,200,350,250,300,300,800,900,750,600,250,250],smoke:[0,60,60,60,60,60,150],trail:[0,80,80,80,80,200],room:[0,150,200,250,400,300,300]};
 let owned=new Set((v=>Array.isArray(v)?v.filter(x=>typeof x==='string'):[])(store.get('owned',[]))),pv=null;
-const isOwned=(id,k,i)=>!PRICE[k]||!PRICE[k][i]||owned.has(k+':'+i)||defLook(id)[k]===i;
+// the free daily spin's prizes that last beyond the spin: a coupon (cp: {off, until}) and a 24h trial of a premium look
+// (tr: {k, i, until}). day is the last day spun. Times are real timestamps: a coupon ends at local midnight, a trial 24h
+// after it was won; anything corrupt, expired or impossibly far ahead loads as nothing
+const SPIN_OFF=[15,20,30],COUPON_MIN=60;
+let spin=(v=>{const now=Date.now(),cp=obj(v.cp),tr=obj(v.tr);return{day:typeof v.day==='string'?v.day:'',
+ cp:SPIN_OFF.includes(cp.off)&&num(cp.until,0)>now&&cp.until<=now+864e5*1.05?{off:cp.off,until:cp.until}:null,
+ tr:PRICE[tr.k]&&Number.isInteger(tr.i)&&PRICE[tr.k][tr.i]>0&&num(tr.until,0)>now&&tr.until<=now+864e5*1.05?{k:tr.k,i:tr.i,until:tr.until}:null}})(obj(store.get('spin',{})));
+const cpOn=()=>spin.cp&&Date.now()<spin.cp.until?spin.cp:null;
+// a coupon takes its % off one car or look of COUPON_MIN cans or more (so it isn't spent on a 20-can tint by accident)
+const cpPrice=p=>{const c=cpOn();return c&&p>=COUPON_MIN?Math.max(5,Math.round(p*(1-c.off/100)/5)*5):p};
+const trialOn=(k,i)=>!!(spin.tr&&spin.tr.k===k&&spin.tr.i===i&&Date.now()<spin.tr.until);
+// wishlist: hearted locked cars ('car:id') and premium looks ('k:i'); only real, priced items survive a load
+let wish=new Set((v=>Array.isArray(v)?v.filter(x=>typeof x==='string'&&(/^car:/.test(x)?!!(MODELS[x.slice(4)]&&MODELS[x.slice(4)].price>0):(([k,i])=>!!(PRICE[k]&&/^\d+$/.test(i)&&PRICE[k][+i]>0))(x.split(':')))).slice(0,40):[])(store.get('wish',[])));
+const isOwned=(id,k,i)=>!PRICE[k]||!PRICE[k][i]||owned.has(k+':'+i)||defLook(id)[k]===i||trialOn(k,i);
 // daily deals: four looks the player doesn't own, 25-40% off until midnight. The first is a livery while any are left
 // (the headline skins). Today's list is saved, so buying one doesn't reshuffle the rest.
 const DEAL_OFF=[30,25,35,40];
 function todaysDeals(){const day=todayKey(),sv=obj(store.get('deals',{}));if(sv.day===day&&Array.isArray(sv.list))return sv.list;
- const r=mulberry(dailySeed()^0x5eed),pool=[];for(const k in PRICE)PRICE[k].forEach((p,i)=>{if(p>=40&&!owned.has(k+':'+i)&&itemOn(k,i))pool.push([k,i])});
+ const out=dealsOn(day);store.set('deals',{day,list:out});return out}
+// the deal list a given day would get with what the player owns now (tomorrow's is worked out for a wishlist reminder)
+function dealsOn(day){const r=mulberry(dailySeed(day)^0x5eed),pool=[];for(const k in PRICE)PRICE[k].forEach((p,i)=>{if(p>=40&&!owned.has(k+':'+i)&&itemOn(k,i))pool.push([k,i])});
  for(let i=pool.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
  const list=[],used=new Set();for(const d of pool)if(LISTS[d[0]][d[1]].ev&&!used.has(d[0])){list.push(d);used.add(d[0])}
  const liv=!used.has('livery')&&pool.find(([k])=>k==='livery');if(liv){list.push(liv);used.add('livery')}
  for(const d of pool){if(list.length>=4)break;if(!used.has(d[0])){list.push(d);used.add(d[0])}}
- const out=list.map(([k,i],n)=>({k,i,off:DEAL_OFF[n]}));store.set('deals',{day,list:out});return out}
+ return list.map(([k,i],n)=>({k,i,off:DEAL_OFF[n]}))}
 const dealFor=(k,i)=>todaysDeals().find(d=>d.k===k&&d.i===i);
 // what a look costs right now: today's deal price if it's on sale
-function costOf(k,i){const p=PRICE[k][i],d=p&&dealFor(k,i);return d?Math.max(5,Math.round(p*(1-d.off/100)/5)*5):p}
+// or the spin's coupon price, whichever is lower (they never stack)
+const dealPrice=(k,i)=>{const p=PRICE[k][i],d=p&&dealFor(k,i);return d?Math.max(5,Math.round(p*(1-d.off/100)/5)*5):p};
+function costOf(k,i){const p=PRICE[k][i];return p?Math.min(dealPrice(k,i),cpPrice(p)):p}
+// true when buying this look right now uses up the coupon
+const cpUsedOn=(k,i)=>{const p=PRICE[k][i];return!!(p&&cpOn()&&cpPrice(p)<dealPrice(k,i))};
+// a car's price right now (only a coupon ever lowers it)
+const carCost=id=>cpPrice(MODELS[id].price);
 let looks=store.get('looks',null);if(looks!==null)looks=obj(looks);const oldCfg=obj(store.get('cfg',{}));
 if(!looks){looks={};if(oldCfg.model&&MODELS[oldCfg.model]&&oldCfg.paint!=null){const L=defLook(oldCfg.model),oldP=['#c92a18','#1d4cb8','#e8ebee','#15181e','#f0a012','#1d5838','#5a2aa6','#4b5159'];
  const pi=PAINTS.findIndex(p=>p.c===oldP[oldCfg.paint]);if(pi>=0)L.paint=pi;['rimStyle','caliper','glow'].forEach(k=>{if(oldCfg[k]!=null)L[k]=oldCfg[k]});if(oldCfg.finish!=null)L.finish=[0,1,3][oldCfg.finish]||0;
@@ -848,6 +941,8 @@ if(!looks){looks={};if(oldCfg.model&&MODELS[oldCfg.model]&&oldCfg.paint!=null){c
 function lookFor(id){const L=Object.assign(defLook(id),looks[id]||{});for(const k in LISTS)if(!LISTS[k][L[k]])L[k]=0;for(const k in PRICE)if(!isOwned(id,k,L[k]))L[k]=defLook(id)[k];if(typeof L.plate!=='string'||!L.plate)L.plate='SWERVY';return L}
 if(!store.get('ownedInit',false)){for(const id in looks){const L=obj(looks[id]);for(const k in PRICE)if(PRICE[k][L[k]])owned.add(k+':'+L[k])}store.set('owned',[...owned]);store.set('ownedInit',true)}
 let cfg=Object.assign({model:MODELS[oldCfg.model]?oldCfg.model:'coupe'},{});Object.assign(cfg,lookFor(cfg.model));
+// first-purchase bonus (see afterBuy): a save that has already bought a look, or a car beyond the starters, has had its first purchase
+let firstBuy=store.get('firstBuy',false)===true;if(!firstBuy&&(owned.size>0||unlocked.length>2||unlocked.some(id=>!['coupe','rally','sedan'].includes(id)))){firstBuy=true;store.set('firstBuy',true)}
 function saveCfg(){const L={};for(const k in cfg)if(k!=='model')L[k]=cfg[k];looks[cfg.model]=L;store.set('looks',looks);store.set('cfg',{model:cfg.model})}
 function selectModel(id){saveCfg();cfg=Object.assign({model:id},lookFor(id));store.set('cfg',{model:id})}
 let lastDriven=store.get('lastDriven','coupe');if(!unlocked.includes(lastDriven))lastDriven='coupe';
@@ -1303,6 +1398,9 @@ const MT={
  post:new THREE.MeshStandardMaterial({color:0xeeeeea,roughness:.6}),refl:new THREE.MeshStandardMaterial({color:0xff8a1c,emissive:0xff6a00,emissiveIntensity:.8}),
  can:new THREE.MeshPhysicalMaterial({color:0xc8261a,roughness:.35,metalness:.4,clearcoat:1,emissive:0x400800}),canY:new THREE.MeshStandardMaterial({color:0xf2b33d,metalness:.6,roughness:.3}),
  ring:new THREE.MeshBasicMaterial({color:0xffc04a,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}),
+ // golden can: polished gold that glows (its emissive pulses in the loop, steady with Reduce Motion) on a brighter, wider ring
+ canG:new THREE.MeshPhysicalMaterial({color:0xffcf4a,roughness:.18,metalness:1,clearcoat:1,emissive:0xb07800,emissiveIntensity:.9}),
+ ringG:new THREE.MeshBasicMaterial({color:0xffe27a,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}),
  boost:new THREE.MeshBasicMaterial({map:canvasTex(128,208,(g,w,h)=>{g.fillStyle='#ffb020';g.fillRect(0,0,w,h);g.fillStyle='#fff1c4';g.fillRect(0,0,8,h);g.fillRect(w-8,0,8,h);
   g.fillStyle='#2a1a04';for(let k=0;k<4;k++){const y=170-k*52;g.beginPath();g.moveTo(14,y+30);g.lineTo(w/2,y);g.lineTo(w-14,y+30);g.lineTo(w-14,y+48);g.lineTo(w/2,y+18);g.lineTo(14,y+48);g.closePath();g.fill()}},true),
   transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),
@@ -1351,7 +1449,7 @@ function updateSnowfall(dt,fs){snowFx.visible=fs>0&&!matchMedia('(prefers-reduce
  snowGeo.attributes.position.needsUpdate=true}
 function updateBiomeGround(dist){const fa=clamp((dist-1800)/600,0,1)*(1-clamp((dist-4300)/500,0,1)),fs=clamp((dist-4300)/500,0,1);
  ground.material.color.setRGB(1+.25*fa,1,1-.4*fa);shoulderMat.color.setRGB(1+.55*fs,1+.65*fs,1+.85*fs);snowGround.material.opacity=fs*.92;snowGround.visible=fs>0;snowFs=fs;snowGround.position.x=ground.position.x;snowGround.position.z=ground.position.z}
-function makeCan(){const g=new THREE.Group();const b=new THREE.Mesh(G.canBody,MT.can);b.castShadow=true;g.add(b);const c=new THREE.Mesh(G.canCap,MT.canY);c.position.set(.15,.38,0);g.add(c);const h=new THREE.Mesh(G.canHandle,MT.canY);h.position.set(-.05,.37,0);g.add(h);return g}
+function makeCan(gold){const g=new THREE.Group();const b=new THREE.Mesh(G.canBody,gold?MT.canG:MT.can);b.castShadow=true;g.add(b);const c=new THREE.Mesh(G.canCap,MT.canY);c.position.set(.15,.38,0);g.add(c);const h=new THREE.Mesh(G.canHandle,MT.canY);h.position.set(-.05,.37,0);g.add(h);return g}
 
 const chunks=new Map();
 function buildChunk(k){const s0=k*CH,s1=s0+CH;genTo(s1+8);const grp=new THREE.Group(),ch={grp,cans:[],boosts:[],obst:[],geos:[],inst:[]};
@@ -1387,7 +1485,7 @@ function buildChunk(k){const s0=k*CH,s1=s0+CH;genTo(s1+8);const grp=new THREE.Gr
   // a yellow warning sign at the roadside ~45m before each rock or log, on the obstacle's side, so it reads from a distance
   if(o.t!=='ice'){const si=i-15;if(si>s0-CH){const sd=si*SEG,sx=RC[si]+Math.sign(o.c)*(RW[si]/2+1.1),sg=new THREE.Group(),pst=new THREE.Mesh(G.signPost,MT.signBack),pl=new THREE.Mesh(G.sign,MT.sign);sg.add(pst,pl);pst.castShadow=pl.castShadow=true;sg.position.set(sx,0,-sd);sg.rotation.y=-Math.atan2(RC[si+1]-RC[si-1],SEG*2);grp.add(sg)}}
   if(m.isMesh)m.castShadow=o.t!=='ice';m.receiveShadow=true;grp.add(m);ch.obst.push({m,t:o.t,x,off:o.c*RW[i],d,half:o.half,depth:o.t==='ice'?o.len/2:o.t==='log'?.4:o.half,min:9,done:false})}
- for(let i=s0;i<s1;i++)if(CANS[i]!=null){const x=RC[i]+CANS[i]*RW[i],d=i*SEG;const m=makeCan();m.position.set(x,1,-d);const r=new THREE.Mesh(G.ring,MT.ring);r.position.set(x,.06,-d);grp.add(m,r);ch.cans.push({m,r,x,d,got:false,ph:Math.random()*6})}
+ for(let i=s0;i<s1;i++)if(CANS[i]!=null){const x=RC[i]+CANS[i]*RW[i],d=i*SEG;const gold=isGold(i),m=makeCan(gold);m.position.set(x,1,-d);if(gold)m.scale.setScalar(1.15);const r=new THREE.Mesh(G.ring,gold?MT.ringG:MT.ring);r.position.set(x,.06,-d);if(gold)r.scale.setScalar(1.3);grp.add(m,r);ch.cans.push({m,r,x,d,got:false,gold,ph:Math.random()*6})}
  scene.add(grp);return ch}
 function dropChunk(ch){scene.remove(ch.grp);ch.geos.forEach(g=>g.dispose());ch.inst.forEach(m=>m.dispose&&m.dispose())}
 function updateChunks(d){const L=CH*SEG,k0=Math.max(0,Math.floor((d-40)/L)),k1=Math.floor((d+(settings.quality==='low'?300:380))/L);
@@ -1911,7 +2009,12 @@ $('mute').addEventListener('click',e=>{e.stopPropagation();audioInit();setMute(!
 /* ---------- game state ---------- */
 let gear=0,engRpm=900,counting=0,tut=false,tutS=0,tutT=0,coachT=0,engA=.75,state='garage',holding=false,C,runCans=0,bonus=0,crashT=0,shake=0,orbA=.6,drag=null,camYaw=0;
 const lookT=new THREE.Vector3();
+// golden cans: about 1 can in GOLD_N is gold and worth 5, in Endless runs only. Which ones is a hash of the segment and a
+// per-run salt, never roadRnd, so road generation is untouched and the Daily Road (and race roads) stay identical for everyone
+const GOLD_N=40;let goldOn=false,goldSalt=0,goldRuns=0,runGold=0;
+function isGold(i){if(!goldOn)return false;let h=Math.imul(i^goldSalt,0x9E3779B1);h^=h>>>15;h=Math.imul(h,0x85EBCA77);h^=h>>>13;return(h>>>0)%GOLD_N===0}
 function resetWorld(){GH.on=fovOn=fovK=0;roadRnd=state!=='ready'?Math.random:dailyMode?mulberry(dailySeed()):racing()?mulberry(raceSeed()):Math.random;
+ goldOn=state==='ready'&&!dailyMode&&!racing()&&!tut;goldSalt=(Date.now()^Math.imul(++goldRuns,0x2545F491))>>>0;runGold=0;
  DL=state==='ready'&&!dailyMode&&!racing()&&!tut?ddaLevel():0;SFD=3000*(1-.2*DL);for(const[,ch]of chunks)dropChunk(ch);chunks.clear();RC=[];RW=[];CANS={};CUT={};BOOSTS={};OBST={};HPF=[];lastObst=0;lastBoost=0;rAng=0;rTarget=0;hpN=0;genTo(80);
  C={x:0,d:START_D,a:0,av:0,v:spec?spec.start:22,y:0,roll:0,pitch:0,spin:0,t:0};runCans=0;bonus=0;clearSkids();camYaw=0;
  smoke.forEach(p=>{p.life=0;p.s.visible=false});sparks.forEach(p=>{p.life=0;p.s.visible=false});updateChunks(C.d)}
@@ -1931,16 +2034,17 @@ function coachTip(el,html,key){if(store.get(key,false)||!el||$('ctip'))return fa
  const below=r.top<innerHeight/2,tw=t.offsetWidth,th=t.offsetHeight,x=Math.min(innerWidth-tw-12,Math.max(12,r.left+r.width/2-tw/2));
  t.style.left=x+'px';t.style.top=(below?r.bottom+12:r.top-th-12)+'px';t.classList.add(below?'below':'above');t.style.setProperty('--ax',(r.left+r.width/2-x)+'px');
  store.set(key,true);const off=()=>{t.remove();removeEventListener('pointerdown',off,true);clearTimeout(t.k)};setTimeout(()=>addEventListener('pointerdown',off,true),250);t.k=setTimeout(off,8000);return true}
-function gTips(){if(state!=='garage'||photo||pv||!$('pick').hidden||!$('daily').hidden||!$('shop').hidden||!$('coll').hidden)return;
+function gTips(){if(state!=='garage'||photo||pv||!$('pick').hidden||!$('daily').hidden||!$('shop').hidden||!$('coll').hidden||!$('spinP').hidden)return;
+ if(spinReady()&&coachTip($('spinBtn'),'<b>Free daily spin:</b> cans, a coupon or a look to try for a day. The odds are on the wheel.','tipSpin'))return;
  // an affordable upgrade comes first, so the garage agrees with the results tip that sent the player here; the looks tip waits a visit
  {const ed=$('tabs').querySelector('[data-t="engine"] .dot');if(ed&&coachTip(ed.parentNode,'<b>Upgrade ready:</b> spend your cans on speed, grip and longer boosts.','tipEngine'))return}
  if(stats.runs>=2&&tab!=='style'&&coachTip($('tabs').querySelector('[data-t="style"]'),'<b>New looks:</b> liveries, smoke and garage themes. Try any on free.','tipStyle'))return;
  if([...owned].some(k=>/^(livery|room|smoke|trail):/.test(k)))coachTip($('photoBtn'),'<b>Show it off:</b> take a photo and share it.','tipPhoto')}
-function goReady(snap){setEngineView(false);if(pv){cfg[pv.k]=pv.prev;pv=null;rebuildCar()}if(!unlocked.includes(cfg.model)){selectModel(lastDriven);rebuildCar()}
+function goReady(snap){setEngineView(false);if(pv){undoPv();rebuildCar()}if(!unlocked.includes(cfg.model)){selectModel(lastDriven);rebuildCar()}
  lastDriven=cfg.model;store.set('lastDriven',lastDriven);tut=!store.get('tutDone',false);if(tut)dailyMode=false;renderModes();show('modeChips',!tut);show('modeInfo',!tut);tutS=0;tutT=0;refreshMissions();renderMissions('rMissions');show('rMissions',!tut);
  state='ready';resetWorld();placeBestFlag();holding=false;hideRunUI();show('garage',0);show('over',0);show('hud',1);show('ready',1);applyView();updateHud();
  if(snap){cam.position.set(0,3.4,-C.d+9);lookT.set(0,.9,-C.d-14)}}
-function startRun(){state='play';runDay=todayKey();show('ready',0);show('pauseBtn',1);holding=true;gear=0;runBest=dailyMode?dailyBestToday():racing()?raceBest():bestDist;beatBest=false;runRegion=0;reviveUsed=false;runAch=[];guardT=0;boostT=spec.launch||-GUARD_GRACE;savesLeft=spec.saves+(DL<=-.6?1:0);ddaRun=!dailyMode&&!racing()&&!tut;if(spec.launch)popText('Turbo launch! <b>'+spec.launch+'s</b> · guardrails on');boosts=0;combo=0;comboT=0;nearArmed=false;nearCD=0;nearMiss=0;iceT=0}
+function startRun(){noteSession();state='play';runDay=todayKey();show('ready',0);show('pauseBtn',1);holding=true;gear=0;runBest=dailyMode?dailyBestToday():racing()?raceBest():bestDist;beatBest=false;runRegion=0;reviveUsed=false;runAch=[];guardT=0;boostT=spec.launch||-GUARD_GRACE;savesLeft=spec.saves+(DL<=-.6?1:0);ddaRun=!dailyMode&&!racing()&&!tut;if(spec.launch)popText('Turbo launch! <b>'+spec.launch+'s</b> · guardrails on');boosts=0;combo=0;comboT=0;nearArmed=false;nearCD=0;nearMiss=0;iceT=0}
 /* ---------- boost pads ---------- */
 // driving over a pad gives BOOST_T seconds of double distance points, a 10% speed lift with the full speed effects,
 // and guardrails, so a boost is always a reward (a real +25% speed jump caused ~75% of simulated crashes)
@@ -1974,7 +2078,7 @@ if(dBest.ghost){delete dBest.ghost;store.set('dailyBest',dBest)}
 // the day a run started on: a Daily Road run that crosses midnight was driven on yesterday's road, so it must not become today's best
 let runDay='';
 const todayKey=()=>dayKey(new Date());
-function dailySeed(){let h=2166136261;for(const c of'hairpin'+todayKey())h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0}
+function dailySeed(day=todayKey()){let h=2166136261;for(const c of'hairpin'+day)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0}
 function dailyBestToday(){return dBest.date===todayKey()?num(dBest.dist,0,0,MAXD):0}
 /* ---------- race codes ---------- */
 // a 5-character code seeds one road, and torquespecstudios.com/play/?race=CODE opens it, so a group of friends all drive
@@ -2030,6 +2134,9 @@ function enterRegion(i){const R=REGIONS[i],first=i>regionSeen;
  const el=$('region');el.innerHTML=`<small>${first?'New region':'Entering'}</small><div class="disp">${R.n}</div><em>${first?`+${R.rw} <span class="can"></span> first visit`:km(R.d)+' km'}</em>`;
  show('region',0);void el.offsetWidth;show('region',1);clearTimeout(enterRegion.t);enterRegion.t=setTimeout(()=>show('region',0),2400);
  chime(first?[392,523,659,784,1047]:[523,659,784]);buzz(first?40:20);missionEvent('region')}
+// a golden can: worth 5, with its own bright chime and a gold sparkle (the sparkle is skipped with Reduce Motion)
+function goldFx(k){runGold++;popText('Golden can! <b>+5</b>');setTimeout(()=>chime([1319,1568,2093,2637]),90);buzz(30);
+ if(!RM.matches){burst(k.x,1.2,-k.d,26,9,'#ffe27a');burst(k.x,1.4,-k.d,14,6,'#ffffff')}}
 function celebrateBest(){beatBest=true;missionEvent('beat');show('newBest',0);void $('newBest').offsetWidth;show('newBest',1);setTimeout(()=>show('newBest',0),1700);
  burst(C.x,1.5,-C.d-4,40,10,'#f2b33d');burst(C.x,1.5,-C.d-4,30,8,'#ffffff');buzz(40);
  chime([523,659,784,1047])}
@@ -2071,15 +2178,31 @@ function checkDaily(){if(!store.get('tutDone',false))return;const now=new Date()
  show('daily',1)}
 // app only: a reminder the next evening (the daily reward, or the streak at stake) and one nudge after three days away.
 // Pending reminders are replaced every time the app opens or closes, so a player who keeps playing never gets one
+// a third, only when a hearted look is in tomorrow's deals ("Liquid gold is 30% off today"), a few hours from the others.
+// All three use Swervy's own sound (a short rev and an amber chime, ios-app/sounds). On Android 8+ a sound belongs to a
+// notification channel, so a high-importance "Reminders" channel is created with it; iOS plays the file from the app bundle.
+// Like any notification sound it follows the phone's ringer, silent mode and Focus settings
+const REM_SOUND='swervy_reminder.wav',REM_CH='reminders';
 async function planReminders(ask){const N=NATIVE.notif;if(!N)return;try{
- await N.cancel({notifications:[{id:1},{id:2}]});if(!settings.remind||!store.get('tutDone',false))return;
+ await N.cancel({notifications:[{id:1},{id:2},{id:3}]});if(!settings.remind||!store.get('tutDone',false))return;
  let perm=(await N.checkPermissions()).display;if(perm==='prompt'&&ask)perm=(await N.requestPermissions()).display;if(perm!=='granted')return;
- const at=(days,h)=>{const d=new Date();d.setDate(d.getDate()+days);d.setHours(h,0,0,0);return d},today=dayKey(new Date()),
-  next=daily.last===today?daily.streak+1:1,amt=DAILY[(next-1)%7];
- await N.schedule({notifications:[
-  {id:1,title:next>2?`Keep your ${next-1}-day streak alive`:'Your daily reward is ready',body:next>2?`Day ${next} pays +${amt} cans. Your streak ends at midnight.`:`Claim +${amt} cans and take on today's Daily Road.`,schedule:{at:at(1,18)}},
-  {id:2,title:'The mountain road is waiting',body:'New Daily Road, new deals, and your best to beat.',schedule:{at:at(3,18)}}]})}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state==='garage')checkDaily();planReminders(false)});
+ const C0=window.Capacitor;if(!planReminders.ch&&N.createChannel&&(!C0.getPlatform||C0.getPlatform()==='android')){planReminders.ch=1;
+  try{await N.createChannel({id:REM_CH,name:'Reminders',description:'Daily reward, streak and wishlist sales',importance:4,sound:REM_SOUND,vibration:true,visibility:1})}catch(e){}}
+ const H=habitHour(),at=(days,h)=>{const d=new Date();d.setDate(d.getDate()+days);d.setHours(h,0,0,0);return d},today=dayKey(new Date()),
+  next=daily.last===today?daily.streak+1:1,amt=DAILY[(next-1)%7],snd={sound:REM_SOUND,channelId:REM_CH};
+ const list=[
+  {id:1,title:next>2?`Keep your ${next-1}-day streak alive`:'Your daily reward is ready',body:next>2?`Day ${next} pays +${amt} cans. Your streak ends at midnight.`:`Claim +${amt} cans and take on today's Daily Road.`,schedule:{at:at(1,H)},...snd},
+  {id:2,title:'The mountain road is waiting',body:'New Daily Road, new deals, and your best to beat.',schedule:{at:at(3,H)},...snd}];
+ const wt=wishTomorrow();if(wt)list.push({id:3,title:`${wt.n} is ${wt.off}% off today`,body:"It's on your wishlist. The deal ends at midnight.",schedule:{at:at(1,H>=13?H-3:H+3)},...snd});
+ await N.schedule({notifications:list})}catch(e){}}
+// play-time habit: a 24-hour histogram of when sessions start (app opened or brought back, or a run started at least 30
+// minutes after the last one), each old count fading by 5% per new session. It is kept on this phone only: it is never
+// sent anywhere and Swervy has no analytics. Reminders go out at the hour the player most often plays, clamped to
+// 9:00-21:00, or 18:00 until there have been three sessions
+let habit=(v=>({h:Array.isArray(v.h)&&v.h.length===24?v.h.map(x=>num(x,0,0,1e4)):Array(24).fill(0),n:Math.floor(num(v.n,0,0,1e7)),t:num(v.t,0,0,1e14)}))(obj(store.get('habit',{})));
+function noteSession(){const now=Date.now();if(now>=habit.t&&now-habit.t<18e5)return;habit.t=now;habit.h=habit.h.map(x=>+(x*.95).toFixed(4));habit.h[new Date().getHours()]+=1;habit.n++;store.set('habit',habit)}
+function habitHour(){if(habit.n<3)return 18;let b=18,bv=-1;for(let i=0;i<24;i++){const v=habit.h[i]+.5*(habit.h[(i+23)%24]+habit.h[(i+1)%24]);if(v>bv){bv=v;b=i}}return clamp(b,9,21)}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){noteSession();if(state==='garage')checkDaily()}planReminders(false)});
 
 /* ---------- achievements ---------- */
 // long-term trophies backed by lifetime stats; each pays cans once. IDs are kept stable so they can map to Game Center achievements.
@@ -2221,7 +2344,11 @@ const TIPS=['Short taps make small corrections. Long holds turn hard.','Hairpins
 // runs) how to drive, then a goal a few runs away. A far-off price is never offered (a first run used to be told
 // "420 more cans for today's livery deal" with 10 cans in hand)
 const EARLY_TIPS=['Short taps make small corrections. Long holds turn hard.','Watch the next bend, not your car.','Fuel cans add points <b>and</b> cash. Swing through them!'];
-function pickTip(){const can=ORDER.find(id=>!unlocked.includes(id)&&cans>=MODELS[id].price);if(can)return`You can unlock the <b>${MODELS[can].name}</b> in the Garage!`;
+function pickTip(){const can=ORDER.find(id=>!unlocked.includes(id)&&cans>=carCost(id));if(can)return`You can unlock the <b>${MODELS[can].name}</b> in the Garage!`;
+ // something on the wishlist is cheaper today, a coupon is about to run out, or today's free spin hasn't been taken
+ {const wh=wishHits()[0];if(wh)return`<b>${wh.n}</b> from your wishlist is <b>${wh.off}% off</b> today. Tap <b>Deals</b> in the Garage.`}
+ {const c=cpOn();if(c)return`Your <b>${c.off}% coupon</b> ends in ${leftTxt(c.until-Date.now())}. It works on one car or look of ${COUPON_MIN}+ cans.`}
+ if(spinAvail())return`Your <b>free daily spin</b> is waiting in the Garage.`;
  const P=perfFor(lastDriven),up=PERF.find(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1]);if(up){const n=up.n.toLowerCase();return`You can afford ${/^[aeiou]/.test(n)?'an':'a'} <b>${n}</b> upgrade in the Garage's Engine tab.`}
  // today's deals: point the player at one they can afford
  const dl=todaysDeals().filter(d=>!owned.has(d.k+':'+d.i)),aff=dl.find(d=>cans>=costOf(d.k,d.i));
@@ -2230,7 +2357,9 @@ function pickTip(){const can=ORDER.find(id=>!unlocked.includes(id)&&cans>=MODELS
  // "a few runs away": about four runs at this player's average haul
  const rate=Math.max(30,stats.cans/Math.max(1,runs)),near=g=>g>0&&g<=rate*4,goals=[];
  const lv=dl.find(d=>d.k==='livery');if(lv&&!aff&&near(costOf(lv.k,lv.i)-cans))goals.push(`<b>${fmt(costOf(lv.k,lv.i)-cans)}</b> more cans for today's <b>${LISTS.livery[lv.i].n}</b> livery deal (${lv.off}% off).`);
- const lock=ORDER.find(id=>!unlocked.includes(id));if(lock&&near(MODELS[lock].price-cans))goals.push(`<b>${fmt(MODELS[lock].price-cans)}</b> more cans to unlock the ${MODELS[lock].name}.`);
+ const lock=ORDER.find(id=>!unlocked.includes(id));if(lock&&near(carCost(lock)-cans))goals.push(`<b>${fmt(carCost(lock)-cans)}</b> more cans to unlock the ${MODELS[lock].name}.`);
+ // a hearted item a few runs away
+ for(const w of wish){const c=w.startsWith('car:'),p=c?(unlocked.includes(w.slice(4))?0:carCost(w.slice(4))):owned.has(w)?0:costOf(...w.split(':').map((x,j)=>j?+x:x));if(p&&near(p-cans)){goals.push(`<b>${fmt(p-cans)}</b> more cans for <b>${itemName(w)}</b> from your wishlist.`);break}}
  // the next region once the player's best has got at least halfway there
  const nx=REGIONS[regionSeen+1];if(nx&&!dailyMode&&bestDist>=nx.d*.5)goals.push(`<b>${nx.n}</b> starts at ${km(nx.d)} km. Your first visit pays <b>+${nx.rw}</b> cans.`);
  if(goals.length&&Math.random()<.75)return goals[Math.random()*goals.length|0];
@@ -2412,12 +2541,14 @@ function dealPreview(k,i){const o=LISTS[k][i];
   g.fillStyle='#20242b';for(const x of[78,184]){g.beginPath();g.arc(x,84,15,0,7);g.fill()}g.fillStyle='#0d0e10';for(const x of[78,184]){g.beginPath();g.arc(x,84,11,0,7);g.fill()}}
  return`style="background-image:url(${c.toDataURL()})"`}
 function renderShop(){const ms=new Date().setHours(24,0,0,0)-Date.now(),h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4);const ev=activeEvent(),E2=ev&&EVENTS[ev];$('shopSub').textContent=E2?`${E2.n} drop: limited looks until ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][E2.to[0]-1]} ${E2.to[1]} · new deals in ${h}h ${m}m`:`New deals in ${h}h ${m}m · try one on before you buy`;
- $('dealList').innerHTML=todaysDeals().map(({k,i,off})=>{const o=LISTS[k][i],got=owned.has(k+':'+i),info=optInfo(k),pv0=dealPreview(k,i);
-  return`<button class="deal ${got?'got':''}" data-k="${k}" data-i="${i}" ${got?'disabled':''} aria-label="${o.n==='On'?info.label:o.n+', '+info.label}, ${got?'owned':costOf(k,i)+' cans, '+off+'% off'}"><span class="pv" ${pv0}>${pv0?'':info.label[0]}</span>${got?'':`<span class="off">-${off}%</span>`}
+ $('shopTop').innerHTML=shopTop();
+ $('dealList').innerHTML=todaysDeals().map(({k,i,off})=>{const o=LISTS[k][i],got=owned.has(k+':'+i),info=optInfo(k),pv0=dealPreview(k,i),wl=!got&&wish.has(k+':'+i);if(!got)off=offOf(k,i);
+  return`<button class="deal ${got?'got':''} ${wl?'wished':''}" data-k="${k}" data-i="${i}" ${got?'disabled':''} aria-label="${o.n==='On'?info.label:o.n+', '+info.label}, ${got?'owned':costOf(k,i)+' cans, '+off+'% off'}"><span class="pv" ${pv0}>${pv0?'':info.label[0]}</span>${got?'':`<span class="off">-${off}%</span>`}${wl?'<span class="wtag">♥ Wishlist</span>':''}
    <b>${o.n==='On'?info.label:o.n}</b><small>${o.n==='On'?'Add-on':info.label}</small><span class="pr">${got?'Owned ✓':`<s>${PRICE[k][i]}</s><span class="can"></span>${costOf(k,i)}`}</span></button>`}).join('');
  $('dealList').querySelectorAll('.deal:not(.got)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=+b.dataset.i;show('shop',0);clearInterval(renderShop.t);
-  if(pv)cancelPreview(false);tab=optInfo(k).tab;if(car&&car.engineOn)setEngineView(false);pv={k,prev:cfg[k]};cfg[k]=i;rebuildCar();renderGarage();$('opts').scrollTop=0})}
-function openShop(){if(state!=='garage')return;audioInit();store.set('dealsSeen',todayKey());$('shopDot').hidden=true;renderShop();show('shop',1);clearInterval(renderShop.t);renderShop.t=setInterval(renderShop,30000)}
+  if(pv)cancelPreview(false);tab=optInfo(k).tab;if(car&&car.engineOn)setEngineView(false);pv={k,prev:cfg[k]};cfg[k]=i;rebuildCar();renderGarage();$('opts').scrollTop=0});
+ $('shopMore').innerHTML=shopMore();wireShopMore()}
+function openShop(){if(state!=='garage')return;audioInit();store.set('dealsSeen',todayKey());store.set('wishSeen',wishSig());$('shopDot').hidden=$('shopWish').hidden=true;renderShop();show('shop',1);clearInterval(renderShop.t);renderShop.t=setInterval(renderShop,30000)}
 $('shopBtn').addEventListener('click',openShop);$('shopClose').addEventListener('click',()=>{show('shop',0);clearInterval(renderShop.t)});
 // My garage: a studio snapshot of every car in the player's own build (locked ones as dark mystery shapes with their
 // price), cached by look so reopening is instant. Each snapshot builds that car, renders one frame at a fixed 3/4 angle
@@ -2480,37 +2611,159 @@ function renderPick(){$('pickList').innerHTML=STARTERS.map(id=>{const M=MODELS[i
  $('pickGo').textContent=`Drive the ${MODELS[cfg.model].name}`}
 $('pickGo').addEventListener('click',()=>{audioInit();const id=cfg.model;if(!unlocked.includes(id)){unlocked.push(id);store.set('unlocked',unlocked)}
  store.set('starterPicked',true);chime([523,659,784]);show('pick',0);show('garage',1);goReady(true)});
-function cancelPreview(render=true){if(!pv)return;cfg[pv.k]=pv.prev;pv=null;rebuildCar();if(render)renderGarage()}
-function buyLook(){const k=pv.k,i=cfg[k],p=costOf(k,i),nm=LISTS[k][i].n;if(cans<p)return;cans-=p;store.set('cans',cans);owned.add(k+':'+i);store.set('owned',[...owned]);pv=null;saveCfg();
- sfxCan();celebrateLook(k,i,p,nm);renderGarage()}
+function undoPv(){if(pv.b)Object.assign(cfg,pv.prevs);else cfg[pv.k]=pv.prev;pv=null}
+function cancelPreview(render=true){if(!pv)return;undoPv();rebuildCar();if(render)renderGarage()}
+function buyLook(){if(pv.b){const B=pv.b;if(cans<B.price)return;cans-=B.price;store.set('cans',cans);for(const[k,i]of B.items){owned.add(k+':'+i);wish.delete(k+':'+i);fresh.add(k+':'+i)}
+  store.set('owned',[...owned]);store.set('wish',[...wish]);pv=null;saveCfg();sfxCan();celebrateBundle(B);afterBuy(B.price);renderGarage();return}
+ const k=pv.k,i=cfg[k],p=costOf(k,i),nm=LISTS[k][i].n,cp=cpUsedOn(k,i),saved=cp?dealPrice(k,i)-p:0;if(cans<p)return;cans-=p;store.set('cans',cans);owned.add(k+':'+i);store.set('owned',[...owned]);pv=null;saveCfg();
+ // a coupon is used up by the purchase it discounted; a bought trial look is simply owned now
+ if(cp)spin.cp=null;if(spin.tr&&spin.tr.k===k&&spin.tr.i===i)spin.tr=null;store.set('spin',spin);if(wish.delete(k+':'+i))store.set('wish',[...wish]);fresh.add(k+':'+i);
+ sfxCan();celebrateLook(k,i,p,nm,saved);afterBuy(p);renderGarage()}
 // buying a look feels as big as what it cost: a toast for small items, the unlock title with a gold burst and a spin for
 // premium ones, and rainbow (or holiday-coloured) bursts with a longer spin for legendary and limited items
-function celebrateLook(k,i,p,nm){const o=LISTS[k][i],big=o.leg||o.ev,cat=(optInfo(k).label||'').toLowerCase();
- if(p<150&&!big){chime([523,659,784,1047]);buzz(30);toast(`${nm} unlocked · yours on every car`);return}
- const el=$('unlockFx');el.innerHTML=`<small>${o.leg?'Legendary unlocked':o.ev?'Limited edition':'New look'}</small><div class="disp">${nm}</div><em>${cat?cat[0].toUpperCase()+cat.slice(1)+' · ':''}yours on every car</em>`;
+function celebrateLook(k,i,p,nm,saved){const o=LISTS[k][i],big=o.leg||o.ev,cat=(optInfo(k).label||'').toLowerCase();
+ // every purchase gets confetti and a short turn of the turntable; premium ones get the full banner as well
+ if(p<150&&!big&&!saved){chime([523,659,784,1047]);buzz(30);toast(`${nm} unlocked · yours on every car`);confetti(45);burst(C.x,1.1,-C.d,22,7,'#f2b33d');if(!RM.matches)unlockSpin=.7;return}
+ const el=$('unlockFx');el.innerHTML=`<small>${o.leg?'Legendary unlocked':o.ev?'Limited edition':'New look'}</small><div class="disp">${nm}</div><em>${saved?`Coupon saved ${fmt(saved)} cans · `:cat?cat[0].toUpperCase()+cat.slice(1)+' · ':''}yours on every car</em>`;confetti(big?100:75);
  show('unlockFx',0);void el.offsetWidth;show('unlockFx',1);clearTimeout(celebrateUnlock.t);celebrateUnlock.t=setTimeout(()=>show('unlockFx',0),3000);
  const cols=o.leg?['#ff5ac8','#5ad7ff','#ffd25a','#ffffff']:o.ev?(o.sw||['#f2b33d']).concat('#ffffff'):['#f2b33d','#ffffff'];
  cols.forEach((c,j)=>burst(C.x,1.1+j*.15,-C.d,big?34:28,big?10:8,c));if(!RM.matches)unlockSpin=big?1.6:.9;
  chime(big?[392,523,659,784,1047,1319]:[523,659,784,1047]);buzz(big?50:35)}
 $('drive').addEventListener('click',()=>{audioInit();if(pv){buyLook();return}const M=MODELS[cfg.model];
  if(unlocked.includes(cfg.model)){justUnlocked=null;show('unlockFx',0);goReady(false);return}
- if(cans>=M.price){cans-=M.price;store.set('cans',cans);unlocked.push(cfg.model);store.set('unlocked',unlocked);sfxCan();justUnlocked=cfg.model;renderGarage();celebrateUnlock(M)}});
+ const cost=carCost(cfg.model);if(cans>=cost){const cp=cost<M.price;cans-=cost;store.set('cans',cans);unlocked.push(cfg.model);store.set('unlocked',unlocked);if(cp){spin.cp=null;store.set('spin',spin)}
+  if(wish.delete('car:'+cfg.model))store.set('wish',[...wish]);fresh.add('car:'+cfg.model);sfxCan();justUnlocked=cfg.model;renderGarage();celebrateUnlock(M,cp?M.price-cost:0);afterBuy(cost)}});
 // buying a car is the biggest reward in the game, so it gets a reveal: banner, sparks, fanfare and a camera swing
 let justUnlocked=null,unlockSpin=0;
-function celebrateUnlock(M){const el=$('unlockFx');el.innerHTML=`<small>New car unlocked</small><div class="disp">${M.name}</div><em>${M.make} · ${M.type}</em>`;
+function celebrateUnlock(M,saved){const el=$('unlockFx');el.innerHTML=`<small>New car unlocked</small><div class="disp">${M.name}</div><em>${saved?`Coupon saved ${fmt(saved)} cans`:M.make+' · '+M.type}</em>`;confetti(110);
  show('unlockFx',0);void el.offsetWidth;show('unlockFx',1);clearTimeout(celebrateUnlock.t);celebrateUnlock.t=setTimeout(()=>show('unlockFx',0),3000);
  burst(C.x,1.2,-C.d,50,9,'#f2b33d');burst(C.x,1.4,-C.d,30,7,'#ffffff');unlockSpin=RM.matches?0:1.6;
  chime([523,659,784,1047,1319,1568]);buzz(60)}
 
+/* ---------- free daily spin, coupons, trials, wishlist, bundles ---------- */
+// honest versions of shopping-app hooks. The spin is free, once a day after the daily reward is claimed, and its odds are
+// printed under the wheel; every slice is drawn as wide as its chance, so the wheel itself shows the odds too. Coupons and
+// trials end at the real time shown. Everything is paid in cans: Swervy sells nothing for real money
+const SPIN=[ // t: c cans, p coupon (% off), t 24h trial of a premium look; w: chance in %
+ {t:'c',v:10,w:27,n:'10 cans'},{t:'p',v:15,w:16,n:'15% off'},{t:'c',v:20,w:20,n:'20 cans'},{t:'t',w:12,n:'Trial'},
+ {t:'c',v:40,w:10,n:'40 cans'},{t:'p',v:20,w:8,n:'20% off'},{t:'c',v:80,w:3,n:'80 cans'},{t:'p',v:30,w:4,n:'30% off'}];
+const spinAvail=()=>!!store.get('tutDone',false)&&daily.last===todayKey()&&spin.day!==todayKey();
+const spinReady=()=>state==='garage'&&spinAvail();
+const leftTxt=ms=>{ms=Math.max(0,ms);const h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4);return h?`${h}h ${m}m`:`${Math.max(1,m)}m`};
+const midnight=()=>new Date().setHours(24,0,0,0);
+const lookName=(k,i)=>{const o=LISTS[k][i];return o.n==='On'?optInfo(k).label:o.n};
+const itemName=w=>w.startsWith('car:')?MODELS[w.slice(4)].name:(([k,i])=>lookName(k,+i))(w.split(':'));
+function drawWheel(){const c=$('wheel'),S=c.width=c.height=560,g=c.getContext('2d'),r=S/2-10;let a=-Math.PI/2;g.translate(S/2,S/2);
+ SPIN.forEach((s,j)=>{const w=s.w/100*Math.PI*2;s.a0=a;s.a1=a+w;g.beginPath();g.moveTo(0,0);g.arc(0,0,r,a,a+w);g.closePath();
+  g.fillStyle=s.t==='c'?(j%4?'#f2b33d':'#d98f12'):s.t==='p'?'#ff5a3c':'#2b313b';g.fill();g.strokeStyle='#151a20';g.lineWidth=4;g.stroke();
+  g.save();g.rotate(a+w/2);g.textAlign='right';g.textBaseline='middle';g.fillStyle=s.t==='c'?'#1d1508':'#fff';g.font=`800 ${w<.3?24:30}px "Barlow",system-ui,sans-serif`;g.fillText(s.n,r-18,1);g.restore();a+=w});
+ g.beginPath();g.arc(0,0,r,0,7);g.lineWidth=10;g.strokeStyle='#151a20';g.stroke();g.beginPath();g.arc(0,0,44,0,7);g.fillStyle='#151a20';g.fill();g.lineWidth=6;g.strokeStyle='#f2b33d';g.stroke()}
+function sfxTick(){if(!AC)return;const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=1500;env(g,t,.05,.003,.04);o.connect(g);g.connect(sfx);o.start(t);o.stop(t+.06)}
+function openSpin(){if(!spinReady()||photo)return;audioInit();if(pv)cancelPreview(false);if(!drawWheel.done){drawWheel();drawWheel.done=1}
+ const w=$('wheel');w.style.transition='none';w.style.transform='rotate(0deg)';$('spinRes').hidden=true;$('spinGo').hidden=false;$('spinGo').disabled=false;$('spinGo').textContent='Spin';$('spinLater').hidden=false;$('spinLater').textContent='Later';
+ show('spinP',1)}
+// the prize is drawn with the odds above and saved before the wheel turns, so closing the app mid-spin can't lose or repeat it
+function drawPrize(){let x=Math.random()*100,j=0;while(j<SPIN.length-1&&(x-=SPIN[j].w)>=0)j++;return j}
+function givePrize(s){if(s.t==='c'){cans+=s.v;store.set('cans',cans);return{}}
+ if(s.t==='p'){spin.cp={off:s.v,until:midnight()};return{}}
+ // a trial is a premium look the player doesn't own, from their wishlist when one is there; a player who owns them all gets 40 cans
+ const pool=[],wl=[];for(const k in PRICE)PRICE[k].forEach((p,i)=>{if(p>=60&&!owned.has(k+':'+i)&&itemOn(k,i)&&!LISTS[k][i].ev){pool.push([k,i]);if(wish.has(k+':'+i))wl.push([k,i])}});
+ const from=wl.length?wl:pool;if(!from.length){cans+=40;store.set('cans',cans);return{cans:40}}
+ const[k,i]=from[Math.random()*from.length|0];spin.tr={k,i,until:Date.now()+864e5};return{k,i}}
+function doSpin(){if(!spinReady()||doSpin.busy)return;audioInit();doSpin.busy=1;const j=drawPrize(),s=SPIN[j];spin.day=todayKey();const res=givePrize(s);store.set('spin',spin);
+ const w=s.a1-s.a0,c=(s.a0+w/2+(Math.random()-.5)*w*.6)*180/Math.PI,R=(RM.matches?0:1800)+((-90-c)%360+360)%360,el=$('wheel'),T=RM.matches?0:3.6;
+ el.style.transition=T?`transform ${T}s cubic-bezier(.12,.7,.18,1)`:'none';el.style.transform=`rotate(${R}deg)`;$('spinGo').disabled=true;buzz(15);
+ if(T)for(let n=0;n<16;n++)setTimeout(sfxTick,T*1000*(1-Math.sqrt(1-n/16)));
+ setTimeout(()=>{doSpin.busy=0;spinResult(s,res)},T?T*1000+150:200)}
+function spinResult(s,res){const el=$('spinRes');let h;
+ if(s.t==='c'||res.cans){h=`<b class="disp">+${res.cans||s.v} <span class="can"></span></b><span>Added to your cans.</span>`;chime([523,659,784,1047]);sfxCan()}
+ else if(s.t==='p'){h=`<b class="disp">${s.v}% off coupon</b><span>For one car or look of ${COUPON_MIN}+ cans, taken off at checkout. Ends at midnight, in ${leftTxt(spin.cp.until-Date.now())}.</span>`;chime([523,659,784,1047,1319])}
+ else{const t=new Date(spin.tr.until);h=`<b class="disp">Free trial: ${lookName(res.k,res.i)}</b><span>Use it on every car until ${t.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})} tomorrow. Buy it any time to keep it.</span>`;chime([392,523,659,784,1047])}
+ el.innerHTML=h;el.hidden=false;buzz(35);confetti(40);
+ $('spinGo').hidden=false;$('spinGo').disabled=false;$('spinGo').textContent=s.t==='p'?'See deals':s.t==='t'&&!res.cans?'Try it on':'Done';$('spinLater').hidden=s.t==='c'||!!res.cans;$('spinLater').textContent='Close';
+ $('spinGo').onclick=()=>{show('spinP',0);$('spinGo').onclick=doSpin;if(s.t==='p')openShop();else if(s.t==='t'&&!res.cans)showTrial();renderGarage()};
+ renderGarage()}
+$('spinGo').onclick=doSpin;$('spinLater').addEventListener('click',()=>{if(doSpin.busy)return;show('spinP',0);$('spinGo').onclick=doSpin;renderGarage()});
+// the trial look on the car, with the Buy button ready in case the player wants to keep it
+function showTrial(){const tr=spin.tr;if(!tr||!trialOn(tr.k,tr.i)||state!=='garage')return;if(pv)cancelPreview(false);if(car&&car.engineOn)setEngineView(false);
+ tab=optInfo(tr.k).tab;const prev=cfg[tr.k]===tr.i?defLook(cfg.model)[tr.k]:cfg[tr.k];cfg[tr.k]=tr.i;pv={k:tr.k,prev};rebuildCar();renderGarage();$('opts').scrollTop=0}
+// a trial that has run out is taken off every car (lookFor already drops it on the next load)
+function trialCheck(){const tr=spin.tr;if(!tr||Date.now()<tr.until)return;spin.tr=null;store.set('spin',spin);if(pv&&pv.k===tr.k&&cfg[tr.k]===tr.i&&!owned.has(tr.k+':'+tr.i))pv=null;
+ const was=cfg[tr.k]===tr.i;Object.assign(cfg,lookFor(cfg.model));if(was){saveCfg();rebuildCar()}if(!owned.has(tr.k+':'+tr.i))toast(`Your ${lookName(tr.k,tr.i)} trial has ended`)}
+// the garage chip: the free spin when it's ready, else a live coupon or trial with its real time left
+const ICON_SPIN='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 2.1a8 8 0 0 1 6.9 6.9H13V4.1zM11 4.1V11H4.1A8 8 0 0 1 11 4.1zM4.1 13H11v6.9A8 8 0 0 1 4.1 13zM13 19.9V13h6.9a8 8 0 0 1-6.9 6.9z"/></svg>';
+function renderSpinBtn(){const b=$('spinBtn'),c=cpOn(),tr=spin.tr&&trialOn(spin.tr.k,spin.tr.i)?spin.tr:null,rdy=spinReady();let h='',lab='';
+ if(rdy){h=`${ICON_SPIN} Free spin<i class="dot"></i>`;lab='Free daily spin'}
+ else if(c){h=`${ICON_SPIN} ${c.off}% coupon · ${leftTxt(c.until-Date.now())}`;lab=`${c.off}% off coupon, ends in ${leftTxt(c.until-Date.now())}`}
+ else if(tr){h=`${ICON_SPIN} Trial · ${leftTxt(tr.until-Date.now())}`;lab=`${lookName(tr.k,tr.i)} trial, ${leftTxt(tr.until-Date.now())} left`}
+ b.hidden=!h;if(h){b.innerHTML=h;b.setAttribute('aria-label',lab)}b.classList.toggle('hot',rdy)}
+$('spinBtn').addEventListener('click',()=>{if(state!=='garage'||photo)return;if(spinReady())openSpin();else if(cpOn())openShop();else showTrial()});
+// wishlist: the heart beside Buy while trying on a locked look, or on a locked car. A hearted item on sale (in today's deals,
+// or a coupon that covers it) puts a heart on the Deals button and is highlighted in the shop
+const wishKey=()=>pv&&!pv.b?pv.k+':'+cfg[pv.k]:!unlocked.includes(cfg.model)?'car:'+cfg.model:null;
+function toggleWish(){const k=wishKey();if(!k)return;audioInit();const add=!wish.has(k);if(add&&wish.size>=40){toast('Your wishlist is full');return}
+ if(add)wish.add(k);else wish.delete(k);store.set('wish',[...wish]);buzz(15);if(add){chime([784,1047]);toast(`♥ ${itemName(k)} is on your wishlist`)}renderGarage()}
+$('wishBtn').addEventListener('click',toggleWish);
+function wishHits(){const out=[];for(const w of wish){if(w.startsWith('car:')){const id=w.slice(4);if(!unlocked.includes(id)&&carCost(id)<MODELS[id].price)out.push({w,n:MODELS[id].name,off:cpOn().off})}
+  else{const[k,i0]=w.split(':'),i=+i0;if(owned.has(w))continue;if(costOf(k,i)<PRICE[k][i])out.push({w,k,i,n:lookName(k,i),off:offOf(k,i)})}}return out}
+// the % off a look shows today: the deal's own figure, or the coupon's when that is the better price
+const offOf=(k,i)=>{const d=dealFor(k,i);return cpUsedOn(k,i)||!d?cpOn()&&PRICE[k][i]>=COUPON_MIN?cpOn().off:0:d.off};
+const wishSig=()=>todayKey()+'|'+wishHits().map(h=>h.w).join();
+// tomorrow's deals for the reminder: a hearted look in them gets one "on sale today" notification
+function wishTomorrow(){const d=new Date();d.setDate(d.getDate()+1);const ev=window.__evDate;window.__evDate=d;let L;try{L=dealsOn(dayKey(d))}finally{window.__evDate=ev}
+ const h=L.find(x=>wish.has(x.k+':'+x.i));return h?{n:lookName(h.k,h.i),off:h.off}:null}
+// "Complete the look": up to three looks the player doesn't own for the car on the turntable (a livery, rims and a finish,
+// or the next styles along), chosen fresh each day, for 25% less than buying them one by one. Coupons don't apply to it
+const BUNDLE_OFF=25,BUNDLE_CATS=['livery','rimStyle','finish','spoiler','glow','smoke','trail'];
+function bundleFor(id){let hs=dailySeed();for(const ch of id)hs=Math.imul(hs^ch.charCodeAt(0),16777619);const r=mulberry(hs),items=[];
+ for(const k of BUNDLE_CATS){if(items.length>=3)break;const op=[];PRICE[k].forEach((p,i)=>{if(p>=40&&!isOwned(id,k,i)&&itemOn(k,i)&&!LISTS[k][i].ev)op.push(i)});if(op.length)items.push([k,op[Math.floor(r()*op.length)]])}
+ if(items.length<2)return null;const full=items.reduce((a,[k,i])=>a+PRICE[k][i],0);return{id,items,full,price:Math.round(full*(1-BUNDLE_OFF/100)/5)*5}}
+function tryBundle(B){show('shop',0);clearInterval(renderShop.t);if(pv)cancelPreview(false);if(car&&car.engineOn)setEngineView(false);
+ pv={k:B.items[0][0],prev:cfg[B.items[0][0]],b:B,prevs:{}};for(const[k,i]of B.items){pv.prevs[k]=cfg[k];cfg[k]=i}tab=optInfo(pv.k).tab;rebuildCar();renderGarage();$('opts').scrollTop=0}
+// first purchase: half the price back (up to 60 cans) on a player's first car or look, once
+const FIRST_MAX=60;
+function afterBuy(p){if(firstBuy||!(p>0))return;firstBuy=true;store.set('firstBuy',true);const b=Math.min(FIRST_MAX,Math.max(5,Math.round(p/2/5)*5));cans+=b;store.set('cans',cans);
+ setTimeout(()=>{toast(`First purchase bonus · +${b} <span class="can"></span> back`);chime([784,1047,1319]);if(state==='garage')$('gCans').textContent=fmtShort(cans)},1100)}
+// confetti for purchases: falling paper in the brand colours (none with Reduce Motion)
+function confetti(n=70){if(RM.matches)return;const box=$('confetti'),cols=['#f2b33d','#ffffff','#ff5a3c','#ffd25a','#5ad7ff'];
+ for(let j=0;j<n;j++){const e=document.createElement('i');e.style.cssText=`left:${(Math.random()*100).toFixed(1)}%;background:${cols[j%5]};animation-delay:${(Math.random()*.35).toFixed(2)}s;animation-duration:${(1.4+Math.random()*.9).toFixed(2)}s;--dx:${((Math.random()-.5)*160)|0}px;--r:${(Math.random()*720-360)|0}deg`;box.appendChild(e)}
+ clearTimeout(confetti.t);confetti.t=setTimeout(()=>box.innerHTML='',2700)}
+// items bought this session wear a "New" tag in the garage
+const fresh=new Set();
+function celebrateBundle(B){const el=$('unlockFx');el.innerHTML=`<small>Look complete</small><div class="disp">${B.items.length} new looks</div><em>Saved ${fmt(B.full-B.price)} cans · yours on every car</em>`;
+ show('unlockFx',0);void el.offsetWidth;show('unlockFx',1);clearTimeout(celebrateUnlock.t);celebrateUnlock.t=setTimeout(()=>show('unlockFx',0),3000);
+ burst(C.x,1.2,-C.d,40,9,'#f2b33d');burst(C.x,1.4,-C.d,26,7,'#ffffff');if(!RM.matches)unlockSpin=1.4;confetti(90);chime([392,523,659,784,1047,1319]);buzz(50)}
+// the shop's extras: the coupon and first-purchase lines on top; the bundle and the wishlist with "almost there" bars below
+function shopTop(){const c=cpOn(),t=[];
+ if(c)t.push(`<div class="sbanner"><b>${c.off}% coupon</b> on one car or look of ${COUPON_MIN}+ cans · ends in ${leftTxt(c.until-Date.now())}</div>`);
+ if(!firstBuy)t.push(`<div class="sbanner soft"><b>First purchase bonus:</b> half back, up to ${FIRST_MAX} cans, on your first car or look.</div>`);return t.join('')}
+function shopMore(){const B=bundleFor(cfg.model),out=[];
+ if(B)out.push(`<div class="bundle"><div class="bh"><b class="disp">Complete the look</b><span class="off">-${BUNDLE_OFF}%</span></div><small>${B.items.map(([k,i])=>lookName(k,i)).join(' + ')} · for every car</small>
+  <div class="bpv">${B.items.map(([k,i])=>{const pv0=dealPreview(k,i);return`<span class="pv" ${pv0}>${pv0?'':optInfo(k).label[0]}</span>`}).join('')}</div>
+  <div class="brow"><span class="pr"><s>${fmt(B.full)}</s><span class="can"></span>${fmt(B.price)}</span><button class="btn primary" id="bundleTry" type="button">Try it on</button></div><small class="fine">Bundles aren't combined with coupons.</small></div>`);
+ const W=[...wish].filter(w=>w.startsWith('car:')?!unlocked.includes(w.slice(4)):!owned.has(w));
+ out.push(`<h3 class="shh">♥ Your wishlist</h3>`);
+ if(!W.length)out.push(`<p class="dsub">Tap ♥ while trying on a look or viewing a locked car to save it here. You'll see a heart on Deals when it's on sale.</p>`);
+ else out.push('<div class="wlist">'+W.map(w=>{const car_=w.startsWith('car:'),id=w.slice(4),[k,i0]=w.split(':'),i=+i0,full=car_?MODELS[id].price:PRICE[k][i],p=car_?carCost(id):costOf(k,i),pct=Math.min(100,cans/p*100),go=p-cans;
+  return`<button class="wrow" type="button" data-w="${w}"><span class="wi"><b>${itemName(w)}</b><small>${car_?'Car':optInfo(k).label}${p<full?` · <em>${car_?cpOn().off:offOf(k,i)}% off today</em>`:''}</small><span class="almost"><i style="width:${pct.toFixed(0)}%"></i></span><small>${go>0?`${fmt(go)} cans to go`:'You can buy it now'}</small></span><span class="pr">${p<full?`<s>${fmt(full)}</s>`:''}<span class="can"></span>${fmt(p)}</span></button>`}).join('')+'</div>');
+ return out.join('')}
+function wireShopMore(){const bt=$('bundleTry');if(bt)bt.onclick=()=>{const B=bundleFor(cfg.model);if(B)tryBundle(B)};
+ $('shopMore').querySelectorAll('.wrow').forEach(b=>b.onclick=()=>{const w=b.dataset.w;show('shop',0);clearInterval(renderShop.t);if(pv)cancelPreview(false);
+  if(w.startsWith('car:')){selectModel(w.slice(4));rebuildCar();renderGarage();return}
+  const[k,i0]=w.split(':');if(car&&car.engineOn)setEngineView(false);tab=optInfo(k).tab;pv={k,prev:cfg[k]};cfg[k]=+i0;rebuildCar();renderGarage();$('opts').scrollTop=0})}
 /* ---------- garage UI ---------- */
 let tab='paint',plateT=0;
 function swBg(o){return o.c==='rainbow'?'background:conic-gradient(#ff3b30,#ffd23a,#4dff7a,#3a8dff,#a64dff,#ff3b30)':o.c==='carbon'?'background:repeating-conic-gradient(#3a3d44 0 25%,#141619 0 50%) 0 0/8px 8px':o.c==='body'?'background:'+PAINTS[cfg.paint].c:o.c?'background:'+o.c:''}
 // the garage pills share one row with the logo, so very large totals are shortened (123k, 9.99M); exact numbers stay elsewhere
 function fmtShort(n){n=Math.floor(n);return n<1e4?fmt(n):n<1e5?(Math.floor(n/100)/10).toFixed(1)+'k':n<1e6?Math.floor(n/1e3)+'k':(n/1e6).toFixed(n<1e7?2:1)+'M'}
-function renderGarage(){checkAch();renderAch();$('collN').textContent=`My cars ${unlocked.length}/${ORDER.length}`;$('shopDot').hidden=store.get('dealsSeen','')===todayKey();
+function renderGarage(){trialCheck();checkAch();renderAch();$('collN').textContent=`My cars ${unlocked.length}/${ORDER.length}`;$('shopDot').hidden=store.get('dealsSeen','')===todayKey();
+ // a heart on Deals when something on the wishlist is cheaper today, until the shop has been opened with that news
+ {const hits=wishHits();$('shopWish').hidden=!hits.length||store.get('wishSeen','')===wishSig();if(hits.length)$('shopDot').hidden=true}renderSpinBtn();
  $('gCans').textContent=fmtShort(cans);$('gBest').textContent=fmtShort(best);$('gLv').innerHTML=`Level ${level}<span class="xpbar"><i style="width:${Math.min(100,xp/xpNeed(level)*100)}%"></i></span>`;
  const ms=$('models').scrollLeft;
- $('models').innerHTML=ORDER.map(id=>{const m=MODELS[id],own=unlocked.includes(id);return`<button class="mcard ${cfg.model===id?'on':''} ${!own&&cans>=m.price?'ready':''}" data-m="${id}"><span class="mk">${m.make}</span><span class="mn">${m.name}</span><span class="mt">${own?m.type:cans>=m.price?'Ready to unlock':`<span class="can"></span>${fmt(m.price)} to unlock`}</span></button>`}).join('');
+ // a locked car shows an "almost there" bar: how much of its price the player already has
+ $('models').innerHTML=ORDER.map(id=>{const m=MODELS[id],own=unlocked.includes(id),cost=carCost(id),go=cost-cans,wl=wish.has('car:'+id);
+  return`<button class="mcard ${cfg.model===id?'on':''} ${!own&&go<=0?'ready':''}" data-m="${id}"><span class="mk">${m.make}${wl&&!own?' <i class="wh" aria-label="on your wishlist">♥</i>':''}${fresh.has('car:'+id)?' <i class="nw">New</i>':''}</span><span class="mn">${m.name}</span><span class="mt">${own?m.type:go<=0?'Ready to unlock':`<span class="can"></span>${fmt(go)} to go`}</span>${own?'':`<span class="almost"><i style="width:${Math.min(100,cans/cost*100).toFixed(0)}%"></i></span>`}</button>`}).join('');
  $('models').scrollLeft=ms;
  $('models').querySelectorAll('.mcard').forEach(b=>b.onclick=()=>{if(b.dataset.m===cfg.model)return;cancelPreview(false);selectModel(b.dataset.m);rebuildCar();renderGarage()});
  const M=MODELS[cfg.model];$('cName').textContent=M.name;$('cType').textContent=M.make+' · '+M.type;$('cPerk').textContent=M.perk;
@@ -2525,19 +2778,22 @@ function renderGarage(){checkAch();renderAch();$('collN').textContent=`My cars $
   if(kind==='builds')return buildsRow();
   if(kind==='text')return`<div class="opt"><span>${label}</span><input class="plate" id="plateIn" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="License plate text" value="${cfg.plate}"></div>`;
   const list=LISTS[key],cur=list[cfg[key]];
-  const items=list.map((o,i)=>{if(!itemOn(key,i)&&cfg[key]!==i)return'';const lk=!isOwned(cfg.model,key,i),p=lk?costOf(key,i):0,sale=lk&&p<PRICE[key][i],lab=lk?`${o.n}, ${p} cans`:o.n;
-   return kind==='sw'?`<button class="sw ${o.c===null?'none':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" style="${swBg(o)}" aria-label="${lab}" title="${lab}" data-k="${key}" data-i="${i}" ${lk?`data-p="${p}"`:''}></button>`:`<button class="chip ${o.leg?'leg':''} ${o.ev?'evt':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" aria-label="${lab}" data-k="${key}" data-i="${i}">${o.n}${lk?` <small class="pz${sale?' sale':''}"><span class="can"></span>${p}</small>`:''}</button>`}).join('');
+  const items=list.map((o,i)=>{if(!itemOn(key,i)&&cfg[key]!==i)return'';const id=key+':'+i,tr=trialOn(key,i)&&!owned.has(id),lk=!isOwned(cfg.model,key,i),p=lk?costOf(key,i):0,sale=lk&&p<PRICE[key][i],wl=lk&&wish.has(id),nw=fresh.has(id),
+    lab=(lk?`${o.n}, ${p} cans`:o.n)+(tr?', free trial':'')+(wl?', on your wishlist':'')+(nw?', new':''),tag=nw?'<i class="nw">New</i>':tr?'<i class="nw tr">Trial</i>':wl?'<i class="wh">♥</i>':'';
+   return kind==='sw'?`<button class="sw ${o.c===null?'none':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" style="${swBg(o)}" aria-label="${lab}" title="${lab}" data-k="${key}" data-i="${i}" ${lk?`data-p="${p}"`:''}>${tag}</button>`:`<button class="chip ${o.leg?'leg':''} ${o.ev?'evt':''} ${cfg[key]===i?'on':''} ${lk?'lock':''}" aria-label="${lab}" data-k="${key}" data-i="${i}">${o.n}${lk?` <small class="pz${sale?' sale':''}"><span class="can"></span>${p}</small>`:''}${tag}</button>`}).join('');
   return`<div class="opt"><span>${label}${kind==='sw'?` <em>${cur.n}</em>`:''}</span><div class="row">${items}</div></div>`}).join('');
  $('opts').querySelectorAll('.row').forEach((r,i)=>{if(keep[i])r.scrollLeft=keep[i]});
- $('opts').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=+b.dataset.i;if(k==='smoke'||k==='trail')fxPrevT=4;if(pv&&pv.k!==k)cancelPreview(false);
+ $('opts').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=+b.dataset.i;if(k==='smoke'||k==='trail')fxPrevT=4;if(pv&&(pv.b||pv.k!==k))cancelPreview(false);
   if(isOwned(cfg.model,k,i)){if(pv)cancelPreview(false);cfg[k]=i;saveCfg();rebuildCar();renderGarage();return}
   // a locked look is tried on first; the Drive button turns into its Buy button until the player buys or backs out
   if(!pv)pv={k,prev:cfg[k]};cfg[k]=i;rebuildCar();renderGarage()});
  $('opts').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>loadBuild(+b.dataset.b));$('opts').querySelectorAll('[data-bs]').forEach(b=>b.onclick=()=>saveBuild(+b.dataset.bs));
  const pi=$('plateIn');if(pi)pi.oninput=()=>{const v=pi.value.toUpperCase().replace(/[^A-Z0-9 ]/g,'').slice(0,7);if(pi.value!==v)pi.value=v;cfg.plate=v.trim()||'SWERVY';saveCfg();clearTimeout(plateT);plateT=setTimeout(rebuildCar,250)};
  const own=unlocked.includes(cfg.model),d=$('drive');queueMicrotask(()=>d.classList.toggle('long',d.textContent.trim().length>18));$('rand').textContent=pv?'Cancel':'Random';
- d.classList.toggle('buying',!!pv);if(pv){const p=costOf(pv.k,cfg[pv.k]),nm=LISTS[pv.k][cfg[pv.k]].n;d.classList.remove('go');d.disabled=cans<p;d.innerHTML=cans>=p?`Buy ${nm} · ${fmt(p)} <span class="can"></span>`:`Need ${fmt(p-cans)} more <span class="can"></span>`;d.setAttribute('aria-label',cans>=p?`Buy ${nm} for ${p} cans`:`${nm} costs ${p} cans, ${p-cans} more needed`);return}
- d.removeAttribute('aria-label');d.classList.toggle('go',own&&justUnlocked===cfg.model);if(own){d.textContent=justUnlocked===cfg.model?`Drive the ${M.name}`:'Drive';d.disabled=false}else if(cans>=M.price){d.textContent=`Unlock for ${fmt(M.price)} cans`;d.disabled=false}else{d.textContent=`Collect ${fmt(M.price-cans)} more cans`;d.disabled=true}}
+ const wk=wishKey(),wb=$('wishBtn');wb.hidden=!wk;if(wk){const on=wish.has(wk);wb.classList.toggle('on',on);wb.setAttribute('aria-pressed',on);wb.setAttribute('aria-label',on?`Remove ${itemName(wk)} from your wishlist`:`Add ${itemName(wk)} to your wishlist`)}
+ d.classList.toggle('buying',!!pv);if(pv&&pv.b){const p=pv.b.price;d.classList.remove('go');d.disabled=cans<p;d.innerHTML=cans>=p?`Buy bundle · ${fmt(p)} <span class="can"></span>`:`Need ${fmt(p-cans)} more <span class="can"></span>`;d.setAttribute('aria-label',cans>=p?`Buy the bundle for ${p} cans`:`The bundle costs ${p} cans, ${p-cans} more needed`);return}
+ if(pv){const p=costOf(pv.k,cfg[pv.k]),nm=LISTS[pv.k][cfg[pv.k]].n;d.classList.remove('go');d.disabled=cans<p;d.innerHTML=cans>=p?`Buy ${nm} · ${fmt(p)} <span class="can"></span>`:`Need ${fmt(p-cans)} more <span class="can"></span>`;d.setAttribute('aria-label',cans>=p?`Buy ${nm} for ${p} cans`:`${nm} costs ${p} cans, ${p-cans} more needed`);return}
+ d.removeAttribute('aria-label');d.classList.toggle('go',own&&justUnlocked===cfg.model);const mc=carCost(cfg.model);if(own){d.textContent=justUnlocked===cfg.model?`Drive the ${M.name}`:'Drive';d.disabled=false}else if(cans>=mc){d.textContent=`Unlock for ${fmt(mc)} cans`;d.disabled=false}else{d.textContent=`Collect ${fmt(mc-cans)} more cans`;d.disabled=true}}
 // what this car's upgrades do, in plain words, for the Engine tab summary
 function perfLine(P,pw){const t=[];if(pw>0)t.push(`Boosts +${Math.round(pw*140)}% longer`,`+${Math.round(pw*50)}% score`);if(P.turbo)t.push(`${[0,2,3,4][P.turbo]}s launch boost`);
  if(P.tires||P.susp)t.push(`+${(P.tires*.4+P.susp*.06).toFixed(1)} m edge grip`);if(P.susp)t.push(`${SUSP_SAVES[P.susp]} crash save${SUSP_SAVES[P.susp]>1?'s':''} per run`);
@@ -2608,7 +2864,7 @@ function drawFx(dt,sf){const k=state==='play'&&!RM.matches?(boostT>0?1:clamp((sf
  // impact flash on crashes, smashes and boost pickups (much fainter with Reduce Motion, set in juice)
  if(flashA){fxG.fillStyle=`rgba(${flashC},${flashA.toFixed(3)})`;fxG.fillRect(0,0,w,h)}}
 // true when the player can afford a locked car or an upgrade on the car they drive, so the Garage button gets a dot
-function canSpend(){if(ORDER.some(id=>!unlocked.includes(id)&&cans>=MODELS[id].price))return true;if(todaysDeals().some(d=>!owned.has(d.k+':'+d.i)&&cans>=costOf(d.k,d.i)))return true;const P=perfFor(lastDriven);return PERF.some(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1])}
+function canSpend(){if(ORDER.some(id=>!unlocked.includes(id)&&cans>=carCost(id)))return true;if(todaysDeals().some(d=>!owned.has(d.k+':'+d.i)&&cans>=costOf(d.k,d.i)))return true;const P=perfFor(lastDriven);return PERF.some(u=>P[u.id]<u.lv.length-1&&cans>=u.cost[P[u.id]+1])}
 
 /* ---------- loop ---------- */
 const tmpV=new THREE.Vector3(),desired=new THREE.Vector3(),lookD=new THREE.Vector3();
@@ -2648,7 +2904,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
    if(runRegion===2&&jr()<.7)emit(GLN,x,.15,z,(jr()-.5)*2.5,1+jr()*2,(jr()-.5)*2,'#9fb4cc',.5+jr()*.4)}skidMesh.instanceMatrix.needsUpdate=true}
   if(boostT>0)bonus+=(C.d-pd)*spec.mult;
   for(const[,ch]of chunks)for(const b of ch.boosts){if(b.got)continue;if(b.d>Math.min(pd,C.d)-2.2&&b.d<Math.max(pd,C.d)+2.2&&Math.abs(b.x-C.x)<1.7){b.got=true;b.m.visible=false;boostT=spec.boostT;boosts++;missionEvent('boost');bumpStat('boosts');popText('Boost! <b>x2</b> · guardrails on');sfxBoost();buzz(30);burst(C.x,.6,-C.d,18,7,'#ffd27a');juice('boost',C.x,-C.d)}}
-  for(const[,ch]of chunks)for(const k of ch.cans){if(k.got)continue;if(k.d>Math.min(pd,C.d)-1.8&&k.d<Math.max(pd,C.d)+1.8&&Math.abs(k.x-C.x)<1.7){k.got=true;k.m.visible=k.r.visible=false;runCans++;const pc=combo;combo=comboT>0?Math.min(3,combo+1):1;comboT=COMBO_T;missionEvent('can');bumpStat('cans');if(combo===3&&pc<3)bumpStat('combo3');bonus+=Math.round(15*spec.mult*combo);burst(k.x,1,-k.d,14+combo*4,6,'#ffc04a');juice('can',k.x,-k.d,combo);sfxCan(combo);if(combo>1)popText(`<b>x${combo}</b> combo`)}}
+  for(const[,ch]of chunks)for(const k of ch.cans){if(k.got)continue;if(k.d>Math.min(pd,C.d)-1.8&&k.d<Math.max(pd,C.d)+1.8&&Math.abs(k.x-C.x)<1.7){k.got=true;k.m.visible=k.r.visible=false;runCans+=k.gold?5:1;const pc=combo;combo=comboT>0?Math.min(3,combo+1):1;comboT=COMBO_T;missionEvent('can');bumpStat('cans');if(combo===3&&pc<3)bumpStat('combo3');bonus+=Math.round(15*spec.mult*combo);burst(k.x,1,-k.d,14+combo*4,6,'#ffc04a');juice('can',k.x,-k.d,combo);sfxCan(combo);if(k.gold)goldFx(k);else if(combo>1)popText(`<b>x${combo}</b> combo`)}}
   obstacleTick(pd);
  }else if(state==='crash'){
   // the first half-second of a crash plays in slow motion, easing back to full speed (not with Reduce Motion);
@@ -2670,6 +2926,7 @@ function frame(now){if(innerWidth>0&&R.domElement.width===0)resize();
  glowLight.position.set(C.x,.25+C.y,-C.d);
  // cans bob
  const t=now/1000;MT.boost.map.offset.y=-((t*1.6)%1);// chevrons stream forward
+ if(goldOn&&!RM.matches)MT.canG.emissiveIntensity=.7+.45*Math.sin(t*6);
  for(const[,ch]of chunks)for(const k of ch.cans)if(!k.got){k.m.position.y=1+Math.sin(t*2.5+k.ph)*.15;k.m.rotation.y=t*1.6+k.ph;k.r.material.opacity=.4+Math.sin(t*4+k.ph)*.15}
  // particles
  for(const p of smoke){if(p.life<=0)continue;p.life-=dt*.9;p.s.position.y+=dt*.7;p.s.scale.setScalar(.8+(1-p.life)*3.2);p.s.material.opacity=Math.max(0,p.life)*(p.tint?.5:.32);if(p.life<=0)p.s.visible=false}
@@ -2749,7 +3006,7 @@ new MutationObserver(()=>{if(!ariaSync.q){ariaSync.q=1;queueMicrotask(ariaSync)}
 try{new ResizeObserver(()=>resize()).observe(document.documentElement)}catch(e){}
 if(window.visualViewport)visualViewport.addEventListener('resize',resize);
 
-rebuildCar();resetWorld();applyQuality();controlText();goGarage();
+rebuildCar();resetWorld();applyQuality();controlText();goGarage();noteSession();
 // first launch: the garage opens with the starter-car pick; driving it starts the tutorial
 if(!store.get('starterPicked',false)&&!store.get('tutDone',false)&&!best&&!bestDist)openPick();
 requestAnimationFrame(frame);
