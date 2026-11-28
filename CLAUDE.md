@@ -18,10 +18,12 @@ Never put one game's files into another game's repo.
 | Swoopy Wings | `torquespecstudios/swoopy` (game file `swoopy.html`) | none (beta taken down) |
 | Tuggy | `torquespecstudios/tuggy` | `tug/index.html` (beta, restored Nov 22, 2026) |
 | Scoopy | `torquespecstudios/scoopy` | none (beta taken down) |
+| Poker Floor | `torquespecstudios/poker-floor` (to be created; source also at `app/index.html` there) | `poker/index.html` (scrambled build, unlisted) |
 
 **Nov 21, 2026: the owner took the Swoopy Wings, Tuggy and Scoopy betas off the site; on Nov 22 Tuggy came back** (its `tug/` page, home-page section and images are restored). Swoopy's and Scoopy's `swoopy-beta/` and `scoopy-beta/` pages, home-page sections and images stay off so the site focuses on Swervy and Tuggy. Their private repos are unchanged. Don't publish the Swoopy or Scoopy betas here again unless the owner asks; until then, changes to those games go to their private repos only. The notes below say how each beta was built, for when one comes back.
 
 Notes:
+- **Poker Floor:** `poker/index.html` is a **scrambled (obfuscated) build**, never the readable source. The owner does not want the code readable. Rebuild it in the poker-floor repo with `node scripts/web.mjs` and copy `dist/web/index.html` here. It is unlisted on purpose: not on the home page or in sitemap.xml, and it has a noindex tag. Commit style: "Poker Floor vN: what changed".
 - **Tuggy:** the private repo's `index.html` is the same file as `tug/index.html` here. Copy it across unchanged and use the same commit message (e.g. "Tuggy beta v36").
 - **Scoopy:** the private repo holds the full project (`index.html`, README, icons, Capacitor files). `scoopy-beta/index.html` here is the same game with beta-only `<head>` tags added (noindex, Open Graph, manifest) and the offline `lib/three.min.js` fallback line removed. Make game changes in the private repo first, then copy them into `scoopy-beta/index.html`, keeping those head differences. Bump the version label in Settings ("Scoopy beta vN") in both.
 - **Swervy:** `play/index.html` is the private repo's `hairpin.html` with beta-only `<head>` tags added; keep those when copying.
